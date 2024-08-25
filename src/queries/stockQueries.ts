@@ -3,7 +3,10 @@ import axios from "axios";
 export const fetchTickerList = async () => {
   try {
     const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/tickers`);
-    return response.data;
+    const res_data = response.data
+    if (response.status === 200 && res_data) {
+      return res_data.tickers
+    }
   } catch (error) {
     console.error("Error fetching tickers:", error);
   }
