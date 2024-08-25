@@ -26,7 +26,7 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
   useEffect(() => {
     const fetchCompanyProfile = async () => {
       try {
-        const response = await axios.get(`/api/stock/company_profile/?ticker=${ticker}`);
+        const response = await axios.get(`/api/stock/company_profile?ticker=${ticker}`);
         setCompanyProfile(response.data.company_profile);
       } catch (error) {
         console.error("Error fetching company profile:", error);

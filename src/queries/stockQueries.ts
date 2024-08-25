@@ -11,7 +11,7 @@ export const fetchTickerList = async () => {
 
 export const fetchQuoteInfo = async (ticker: string) => {
   try {
-    const response = await axios.get(`/api/stock/quote/?ticker=${ticker}`);
+    const response = await axios.get(`/api/stock/quote?ticker=${ticker}`);
     return response.data.quoteInfo;
   } catch (error) {
     console.error(`Error fetching quote info for ${ticker}:`, error);
