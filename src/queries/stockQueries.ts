@@ -16,7 +16,7 @@ export const fetchEodData = async (ticker: string, startDate: Date) => {
       params: params,
     });
     if (response.status !== 200) {
-      console.error(`Tinngo EOD request returned with ${response.status}`);
+      throw new Error(`Tinngo EOD request returned with ${response.status}`);
     }
     const priceData = response.data.eod_data.map((d: PriceData) => ({
       date: new Date(d?.date),
@@ -35,7 +35,7 @@ export const fetchEodData = async (ticker: string, startDate: Date) => {
     }));
     return priceData;
   } catch (error) {
-    console.error("Failed to fetch stock prices:", error);
+    console.error("Failed to fetch stock prices: ", error);
     return [];
   }
 };
@@ -48,7 +48,7 @@ export const fetchTickerList = async () => {
     }
     return response.data.tickers;
   } catch (error) {
-    console.error("Error fetching tickers:", error);
+    console.error("Error fetching tickers: ", error);
   }
 };
 

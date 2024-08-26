@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
 import { useQuery } from "react-query";
-import axios from "axios";
 
 import NewsCard from "@/src/components/News/NewsCard";
 import Loader from "@/src/components/units/Loader";
@@ -13,6 +12,7 @@ import { Article } from "@/src/types/Article";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
 import { fetchTickerList } from "@/src/queries/stockQueries";
+import { fetchArticles } from "@/src/queries/newsQueries";
 
 const NewsDisplay = () => {
   // Page and loading info
@@ -57,43 +57,36 @@ const NewsDisplay = () => {
     [2, getDateDaysBefore(6)],
   ]);
 
-  const loadArticles = async (curr_page: number) => {
-    try {
-      const sentiment =
-        selectedSentiment != null ? sentimentOptions.get(selectedSentiment) || "" : "";
-      const priceAction =
-        selectedPriceAction != null ? priceActionOptions.get(selectedPriceAction) || "" : "";
-      const endDate = selectedDateRange != null ? dateRanges.get(selectedDateRange) || "" : "";
+  const getPageArticles = async (curr_page: number) => {
+    const sentiment =
+      selectedSentiment != null ? sentimentOptions.get(selectedSentiment) || "" : "";
+    const priceAction =
+      selectedPriceAction != null ? priceActionOptions.get(selectedPriceAction) || "" : "";
+    const endDate = selectedDateRange != null ? dateRanges.get(selectedDateRange) || "" : "";
 
-      const queryParams = new URLSearchParams({
-        page: curr_page.toString(),
-        search_query: searchQuery || "",
-        tickers: selectedTickers.join(","),
-        sentiment: sentiment,
-        price_action: priceAction,
-        end_date: endDate,
-      });
+    const articles = await fetchArticles(
+      curr_page,
+      searchQuery,
+      selectedTickers,
+      sentiment,
+      priceAction,
+      endDate
+    );
 
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/article/news?${queryParams}`
-      );
-      return response.data.articles;
-    } catch (error) {
-      console.error("Error fetching articles: ", error);
-    }
+    return articles;
   };
 
   const getNewlyFilteredArticles = async () => {
     setLoading(true);
-    setPage(0)
-    const articles = await loadArticles(0);
+    setPage(0);
+    const articles = await getPageArticles(0);
     setArticles(articles);
     setLoading(false);
   };
 
   const loadNextPageArticles = async () => {
     setLoadingMore(true);
-    const articles = await loadArticles(page + 1);
+    const articles = await getPageArticles(page + 1);
     setArticles((prevArticles) => [...prevArticles, ...articles]);
     setPage((prev) => prev + 1);
     setLoadingMore(false);
