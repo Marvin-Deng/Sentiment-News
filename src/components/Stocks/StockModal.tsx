@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Modal from "react-modal";
 import { useTheme } from "next-themes";
-import axios from "axios";
 
 import WebSocketManager from "@/src/websocket/SocketManager";
 import LineChart from "@/src/components/Stocks/LineChart";
 import DataTable from "@/src/components/Stocks/DataTable";
+
+import { fetchEodData } from "@/src/queries/stockQueries";
 
 import {
   PriceData,
@@ -14,7 +15,6 @@ import {
   DEFAULT_LIVE_TRADE_DATA,
 } from "@/src/types/Stock";
 import { getPriceColorStr, getPriceDiffStr, getPercentChangeStr } from "@/src/utils/priceUtils";
-import { dateToISOString } from "@/src/utils/dateUtils";
 
 interface StockModalProps {
   company: string;
@@ -47,33 +47,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   useEffect(() => {
     const fetchStockPrices = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/stock/tinngo_stock_prices`,
-          {
-            params: {
-              ticker: ticker,
-              start_date: dateToISOString(startDate),
-              end_date: dateToISOString(new Date()),
-              format: "json",
-              resampleFreq: "monthly",
-            },
-          }
-        );
-        const priceData = response.data.map((d: PriceData) => ({
-          date: new Date(d?.date),
-          open: +d?.open,
-          close: +d?.close,
-          low: +d?.low,
-          high: +d?.high,
-          volume: +d?.volume,
-          adjOpen: +d?.adjOpen,
-          adjHigh: +d?.adjHigh,
-          adjLow: +d?.adjLow,
-          adjClose: +d?.adjClose,
-          adjVolume: +d?.adjVolume,
-          divCash: +d?.divCash,
-          splitFactor: +d?.splitFactor,
-        }));
+        const priceData = await fetchEodData(ticker, startDate);
         setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData)));
       } catch (error) {
         console.error("Failed to fetch stock prices:", error);

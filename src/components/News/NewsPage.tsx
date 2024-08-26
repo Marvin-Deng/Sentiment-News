@@ -77,7 +77,7 @@ const NewsDisplay = () => {
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/article/news?${queryParams}`
       );
-      return response.data["data"];
+      return response.data.articles;
     } catch (error) {
       console.error("Error fetching articles: ", error);
     }
