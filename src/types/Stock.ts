@@ -1,6 +1,6 @@
 // Types
 
-export interface StockInfo {
+export type StockInfo = {
   currency: string;
   description: string;
   displaySymbol: string;
@@ -10,7 +10,7 @@ export interface StockInfo {
   type: string;
 }
 
-export interface PriceData {
+export type PriceData = {
   date: Date;
   open: number;
   high: number;
@@ -26,13 +26,13 @@ export interface PriceData {
   splitFactor: number;
 }
 
-export interface LiveTradeData {
+export type LiveTradeData = {
   p: number;
   t: number;
   v: number;
 }
 
-export interface QuoteData {
+export type QuoteData = {
   c: number;
   h: number;
   l: number;
@@ -41,7 +41,7 @@ export interface QuoteData {
   t: number;
 }
 
-export interface CompanyProfile {
+export type CompanyProfile = {
   country: string;
   currency: string;
   exchange: string;
