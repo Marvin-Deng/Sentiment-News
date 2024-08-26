@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect, useContext } from "react";
-import { useQuery } from "react-query";
 
 import NewsCard from "@/src/components/News/NewsCard";
 import Loader from "@/src/components/units/Loader";
@@ -13,6 +12,7 @@ import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvide
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
 import { fetchTickerList } from "@/src/queries/stockQueries";
 import { fetchArticles } from "@/src/queries/newsQueries";
+import { useQueryNoRefetch } from "@/src/queries/queryHook";
 
 const NewsDisplay = () => {
   // Page and loading info
@@ -29,13 +29,7 @@ const NewsDisplay = () => {
   const [selectedDateRange, setSelectedDateRange] = useState<number | null>(null);
 
   // Filter options
-  const { data: tickerOptions } = useQuery("tickerList", fetchTickerList, {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: tickerOptions } = useQueryNoRefetch("tickerList", fetchTickerList);
   const sentimentOptions = new Map<number, string>([
     [0, "Positive"],
     [1, "Negative"],

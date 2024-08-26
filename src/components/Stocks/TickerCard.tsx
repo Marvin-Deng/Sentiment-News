@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useQuery } from "react-query";
 import axios from "axios";
 
 import { CompanyProfile } from "@/src/types/Stock";
 import { getPriceDiffStr } from "@/src/utils/priceUtils";
 import { fetchQuoteInfo } from "@/src/queries/stockQueries";
+import { useQueryNoRefetch } from "@/src/queries/queryHook";
 
 interface TickerCardProps {
   ticker: string;
@@ -14,14 +14,7 @@ interface TickerCardProps {
 const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [fetchSuccess, setFetchSuccess] = useState(true);
-
-  const { data: tickerQuote } = useQuery(`${ticker}_quote`, () => fetchQuoteInfo(ticker), {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: tickerQuote } = useQueryNoRefetch(`${ticker}_quote`, () => fetchQuoteInfo(ticker));
 
   useEffect(() => {
     const fetchCompanyProfile = async () => {

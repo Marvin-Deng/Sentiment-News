@@ -1,10 +1,10 @@
 "use client";
 import React from "react";
-import { useQuery } from "react-query";
 
 import { Article } from "@/src/types/Article";
 import { getPriceColorStr, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { fetchSentiments } from "@/src/queries/newsQueries";
+import { useQueryNoRefetch } from "@/src/queries/queryHook";
 
 const Card: React.FC<Article> = ({
   title,
@@ -18,13 +18,7 @@ const Card: React.FC<Article> = ({
   open_price,
   close_price,
 }) => {
-  const { data: sentimentOptions } = useQuery("sentiments", fetchSentiments, {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: sentimentOptions } = useQueryNoRefetch("sentiments", fetchSentiments);
 
   const truncateSummary = (text: string, maxLength: number) => {
     if (text.length <= maxLength) {

@@ -1,6 +1,5 @@
 "use client";
 import React, { useState, useEffect, useContext } from "react";
-import { useQuery } from "react-query";
 import axios from "axios";
 
 import TickerCard from "@/src/components/Stocks/TickerCard";
@@ -12,6 +11,7 @@ import MultiSelectDropdown from "@/src/components/Dropdown/Multiselect";
 import { StockInfo } from "@/src/types/Stock";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
 import { fetchTickerList } from "@/src/queries/stockQueries";
+import { useQueryNoRefetch } from "@/src/queries/queryHook";
 
 const StocksPage = () => {
   // Page and modal info
@@ -29,13 +29,7 @@ const StocksPage = () => {
   const [currTicker, setCurrTicker] = useState("");
 
   // Filter options
-  const { data: tickerOptions } = useQuery("tickerList", fetchTickerList, {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: tickerOptions } = useQueryNoRefetch("tickerList", fetchTickerList);
 
   useEffect(() => {
     const fetchStockExchange = async () => {

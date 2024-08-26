@@ -1,21 +1,15 @@
 import React from "react";
-import { useQuery } from "react-query";
 
 import { getPriceColorStr, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { fetchQuoteInfo } from "@/src/queries/stockQueries";
+import { useQueryNoRefetch } from "@/src/queries/queryHook";
 
 interface HeaderCardProps {
   ticker: string;
 }
 
 const HeaderCard: React.FC<HeaderCardProps> = ({ ticker }) => {
-  const { data: tickerQuote } = useQuery(`${ticker}_quote`, () => fetchQuoteInfo(ticker), {
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-  });
+  const { data: tickerQuote } = useQueryNoRefetch(`${ticker}_quote`, () => fetchQuoteInfo(ticker));
 
   return (
     <div key={ticker} className="flex-shrink-0 w-64 p-4">

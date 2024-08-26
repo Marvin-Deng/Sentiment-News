@@ -46,12 +46,8 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
 
   useEffect(() => {
     const fetchStockPrices = async () => {
-      try {
-        const priceData = await fetchEodData(ticker, startDate);
-        setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData)));
-      } catch (error) {
-        console.error("Failed to fetch stock prices:", error);
-      }
+      const priceData = await fetchEodData(ticker, startDate);
+      setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData)));
     };
 
     if (isOpen) {
