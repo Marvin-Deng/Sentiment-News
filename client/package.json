@@ -1,0 +1,44 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@chakra-ui/react": "^3.36.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@hugeicons/core-free-icons": "^4.2.1",
+    "@hugeicons/react": "^1.1.7",
+    "@react-financial-charts/axes": "^2.0.0",
+    "d3-format": "^3.1.2",
+    "d3-scale": "^4.0.2",
+    "d3-time-format": "^4.1.0",
+    "next": "16.2.9",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-financial-charts": "^2.0.1",
+    "react-modal": "^3.16.3"
+  },
+  "optionalDependencies": {
+    "@tanstack/react-query": "^5",
+    "axios": "^1",
+    "dayjs": "^1",
+    "next-themes": "^0.2",
+    "react-icons": "^4"
+  },
+  "devDependencies": {
+    "@types/d3-format": "^3.0.4",
+    "@types/d3-time-format": "^4.0.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.9",
+    "typescript": "^5"
+  }
+}
