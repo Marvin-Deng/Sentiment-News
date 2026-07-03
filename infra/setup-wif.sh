@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PROJECT_ID="Enter project ID here"
+PROJECT_ID=news-app-500905
 REPO="Marvin-Deng/Sentiment-News"
 POOL_ID="github-actions"
 PROVIDER_ID="github"
 SA_NAME="github-actions-account"
 
 # 1. Enable required APIs
-gcloud services enable iamcredentials.googleapis.com \
+gcloud services enable iamcredentials.googleapis.com cloudresourcemanager.googleapis.com \
   --project=$PROJECT_ID
 
 # 2. Create the Workload Identity Pool
 gcloud iam workload-identity-pools create $POOL_ID \
   --project=$PROJECT_ID \
   --location="global" \
-  --display-name="GitHub Actions"
+  --display-name="GitHub Actions" || true
 
 # 3. Create the OIDC provider within the pool
 gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID \
@@ -25,9 +25,9 @@ gcloud iam workload-identity-pools providers create-oidc $PROVIDER_ID \
   --display-name="GitHub" \
   --issuer-uri="https://token.actions.githubusercontent.com" \
   --attribute-mapping="google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.actor=assertion.actor" \
-  --attribute-condition="assertion.repository=='$REPO'"
+  --attribute-condition="assertion.repository=='$REPO'" || true
 
-# 4. Create the service account (skip if already exists)
+# 4. Create the service account
 gcloud iam service-accounts create $SA_NAME \
   --project=$PROJECT_ID \
   --display-name="GitHub Actions" || true
@@ -38,7 +38,8 @@ for ROLE in \
   roles/storage.admin \
   roles/run.admin \
   roles/artifactregistry.admin \
-  roles/iam.serviceAccountUser; do
+  roles/iam.serviceAccountUser \
+  roles/serviceusage.serviceUsageAdmin; do
   gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
     --role="$ROLE"

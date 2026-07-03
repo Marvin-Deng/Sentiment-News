@@ -1,0 +1,68 @@
+name: Cloud Run Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - client/**
+      - infra/cloud_run/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: us-central1
+  REPOSITORY: client
+  SERVICE: client
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.6"
+
+      - name: Terraform init
+        working-directory: infra/cloud_run
+        run: terraform init
+
+      - name: Create Artifact Registry repository
+        working-directory: infra/cloud_run
+        run: |
+          terraform apply -auto-approve \
+            -target=google_project_service.artifact_registry \
+            -target=google_artifact_registry_repository.client \
+            -var="image=placeholder"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        working-directory: client
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE }}:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Terraform apply
+        working-directory: infra/cloud_run
+        run: terraform apply -auto-approve -var="image=${{ env.IMAGE }}"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
