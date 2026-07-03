@@ -1,5 +1,14 @@
 # Sentiment News
 
+## Infra Setup
+
+1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
+2. Enter your GCP project ID in `infra/setup-wif.sh` (`PROJECT_ID`), then run:
+
+```bash
+./infra/setup-wif.sh
+```
+
 ## Frontend Setup
 
 ```bash
@@ -10,11 +19,7 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Jobs
-
-The `jobs/news-ingest` job fetches news from Finnhub, analyzes sentiment, and upserts articles and tickers to Firestore.
-
-### Setup
+## Jobs Setup
 
 1. Install [Go 1.22+](https://go.dev/dl/).
 2. Copy the env template and fill in your API keys:
@@ -32,7 +37,7 @@ Required variables in `jobs/.env`:
 | `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            |
 | `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             |
 
-### Run the news ingest job
+3. Run the news ingest job:
 
 ```bash
 cd jobs/news-ingest
