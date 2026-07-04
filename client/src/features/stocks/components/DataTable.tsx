@@ -1,7 +1,6 @@
 import React, { ReactNode } from "react";
 import { PriceData } from "@/src/features/stocks/types";
-import { LiveTradeData } from "@/src/websocket/SocketManager";
-import { unixToLocal } from "@/src/utils/dateUtils";
+import { QuoteInfo } from "@/src/features/stocks/api";
 
 interface TableBodyProps {
   children: ReactNode;
@@ -14,7 +13,7 @@ interface TableColumnProps {
 
 interface DataTableProps {
   currPriceData: PriceData;
-  latestTradeData: LiveTradeData;
+  quoteInfo: QuoteInfo | null;
 }
 
 const TableBody: React.FC<TableBodyProps> = ({ children }) => (
@@ -28,14 +27,13 @@ const TableColumn: React.FC<TableColumnProps> = ({ label, value }) => (
   </tr>
 );
 
-const DataTable: React.FC<DataTableProps> = ({ currPriceData, latestTradeData }) => (
+const DataTable: React.FC<DataTableProps> = ({ currPriceData, quoteInfo }) => (
   <div className="p-4">
-    <h2 className="font-bold mb-2">Latest Trade</h2>
-    <p className="mb-2 text-sm">At time {unixToLocal(latestTradeData?.t)}</p>
+    <h2 className="font-bold mb-2">Latest Quote</h2>
     <TableBody>
       <tbody>
-        <TableColumn label="Current Price" value={latestTradeData?.p} />
-        <TableColumn label="Volume" value={latestTradeData?.v} />
+        <TableColumn label="Current Price" value={quoteInfo?.current ?? 0} />
+        <TableColumn label="Change" value={quoteInfo?.change ?? 0} />
       </tbody>
     </TableBody>
 

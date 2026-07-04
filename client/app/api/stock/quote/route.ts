@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   const ticker = searchParams.get("ticker") ?? "AAPL";
 
   try {
-    const url = `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.NEXT_PUBLIC_FINNHUB_KEY_1}`;
+    const url = `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`;
     const res = await fetch(url, { cache: "no-store" });
     if (!res.ok) throw new Error(`Finnhub quote request failed: ${res.status}`);
     const data = await res.json();

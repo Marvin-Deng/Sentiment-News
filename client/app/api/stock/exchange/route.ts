@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const url = `https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${process.env.NEXT_PUBLIC_FINNHUB_KEY_1}`;
+    const url = `https://finnhub.io/api/v1/stock/symbol?exchange=US&token=${process.env.FINNHUB_KEY}`;
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`Finnhub exchange request failed: ${res.status}`);
     const data = await res.json();

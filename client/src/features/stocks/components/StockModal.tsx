@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 
-import WebSocketManager, { LiveTradeData } from "@/src/websocket/SocketManager";
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
 
-import { fetchEodData } from "@/src/features/stocks/api";
+import { fetchEodData, fetchQuoteInfo, QuoteInfo } from "@/src/features/stocks/api";
 import { PriceData, DEFAULT_PRICE_DATA } from "@/src/features/stocks/types";
 import { getPriceColorStr, getPriceDiffStr, getPercentChangeStr } from "@/src/utils/priceUtils";
-
-const DEFAULT_LIVE_TRADE_DATA: LiveTradeData = { p: 0, t: 0, v: 0 };
 
 interface StockModalProps {
   company: string;
@@ -24,7 +21,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   const [selectedRange, setSelectedRange] = useState("YTD");
   const [startDate, setStartDate] = useState(new Date());
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
-  const [latestTrade, setLatestTrade] = useState<LiveTradeData>(DEFAULT_LIVE_TRADE_DATA);
+  const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
@@ -61,15 +58,20 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   }, [stockDataMap, ticker]);
 
   useEffect(() => {
-    const fetchLatestTrade = (wsManager: WebSocketManager) => {
-      setLatestTrade(wsManager.getLatestTrade(ticker));
+    if (!isOpen) return;
+
+    const fetchQuote = async () => {
+      try {
+        const data = await fetchQuoteInfo(ticker);
+        setQuoteInfo(data);
+      } catch {
+        setQuoteInfo(null);
+      }
     };
-    if (isOpen) {
-      const wsManager = WebSocketManager.getInstance();
-      wsManager.addSubListener([ticker]);
-      const interval = setInterval(() => fetchLatestTrade(wsManager), 5000);
-      return () => clearInterval(interval);
-    }
+
+    fetchQuote();
+    const interval = setInterval(fetchQuote, 5000);
+    return () => clearInterval(interval);
   }, [isOpen, ticker]);
 
   useEffect(() => {
@@ -149,7 +151,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
           <LineChart ticker={ticker} priceData={getPriceDataRange()} />
           <div className="flex justify-center">
             <div className="w-4/5 sm:w-1/2">
-              <DataTable currPriceData={currPriceData} latestTradeData={latestTrade} />
+              <DataTable currPriceData={currPriceData} quoteInfo={quoteInfo} />
             </div>
           </div>
         </div>

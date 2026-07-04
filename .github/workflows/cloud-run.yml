@@ -86,8 +86,18 @@ jobs:
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
-      - name: Terraform apply
+      - name: Terraform apply (create/update service)
         working-directory: infra/cloud_run
         run: terraform apply -auto-approve -var="image=${{ env.IMAGE }}"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Terraform apply (set app URL now that service exists)
+        working-directory: infra/cloud_run
+        run: |
+          SERVICE_URL=$(terraform output -raw service_url)
+          terraform apply -auto-approve \
+            -var="image=${{ env.IMAGE }}" \
+            -var="app_url=$SERVICE_URL"
         env:
           TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
