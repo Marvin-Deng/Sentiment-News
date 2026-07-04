@@ -39,7 +39,9 @@ for ROLE in \
   roles/run.admin \
   roles/artifactregistry.admin \
   roles/iam.serviceAccountUser \
-  roles/serviceusage.serviceUsageAdmin; do
+  roles/serviceusage.serviceUsageAdmin \
+  roles/secretmanager.admin \
+  roles/cloudscheduler.admin; do
   gcloud projects add-iam-policy-binding $PROJECT_ID \
     --member="serviceAccount:$SA_NAME@$PROJECT_ID.iam.gserviceaccount.com" \
     --role="$ROLE"
