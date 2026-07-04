@@ -36,9 +36,34 @@ jobs:
         with:
           terraform_version: "~> 1.6"
 
+      - name: Ensure Terraform state bucket exists
+        run: |
+          BUCKET="gs://${{ secrets.GCP_PROJECT_ID }}-tfstate"
+          gsutil ls -b "$BUCKET" >/dev/null 2>&1 || \
+            gsutil mb -p "${{ secrets.GCP_PROJECT_ID }}" -l "${{ env.REGION }}" "$BUCKET"
+
       - name: Terraform init
         working-directory: infra/cloud_run
-        run: terraform init
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tfstate"
+
+      - name: Import pre-existing resources into state
+        working-directory: infra/cloud_run
+        run: |
+          terraform import google_project_service.artifact_registry \
+            "${{ secrets.GCP_PROJECT_ID }}/artifactregistry.googleapis.com" || true
+          terraform import google_artifact_registry_repository.client \
+            "projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ env.REGION }}/repositories/client" || true
+          terraform import google_project_service.run \
+            "${{ secrets.GCP_PROJECT_ID }}/run.googleapis.com" || true
+          terraform import google_cloud_run_v2_service.client \
+            "projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ env.REGION }}/services/client" || true
+          terraform import google_cloud_run_v2_service_iam_member.public_access \
+            "projects/${{ secrets.GCP_PROJECT_ID }}/locations/${{ env.REGION }}/services/client roles/run.invoker allUsers" || true
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          TF_VAR_image: placeholder
 
       - name: Create Artifact Registry repository
         working-directory: infra/cloud_run

@@ -27,11 +27,32 @@ jobs:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
+      - uses: google-github-actions/setup-gcloud@v2
+
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "~> 1.6"
 
-      - run: terraform init
+      - name: Ensure Terraform state bucket exists
+        run: |
+          BUCKET="gs://${{ secrets.GCP_PROJECT_ID }}-tfstate"
+          gsutil ls -b "$BUCKET" >/dev/null 2>&1 || \
+            gsutil mb -p "${{ secrets.GCP_PROJECT_ID }}" -l "us-central1" "$BUCKET"
+
+      - run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tfstate"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Import pre-existing resources into state
+        run: |
+          terraform import google_project_service.firestore \
+            "${{ secrets.GCP_PROJECT_ID }}/firestore.googleapis.com" || true
+          terraform import google_firestore_database.default \
+            "projects/${{ secrets.GCP_PROJECT_ID }}/databases/(default)" || true
+          terraform import 'google_firestore_field.expires_at_ttl["articles"]' \
+            "projects/${{ secrets.GCP_PROJECT_ID }}/databases/(default)/collectionGroups/articles/fields/expiresAt" || true
         env:
           TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
 

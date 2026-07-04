@@ -7,6 +7,10 @@ terraform {
       version = "~> 6.0"
     }
   }
+
+  backend "gcs" {
+    prefix = "cloud_run"
+  }
 }
 
 provider "google" {
