@@ -31,6 +31,12 @@ resource "google_project_service" "cloud_scheduler" {
   disable_on_destroy = false
 }
 
+resource "google_project_service" "iam" {
+  project            = var.project_id
+  service            = "iam.googleapis.com"
+  disable_on_destroy = false
+}
+
 resource "google_artifact_registry_repository" "news_ingest" {
   project       = var.project_id
   location      = local.region
@@ -98,6 +104,8 @@ resource "google_service_account" "scheduler_invoker" {
   project      = var.project_id
   account_id   = "news-ingest-scheduler"
   display_name = "Invokes the news-ingest Cloud Run Job on a schedule"
+
+  depends_on = [google_project_service.iam]
 }
 
 resource "google_cloud_run_v2_job_iam_member" "scheduler_invoker" {
