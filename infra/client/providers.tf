@@ -9,7 +9,7 @@ terraform {
   }
 
   backend "gcs" {
-    prefix = "cloud_run"
+    prefix = "client"
   }
 }
 

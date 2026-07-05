@@ -7,9 +7,6 @@ locals {
     gemini_key     = "gemini-key"
   }
 
-  # The Cloud Run default runtime service account, granted access by default since
-  # infra/cloud_run (and future services like the news ingestion job) run as it
-  # unless a dedicated service account is configured.
   default_accessor_service_accounts = [
     "${data.google_project.current.number}-compute@developer.gserviceaccount.com",
   ]

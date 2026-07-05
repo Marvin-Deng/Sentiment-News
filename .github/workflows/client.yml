@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - client/**
-      - infra/cloud_run/**
+      - infra/client/**
   workflow_dispatch:
 
 permissions:
@@ -43,13 +43,13 @@ jobs:
             gsutil mb -p "${{ secrets.GCP_PROJECT_ID }}" -l "${{ env.REGION }}" "$BUCKET"
 
       - name: Terraform init
-        working-directory: infra/cloud_run
+        working-directory: infra/client
         run: |
           terraform init \
             -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tfstate"
 
       - name: Import pre-existing resources into state
-        working-directory: infra/cloud_run
+        working-directory: infra/client
         run: |
           terraform import google_project_service.artifact_registry \
             "${{ secrets.GCP_PROJECT_ID }}/artifactregistry.googleapis.com" || true
@@ -66,7 +66,7 @@ jobs:
           TF_VAR_image: placeholder
 
       - name: Create Artifact Registry repository
-        working-directory: infra/cloud_run
+        working-directory: infra/client
         run: |
           terraform apply -auto-approve \
             -target=google_project_service.artifact_registry \
@@ -87,13 +87,13 @@ jobs:
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 
       - name: Terraform apply (create/update service)
-        working-directory: infra/cloud_run
+        working-directory: infra/client
         run: terraform apply -auto-approve -var="image=${{ env.IMAGE }}"
         env:
           TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Terraform apply (set app URL now that service exists)
-        working-directory: infra/cloud_run
+        working-directory: infra/client
         run: |
           SERVICE_URL=$(terraform output -raw service_url)
           terraform apply -auto-approve \
