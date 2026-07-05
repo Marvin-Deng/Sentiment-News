@@ -102,6 +102,18 @@ func (s *Store) UpsertTicker(
 	}, nil
 }
 
+func (s *Store) ArticleExistsByURL(ctx context.Context, articleURL string) (bool, error) {
+	docs, err := s.client.Collection("articles").
+		Where("articleUrl", "==", articleURL).
+		Limit(1).
+		Documents(ctx).
+		GetAll()
+	if err != nil {
+		return false, fmt.Errorf("check article by url: %w", err)
+	}
+	return len(docs) > 0, nil
+}
+
 func (s *Store) UpsertArticle(ctx context.Context, article Article) error {
 	docID := fmt.Sprintf("%d", article.ArticleID)
 	doc := map[string]any{

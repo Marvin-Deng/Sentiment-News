@@ -145,10 +145,19 @@ func (s *Service) addArticle(
 	processed[article.ID] = struct{}{}
 	mu.Unlock()
 
+	exists, err := s.store.ArticleExistsByURL(ctx, article.URL)
+	if err != nil {
+		return fmt.Errorf("check article exists %d: %w", article.ID, err)
+	}
+	if exists {
+		log.Printf("skipping duplicate article url: %s", article.URL)
+		return nil
+	}
+
 	sentimentValue := s.sentiment.Evaluate(ctx, article.Headline, article.Summary)
 	publicationDatetime := stock.FormatPublicationDatetime(article.Datetime)
 
-	err := s.store.UpsertArticle(ctx, repository.Article{
+	err = s.store.UpsertArticle(ctx, repository.Article{
 		ArticleID:           article.ID,
 		Title:               article.Headline,
 		ImageURL:            article.Image,
