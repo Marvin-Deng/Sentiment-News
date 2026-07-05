@@ -11,6 +11,27 @@
 
 ## Frontend Setup
 
+The `/api/article/news` route reads articles from Firestore, so it needs a GCP project ID and
+credentials even for local development.
+
+1. Copy the env template and fill in your project ID:
+
+```bash
+cp client/.env.example client/.env.local
+```
+
+| Variable         | Description                                                              |
+| ---------------- | ------------------------------------------------------------------------- |
+| `GCP_PROJECT_ID` | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore |
+
+2. Authenticate with Application Default Credentials so the Firestore client can find them:
+
+```bash
+gcloud auth application-default login
+```
+
+3. Install and run:
+
 ```bash
 cd client
 npm i
