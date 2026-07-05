@@ -39,6 +39,7 @@ for ROLE in \
   roles/run.admin \
   roles/artifactregistry.admin \
   roles/iam.serviceAccountUser \
+  roles/iam.serviceAccountAdmin \
   roles/serviceusage.serviceUsageAdmin \
   roles/secretmanager.admin \
   roles/cloudscheduler.admin; do
