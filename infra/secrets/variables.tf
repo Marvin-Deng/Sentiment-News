@@ -4,7 +4,7 @@ variable "project_id" {
 }
 
 variable "secrets" {
-  description = "Values for app secrets (finnhub_key, tiingo_api_key), sourced from CI secrets"
+  description = "Values for app secrets (finnhub_key, tiingo_api_key, gemini_key), sourced from CI secrets"
   type        = map(string)
   sensitive   = true
 }

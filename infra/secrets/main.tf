@@ -4,6 +4,7 @@ locals {
   secrets = {
     finnhub_key    = "finnhub-key"
     tiingo_api_key = "tiingo-api-key"
+    gemini_key     = "gemini-key"
   }
 
   # The Cloud Run default runtime service account, granted access by default since

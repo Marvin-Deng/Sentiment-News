@@ -1,0 +1,76 @@
+name: News Ingest Deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - jobs/news-ingest/**
+      - infra/news_ingest/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  REGION: us-central1
+  REPOSITORY: news-ingest
+  JOB: news-ingest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.6"
+
+      - name: Ensure Terraform state bucket exists
+        run: |
+          BUCKET="gs://${{ secrets.GCP_PROJECT_ID }}-tfstate"
+          gsutil ls -b "$BUCKET" >/dev/null 2>&1 || \
+            gsutil mb -p "${{ secrets.GCP_PROJECT_ID }}" -l "${{ env.REGION }}" "$BUCKET"
+
+      - name: Terraform init
+        working-directory: infra/news_ingest
+        run: |
+          terraform init \
+            -backend-config="bucket=${{ secrets.GCP_PROJECT_ID }}-tfstate"
+
+      - name: Create Artifact Registry repository
+        working-directory: infra/news_ingest
+        run: |
+          terraform apply -auto-approve \
+            -target=google_project_service.artifact_registry \
+            -target=google_artifact_registry_repository.news_ingest \
+            -var="image=placeholder"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push image
+        working-directory: jobs/news-ingest
+        run: |
+          IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.JOB }}:${{ github.sha }}"
+          docker build -t "$IMAGE" .
+          docker push "$IMAGE"
+          echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
+
+      - name: Terraform apply
+        working-directory: infra/news_ingest
+        run: terraform apply -auto-approve -var="image=${{ env.IMAGE }}"
+        env:
+          TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
