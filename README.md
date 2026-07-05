@@ -40,6 +40,35 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### Using the Firestore emulator instead
+
+If you'd rather not authenticate against real GCP for local development, run against the
+Firestore emulator instead:
+
+```bash
+gcloud components install cloud-firestore-emulator
+```
+
+In one terminal, start the emulator:
+
+```bash
+cd client
+npm run emulator
+```
+
+In another terminal, seed it with sample data and start the app pointed at the emulator:
+
+```bash
+cd client
+export FIRESTORE_EMULATOR_HOST=localhost:8080
+npm run emulator:seed
+npm run dev
+```
+
+`FIRESTORE_EMULATOR_HOST` must be set in the same shell that runs `npm run dev` (or added to
+`client/.env.local`) so the Next.js server picks it up. No `GCP_PROJECT_ID` or `gcloud auth` is
+needed in this mode.
+
 ## Jobs Setup
 
 1. Install [Go 1.22+](https://go.dev/dl/).

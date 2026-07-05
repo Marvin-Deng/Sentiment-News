@@ -5,7 +5,7 @@ let firestore: Firestore | undefined;
 export function getFirestore(): Firestore {
   if (!firestore) {
     firestore = new Firestore({
-      projectId: process.env.GCP_PROJECT_ID,
+      projectId: process.env.GCP_PROJECT_ID ?? "news-ingest-emulator",
     });
   }
   return firestore;
