@@ -18,7 +18,7 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   const [open, setOpen] = useState(false);
 
   const handleOptionSelect = (key: number) => {
-    setSelectedOption(key);
+    setSelectedOption(selectedOption === key ? null : key);
     setOpen(false);
   };
 

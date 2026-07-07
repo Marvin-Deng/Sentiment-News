@@ -74,10 +74,11 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
                 key={name}
                 checked={selectedOptions.includes(name)}
                 onCheckedChange={() => handleCheckboxChange(name)}
+                cursor="pointer"
               >
                 <Checkbox.HiddenInput />
-                <Checkbox.Control />
-                <Checkbox.Label>
+                <Checkbox.Control cursor="pointer" />
+                <Checkbox.Label cursor="pointer">
                   <Text fontSize="sm">{name}</Text>
                 </Checkbox.Label>
               </Checkbox.Root>

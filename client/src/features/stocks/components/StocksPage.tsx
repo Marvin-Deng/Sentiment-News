@@ -1,10 +1,11 @@
 "use client";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useMemo, useContext } from "react";
 import { Box, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
 import StockModal from "@/src/features/stocks/components/StockModal";
 import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
+import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import Loader from "@/src/components/ui/loader";
 import NextButton from "@/src/components/ui/next-button";
 import PageLayout from "@/src/components/layout/PageLayout";
@@ -13,16 +14,17 @@ import SearchBar from "@/src/components/Navbar/SearchBar";
 import { StockInfo } from "@/src/features/stocks/types";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
 import { DEFAULT_TICKERS } from "@/src/constants/tickers";
+import { formatExchangeLabel } from "@/src/constants/exchanges";
 
 const PAGE_SIZE = 10;
 
 const StocksPage = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
-  const [filteredStockInfo, setFilteredStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
+  const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
   const [currCompany, setCurrCompany] = useState("");
   const [currTicker, setCurrTicker] = useState("");
 
@@ -34,7 +36,6 @@ const StocksPage = () => {
         const res = await fetch("/api/stock/exchange");
         const data = await res.json();
         setStockInfo(data.stocks);
-        setFilteredStockInfo(data.stocks);
       } catch (error) {
         console.error("Error fetching stocks from exchange:", error);
         setStockInfo(null);
@@ -44,36 +45,42 @@ const StocksPage = () => {
   }, []);
 
   useEffect(() => {
-    if (stockInfo) setIsLoading(false);
-    else setIsLoading(true);
+    setIsLoading(!stockInfo);
   }, [stockInfo]);
 
-  useEffect(() => {
-    if (!stockInfo) return;
-    setIsLoading(true);
-    const searchTerms = searchQuery.split(" ");
-    const filtered = stockInfo.filter((stock) =>
-      searchTerms.some(
-        (term) =>
-          stock.displaySymbol.toLowerCase().includes(term) ||
-          stock.description
-            .toLowerCase()
-            .split(" ")
-            .some((descWord) => descWord.includes(term))
-      )
-    );
-    setFilteredStockInfo(filtered);
-    setIsLoading(false);
-  }, [searchQuery]);
+  const exchangeMics = useMemo(() => {
+    if (!stockInfo) return [];
+    return Array.from(new Set(stockInfo.map((stock) => stock.mic))).sort();
+  }, [stockInfo]);
 
-  useEffect(() => {
-    if (!stockInfo) return;
-    if (!selectedTickers || selectedTickers.length === 0) {
-      setFilteredStockInfo(stockInfo);
-    } else {
-      setFilteredStockInfo(stockInfo.filter((stock) => selectedTickers.includes(stock.symbol)));
-    }
-  }, [selectedTickers, stockInfo]);
+  const exchangeOptions = useMemo(
+    () => new Map(exchangeMics.map((mic, index) => [index, formatExchangeLabel(mic)])),
+    [exchangeMics],
+  );
+
+  const filteredStockInfo = useMemo(() => {
+    if (!stockInfo) return null;
+
+    const searchTerms = searchQuery.split(" ");
+    const selectedMic = selectedExchange != null ? exchangeMics[selectedExchange] : null;
+
+    return stockInfo.filter((stock) => {
+      const matchesSearch =
+        searchTerms.length === 0 ||
+        searchTerms.some(
+          (term) =>
+            stock.displaySymbol.toLowerCase().includes(term) ||
+            stock.description
+              .toLowerCase()
+              .split(" ")
+              .some((descWord) => descWord.includes(term))
+        );
+      const matchesTickers = selectedTickers.length === 0 || selectedTickers.includes(stock.symbol);
+      const matchesExchange = !selectedMic || stock.mic === selectedMic;
+
+      return matchesSearch && matchesTickers && matchesExchange;
+    });
+  }, [stockInfo, searchQuery, selectedTickers, selectedExchange, exchangeMics]);
 
   const loadNextPageStocks = () => {
     setIsLoading(true);
@@ -90,12 +97,20 @@ const StocksPage = () => {
   };
 
   const filters = (
-    <MultiSelectDropdown
-      selectName="Stocks"
-      originalOptions={DEFAULT_TICKERS}
-      selectedOptions={selectedTickers}
-      setSelectedOptions={setSelectedTickers}
-    />
+    <>
+      <MultiSelectDropdown
+        selectName="Stocks"
+        originalOptions={DEFAULT_TICKERS}
+        selectedOptions={selectedTickers}
+        setSelectedOptions={setSelectedTickers}
+      />
+      <SingleSelectDropdown
+        placeholder="Exchange"
+        originalOptions={exchangeOptions}
+        selectedOption={selectedExchange}
+        setSelectedOption={setSelectedExchange}
+      />
+    </>
   );
 
   return (

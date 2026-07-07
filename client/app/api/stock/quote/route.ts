@@ -8,13 +8,16 @@ export async function GET(request: Request) {
   try {
     const url = `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`;
     const res = await fetch(url, { next: { revalidate: 120 } });
-    if (!res.ok) throw new Error(`Finnhub quote request failed: ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Finnhub quote request for ${ticker} failed: ${res.status} ${body}`);
+    }
     const data = await res.json();
     const quoteInfo: QuoteInfo = {
       ticker,
       current: data.c,
-      change: parseFloat((data.c - data.o).toFixed(2)),
-      percent: parseFloat((((data.c - data.o) / data.o) * 100).toFixed(2)),
+      change: parseFloat(data.d?.toFixed(2) ?? "0"),
+      percent: parseFloat(data.dp?.toFixed(2) ?? "0"),
     };
     return NextResponse.json({ quoteInfo });
   } catch (error) {

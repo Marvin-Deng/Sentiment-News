@@ -12,7 +12,7 @@ interface TickerCardProps {
   ticker: string;
 }
 
-type QuoteState = { current: number; change: number };
+type QuoteState = { current: number; change: number; percent: number };
 
 const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
@@ -50,7 +50,11 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
       }
       try {
         const data = await fetchQuoteInfo(ticker);
-        const quote: QuoteState = { current: data.current, change: data.change };
+        const quote: QuoteState = {
+          current: data.current,
+          change: data.change,
+          percent: Number.isFinite(data.percent) ? data.percent : 0,
+        };
         setQuoteInfo(quote);
         setCached(cacheKey, quote, QUOTE_TTL_SECONDS);
       } catch {
@@ -117,7 +121,8 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
                 color="white"
                 bg={quoteInfo.change >= 0 ? "green.500" : "red.500"}
               >
-                {quoteInfo.change >= 0 ? `+${quoteInfo.change.toFixed(2)}` : quoteInfo.change.toFixed(2)}
+                {quoteInfo.change >= 0 ? "▲" : "▼"} {Math.abs(quoteInfo.change).toFixed(2)} (
+                {Math.abs(quoteInfo.percent).toFixed(2)}%)
               </Text>
             </Flex>
           )}
