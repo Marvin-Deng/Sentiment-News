@@ -3,25 +3,38 @@ import React, { useState, useEffect } from "react";
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { CompanyProfile } from "@/src/features/stocks/types";
 import { fetchQuoteInfo } from "@/src/features/stocks/api";
+import { getCached, setCached } from "@/src/utils/sessionCache";
+
+const QUOTE_TTL_SECONDS = 120;
+const PROFILE_TTL_SECONDS = 3600;
 
 interface TickerCardProps {
   ticker: string;
 }
 
+type QuoteState = { current: number; change: number };
+
 const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
-  const [quoteInfo, setQuoteInfo] = useState<{ current: number; change: number } | null>(null);
+  const [quoteInfo, setQuoteInfo] = useState<QuoteState | null>(null);
   const [fetchSuccess, setFetchSuccess] = useState(true);
 
   useEffect(() => {
     if (!ticker) return;
 
     const fetchProfile = async () => {
+      const cacheKey = `stock-profile:${ticker}`;
+      const cached = getCached<CompanyProfile>(cacheKey);
+      if (cached) {
+        setCompanyProfile(cached);
+        return;
+      }
       try {
         const res = await fetch(`/api/stock/company_profile?ticker=${ticker}`);
         if (!res.ok) throw new Error("Failed to fetch company profile");
         const data = await res.json();
         setCompanyProfile(data.company_profile);
+        setCached(cacheKey, data.company_profile, PROFILE_TTL_SECONDS);
       } catch {
         setCompanyProfile(null);
         setFetchSuccess(false);
@@ -29,9 +42,17 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
     };
 
     const fetchQuote = async () => {
+      const cacheKey = `stock-quote:${ticker}`;
+      const cached = getCached<QuoteState>(cacheKey);
+      if (cached) {
+        setQuoteInfo(cached);
+        return;
+      }
       try {
         const data = await fetchQuoteInfo(ticker);
-        setQuoteInfo({ current: data.current, change: data.change });
+        const quote: QuoteState = { current: data.current, change: data.change };
+        setQuoteInfo(quote);
+        setCached(cacheKey, quote, QUOTE_TTL_SECONDS);
       } catch {
         setQuoteInfo(null);
       }

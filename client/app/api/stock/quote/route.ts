@@ -7,7 +7,7 @@ export async function GET(request: Request) {
 
   try {
     const url = `https://finnhub.io/api/v1/quote?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`;
-    const res = await fetch(url, { cache: "no-store" });
+    const res = await fetch(url, { next: { revalidate: 120 } });
     if (!res.ok) throw new Error(`Finnhub quote request failed: ${res.status}`);
     const data = await res.json();
     const quoteInfo: QuoteInfo = {

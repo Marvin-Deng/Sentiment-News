@@ -8,6 +8,9 @@ export async function GET(request: Request) {
     const res = await fetch(url, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error(`Finnhub company profile request failed: ${res.status}`);
     const company_profile = await res.json();
+    if (!company_profile.name || !company_profile.ticker) {
+      throw new Error(`Finnhub has no profile data for ${ticker}`);
+    }
     return NextResponse.json({ company_profile });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
