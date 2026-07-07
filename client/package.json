@@ -6,9 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "emulator": "gcloud emulators firestore start --host-port=localhost:8080",
-    "emulator:seed": "node scripts/seed-emulator.mjs"
+    "lint": "eslint"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.36.0",

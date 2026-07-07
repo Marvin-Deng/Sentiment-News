@@ -11,26 +11,32 @@
 
 ## Frontend Setup
 
-The `/api/article/news` route reads articles from Firestore, so it needs a GCP project ID and
-credentials even for local development.
+The `/api/article/news` route reads articles from Firestore, so it needs a GCP project ID and a
+service account key even for local development.
 
-1. Copy the env template and fill in your project ID:
+1. Copy the env template and fill in your project ID and service account key:
 
 ```bash
 cp client/.env.example client/.env.local
 ```
 
-| Variable         | Description                                                              |
-| ---------------- | ------------------------------------------------------------------------- |
-| `GCP_PROJECT_ID` | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore |
+| Variable            | Description                                                                 |
+| ------------------- | ---------------------------------------------------------------------------- |
+| `GCP_PROJECT_ID`    | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore    |
+| `GCP_SA_KEY_BASE64` | Base64-encoded service account JSON key with Firestore access               |
 
-2. Authenticate with Application Default Credentials so the Firestore client can find them:
+To generate the service account key:
 
 ```bash
-gcloud auth application-default login
+gcloud iam service-accounts keys create key.json \
+  --iam-account=<service-account-email>
+
+base64 -i key.json | tr -d '\n'
 ```
 
-3. Install and run:
+Paste the resulting string into `GCP_SA_KEY_BASE64`, then delete `key.json`.
+
+2. Install and run:
 
 ```bash
 cd client
@@ -39,35 +45,6 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-### Using the Firestore emulator instead
-
-If you'd rather not authenticate against real GCP for local development, run against the
-Firestore emulator instead:
-
-```bash
-gcloud components install cloud-firestore-emulator
-```
-
-In one terminal, start the emulator:
-
-```bash
-cd client
-npm run emulator
-```
-
-In another terminal, seed it with sample data and start the app pointed at the emulator:
-
-```bash
-cd client
-export FIRESTORE_EMULATOR_HOST=localhost:8080
-npm run emulator:seed
-npm run dev
-```
-
-`FIRESTORE_EMULATOR_HOST` must be set in the same shell that runs `npm run dev` (or added to
-`client/.env.local`) so the Next.js server picks it up. No `GCP_PROJECT_ID` or `gcloud auth` is
-needed in this mode.
 
 ## Jobs Setup
 
