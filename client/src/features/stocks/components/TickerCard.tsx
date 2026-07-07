@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { CompanyProfile } from "@/src/features/stocks/types";
-import { getPriceDiffStr } from "@/src/utils/priceUtils";
 import { fetchQuoteInfo } from "@/src/features/stocks/api";
 
 interface TickerCardProps {
@@ -44,36 +44,65 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
   if (!fetchSuccess) return null;
 
   return (
-    <div className="max-w-screen-lg mx-auto mb-3 cursor-pointer transition-transform duration-300 ease-in-out transform hover:scale-105">
+    <Box
+      w="full"
+      maxW="container.lg"
+      mx="auto"
+      mb={3}
+      cursor="pointer"
+      transition="transform 0.3s ease-in-out"
+      _hover={{ transform: "scale(1.02)" }}
+    >
       {companyProfile && (
-        <div className="shadow-md border rounded-lg overflow-hidden p-4 flex items-center gap-4">
-          {companyProfile.logo && (
-            <img
-              src={companyProfile.logo}
-              alt={`${companyProfile.name} logo`}
-              className="w-10 h-10 shrink-0 object-contain rounded"
-            />
-          )}
-          <div className="flex-grow min-w-0">
-            <p className="text-sm truncate">
-              {companyProfile.ticker} - {companyProfile.name} - {companyProfile.exchange}
-            </p>
-          </div>
+        <Flex
+          align="center"
+          justify="space-between"
+          gap={4}
+          p={4}
+          border="1px solid"
+          borderColor="border"
+          borderRadius="lg"
+          boxShadow="md"
+          overflow="hidden"
+        >
+          <Flex align="center" gap={4} minW={0}>
+            {companyProfile.logo && (
+              <Image
+                src={companyProfile.logo}
+                alt={`${companyProfile.name} logo`}
+                boxSize="48px"
+                flexShrink={0}
+                objectFit="contain"
+                borderRadius="md"
+              />
+            )}
+            <Box minW={0}>
+              <Text fontWeight="semibold" truncate>
+                {companyProfile.name}
+              </Text>
+              <Text fontSize="sm" color="gray.500" truncate>
+                {companyProfile.ticker} · {companyProfile.exchange}
+              </Text>
+            </Box>
+          </Flex>
           {quoteInfo && (
-            <div className="flex flex-col items-end shrink-0 text-sm font-bold">
-              <p>{quoteInfo.current.toFixed(2)}</p>
-              <p
-                className={`inline-block px-2 py-1 rounded text-white ${
-                  quoteInfo.change >= 0 ? "bg-green-500" : "bg-red-500"
-                }`}
+            <Flex direction="column" align="flex-end" flexShrink={0} fontSize="sm" fontWeight="bold">
+              <Text>{quoteInfo.current.toFixed(2)}</Text>
+              <Text
+                display="inline-block"
+                px={2}
+                py={1}
+                borderRadius="md"
+                color="white"
+                bg={quoteInfo.change >= 0 ? "green.500" : "red.500"}
               >
                 {quoteInfo.change >= 0 ? `+${quoteInfo.change.toFixed(2)}` : quoteInfo.change.toFixed(2)}
-              </p>
-            </div>
+              </Text>
+            </Flex>
           )}
-        </div>
+        </Flex>
       )}
-    </div>
+    </Box>
   );
 };
 
