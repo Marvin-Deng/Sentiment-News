@@ -13,7 +13,7 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import { Article, fetchArticles } from "../api";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
-import { SENTIMENT_OPTIONS } from "@/src/constants/sentiment";
+import { SENTIMENT_CATEGORIES } from "@/src/constants/sentiment";
 
 interface NewsDisplayProps {
   initialTickerList: string[];
@@ -32,7 +32,7 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
   const [selectedDateRange, setSelectedDateRange] = useState<number | null>(null);
 
   const sentimentOptions = new Map<number, string>(
-    SENTIMENT_OPTIONS.map((option, index) => [index, option]),
+    SENTIMENT_CATEGORIES.map((option, index) => [index, option]),
   );
   const priceActionOptions = new Map<number, string>([
     [0, "Positive"],
@@ -77,7 +77,7 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
 
   useEffect(() => {
     getNewlyFilteredArticles();
-  }, [selectedSentiment, selectedPriceAction, searchQuery, selectedDateRange]);
+  }, [selectedTickers, selectedSentiment, selectedPriceAction, searchQuery, selectedDateRange]);
 
   const filters = (
     <>
@@ -86,7 +86,6 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
         originalOptions={initialTickerList}
         selectedOptions={selectedTickers}
         setSelectedOptions={setSelectedTickers}
-        handleSubmit={getNewlyFilteredArticles}
       />
       <SingleSelectDropdown
         placeholder="Sentiment"

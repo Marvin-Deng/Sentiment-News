@@ -16,7 +16,6 @@ interface MultiSelectDropdownProps {
   originalOptions: string[];
   selectedOptions: string[];
   setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
-  handleSubmit: () => void;
 }
 
 const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
@@ -24,7 +23,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
   originalOptions,
   selectedOptions,
   setSelectedOptions,
-  handleSubmit,
 }) => {
   const [open, setOpen] = React.useState(false);
   const [filter, setFilter] = React.useState("");
@@ -41,11 +39,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
     } else {
       setSelectedOptions((prev) => [...prev, value]);
     }
-  };
-
-  const handleSubmitClick = () => {
-    handleSubmit();
-    setOpen(false);
   };
 
   const filtered = originalOptions.filter((name) =>
@@ -90,11 +83,6 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               </Checkbox.Root>
             ))}
           </SimpleGrid>
-          <Box mt={3} display="flex" justifyContent="flex-end">
-            <Button onClick={handleSubmitClick} colorPalette="gray" size="sm">
-              Apply
-            </Button>
-          </Box>
         </Card.Root>
       )}
     </Box>

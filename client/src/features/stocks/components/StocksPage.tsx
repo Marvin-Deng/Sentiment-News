@@ -69,14 +69,14 @@ const StocksPage = () => {
     setIsLoading(false);
   }, [searchQuery]);
 
-  const getFilteredTickers = () => {
+  useEffect(() => {
     if (!stockInfo) return;
     if (!selectedTickers || selectedTickers.length === 0) {
       setFilteredStockInfo(stockInfo);
     } else {
       setFilteredStockInfo(stockInfo.filter((stock) => selectedTickers.includes(stock.symbol)));
     }
-  };
+  }, [selectedTickers, stockInfo]);
 
   const loadNextPageStocks = () => {
     setIsLoading(true);
@@ -98,7 +98,6 @@ const StocksPage = () => {
       originalOptions={tickerOptions}
       selectedOptions={selectedTickers}
       setSelectedOptions={setSelectedTickers}
-      handleSubmit={getFilteredTickers}
     />
   );
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Article } from "@/src/features/news/api";
 import { getFirestore } from "@/lib/firestore";
+import { SENTIMENT_CATEGORY_MEMBERS, SentimentCategory } from "@/src/constants/sentiment";
 
 const PAGE_SIZE = 10;
 
@@ -24,7 +25,10 @@ export async function GET(request: Request) {
     query = query.where("ticker", "in", tickers);
   }
   if (sentiment) {
-    query = query.where("sentiment", "==", sentiment);
+    const members = SENTIMENT_CATEGORY_MEMBERS[sentiment as SentimentCategory];
+    query = members
+      ? query.where("sentiment", "in", members)
+      : query.where("sentiment", "==", sentiment);
   }
   if (endDate) {
     query = query.where("publicationDatetime", "<=", endDate);
