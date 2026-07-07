@@ -97,7 +97,10 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
 
   if (!stock) return null;
 
-  const priceColor = isPricePositive(currPriceData.open, currPriceData.close) ? "green.600" : "red.600";
+  const rangeData = getPriceDataRange();
+  const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
+  const rangeEndPrice = currPriceData.close;
+  const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "green.600" : "red.600";
 
   return (
     <Flex
@@ -142,7 +145,10 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
               cursor="pointer"
               bg={selectedRange === range ? "gray.600" : "transparent"}
               color={selectedRange === range ? "white" : undefined}
-              _hover={{ bg: selectedRange === range ? "gray.600" : "gray.100" }}
+              _hover={{
+                bg: selectedRange === range ? "gray.600" : "gray.100",
+                color: selectedRange === range ? "white" : "black",
+              }}
               onClick={() => setSelectedRange(range)}
             >
               {range}
@@ -156,8 +162,8 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
               {currPriceData.close}
             </Text>
             <Text fontSize="lg" fontWeight="semibold" color={priceColor}>
-              {getPriceDiffStr(currPriceData.open, currPriceData.close)} (
-              {getPercentChangeStr(currPriceData.open, currPriceData.close)})
+              {getPriceDiffStr(rangeStartPrice, rangeEndPrice)} (
+              {getPercentChangeStr(rangeStartPrice, rangeEndPrice)})
             </Text>
           </Flex>
           <Text fontSize="sm" mt={1}>
@@ -165,7 +171,12 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
           </Text>
         </Box>
 
-        <LineChart ticker={ticker} priceData={getPriceDataRange()} range={selectedRange} />
+        <LineChart
+          ticker={ticker}
+          priceData={rangeData}
+          range={selectedRange}
+          isPositive={isPricePositive(rangeStartPrice, rangeEndPrice)}
+        />
 
         <Flex justify="center">
           <Box w={{ base: "80%", sm: "50%" }}>

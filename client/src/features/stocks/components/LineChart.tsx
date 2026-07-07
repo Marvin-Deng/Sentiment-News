@@ -6,19 +6,18 @@ import {
   Area,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
 
 import Loader from "@/src/components/ui/Loader";
-import { getPriceDiff } from "@/src/utils/priceUtils";
 import { PriceData } from "@/src/features/stocks/types";
 
 interface LineChartProps {
   ticker: string;
   priceData: PriceData[];
   range: string;
+  isPositive: boolean;
 }
 
 const dayLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { day: "numeric" });
@@ -163,19 +162,12 @@ const ChartTooltip = ({
   );
 };
 
-const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range }) => {
+const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range, isPositive }) => {
   const axisColor = "var(--chakra-colors-fg)";
 
-  const { priceLineColor, priceFillColor } = (() => {
-    if (priceData.length === 0) {
-      return { priceLineColor: "rgba(255, 100, 100, 1)", priceFillColor: "rgba(255, 100, 100, 0.2)" };
-    }
-    const last = priceData[priceData.length - 1];
-    const isPositive = getPriceDiff(last.open, last.close) > 0;
-    return isPositive
-      ? { priceLineColor: "rgba(30, 200, 100, 1)", priceFillColor: "rgba(144, 238, 144, 0.3)" }
-      : { priceLineColor: "rgba(255, 100, 100, 1)", priceFillColor: "rgba(255, 100, 100, 0.2)" };
-  })();
+  const { priceLineColor, priceFillColor } = isPositive
+    ? { priceLineColor: "rgba(30, 200, 100, 1)", priceFillColor: "rgba(144, 238, 144, 0.3)" }
+    : { priceLineColor: "rgba(255, 100, 100, 1)", priceFillColor: "rgba(255, 100, 100, 0.2)" };
 
   const axisConfig = useMemo(() => getAxisConfig(priceData, range), [priceData, range]);
   const priceTicks = useMemo(() => getPriceTicks(priceData, 4), [priceData]);
@@ -198,7 +190,6 @@ const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range }) => {
               <stop offset="95%" stopColor={priceFillColor} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis
             dataKey="date"
             tickFormatter={axisConfig.formatter}
