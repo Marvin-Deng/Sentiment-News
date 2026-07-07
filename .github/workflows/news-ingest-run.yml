@@ -3,10 +3,6 @@ name: News Ingest Run
 on:
   workflow_dispatch:
 
-env:
-  REGION: us-central1
-  JOB: news-ingest
-
 permissions:
   contents: read
   id-token: write
@@ -16,16 +12,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
-      - uses: google-github-actions/setup-gcloud@v2
-
-      - name: Execute Cloud Run Job
-        run: |
-          gcloud run jobs execute "${{ env.JOB }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}" \
-            --region "${{ env.REGION }}" \
-            --wait
+      - name: Run news-ingest job
+        working-directory: jobs/news-ingest
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
+          GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+        run: go run .
