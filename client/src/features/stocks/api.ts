@@ -25,13 +25,6 @@ export type QuoteInfo = {
   percent: number;
 };
 
-export const fetchTickerList = async (): Promise<string[]> => {
-  const res = await fetch(`${base}/api/stock/tickers`, { next: { revalidate: 3600 } });
-  if (!res.ok) throw new Error(`fetchTickerList failed: ${res.status}`);
-  const { tickers } = await res.json();
-  return tickers as string[];
-};
-
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<EodDataPoint[]> => {
   const params = new URLSearchParams({ ticker, start_date: startDate.toISOString() });
   const res = await fetch(`${base}/api/stock/eod?${params}`, { cache: "no-store" });

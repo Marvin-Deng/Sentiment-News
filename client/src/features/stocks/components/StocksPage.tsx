@@ -11,8 +11,8 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import SearchBar from "@/src/components/Navbar/SearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
-import { fetchTickerList } from "@/src/features/stocks/api";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
+import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 const PAGE_SIZE = 10;
 
@@ -23,7 +23,6 @@ const StocksPage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
-  const [tickerOptions, setTickerOptions] = useState<string[]>([]);
   const [currCompany, setCurrCompany] = useState("");
   const [currTicker, setCurrTicker] = useState("");
 
@@ -42,8 +41,6 @@ const StocksPage = () => {
       }
     };
     fetchStocks();
-
-    fetchTickerList().then(setTickerOptions).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -95,7 +92,7 @@ const StocksPage = () => {
   const filters = (
     <MultiSelectDropdown
       selectName="Stocks"
-      originalOptions={tickerOptions}
+      originalOptions={DEFAULT_TICKERS}
       selectedOptions={selectedTickers}
       setSelectedOptions={setSelectedTickers}
     />
