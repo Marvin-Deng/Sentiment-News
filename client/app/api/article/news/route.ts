@@ -56,7 +56,7 @@ export async function GET(request: Request) {
       title: data.title,
       publication_datetime: data.publicationDatetime,
       summary: data.summary,
-      ticker: tickerData.ticker ?? data.ticker ?? "",
+      ticker: data.ticker ?? tickerData.ticker ?? "",
       sentiment: data.sentiment,
       image_url: data.imageUrl,
       article_url: data.articleUrl,

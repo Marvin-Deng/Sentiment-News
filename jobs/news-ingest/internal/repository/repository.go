@@ -16,6 +16,7 @@ type Article struct {
 	Summary             string
 	PublicationDatetime string
 	Sentiment           string
+	Ticker              string
 	TickerDocID         string
 	ExpiresAt           time.Time
 }
@@ -43,20 +44,25 @@ func TickerDocID(ticker, marketDate string) string {
 	return ticker + "_" + marketDate
 }
 
-func (s *Store) ArticleExistsByURL(ctx context.Context, articleURL string) (bool, error) {
+// ArticleByURL returns the existing article doc with the given URL, if any. Callers use this to
+// decide whether a duplicate article needs to be re-upserted to backfill fields (e.g. ticker)
+// that were missing when it was first written.
+func (s *Store) ArticleByURL(ctx context.Context, articleURL string) (*firestore.DocumentSnapshot, error) {
 	docs, err := s.client.Collection("articles").
 		Where("articleUrl", "==", articleURL).
 		Limit(1).
 		Documents(ctx).
 		GetAll()
 	if err != nil {
-		return false, fmt.Errorf("check article by url: %w", err)
+		return nil, fmt.Errorf("check article by url: %w", err)
 	}
-	return len(docs) > 0, nil
+	if len(docs) == 0 {
+		return nil, nil
+	}
+	return docs[0], nil
 }
 
-func (s *Store) UpsertArticle(ctx context.Context, article Article) error {
-	docID := fmt.Sprintf("%d", article.ArticleID)
+func (s *Store) UpsertArticle(ctx context.Context, docID string, article Article) error {
 	doc := map[string]any{
 		"articleId":           article.ArticleID,
 		"title":               article.Title,
@@ -65,6 +71,7 @@ func (s *Store) UpsertArticle(ctx context.Context, article Article) error {
 		"summary":             article.Summary,
 		"publicationDatetime": article.PublicationDatetime,
 		"sentiment":           article.Sentiment,
+		"ticker":              article.Ticker,
 		"tickerDocId":         article.TickerDocID,
 		"expiresAt":           article.ExpiresAt,
 	}
