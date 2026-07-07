@@ -17,3 +17,15 @@ export const unixToLocal = (unixTime: number): string => {
   const dateObject = dayjs(unixTime);
   return dateObject.tz("UTC").format("YYYY-MM-DD HH:mm:ss Z");
 };
+
+export const utcStringToLocal = (utcDatetime: string): string => {
+  const localDate = dayjs.utc(utcDatetime).local();
+  const tzAbbreviation = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
+    .formatToParts(localDate.toDate())
+    .find((part) => part.type === "timeZoneName")?.value;
+  return `${localDate.format("MMMM D, YYYY h:mm A")} ${tzAbbreviation ?? ""}`.trim();
+};
+
+export const formatDate = (date: string): string => {
+  return dayjs(date).format("MMMM D, YYYY");
+};

@@ -1,5 +1,6 @@
 import { Article } from "../api";
 import { getPriceColorStr, getPriceStrArrow } from "@/src/utils/priceUtils";
+import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
 import { Badge } from "@/src/components/ui/badge";
 import {
   Box,
@@ -34,7 +35,7 @@ const ArticleCard = ({
       <Card.Body>
         <Image src={image_url} alt={title} w="full" h="56" objectFit="cover" mb={3} borderRadius="lg" />
         <Text fontStyle="italic" fontSize="sm" color="gray.500" mb={2}>
-          {publication_datetime}
+          {utcStringToLocal(publication_datetime)}
         </Text>
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={3}>
@@ -48,7 +49,7 @@ const ArticleCard = ({
           {truncateSummary(summary, 300)}
         </Text>
         <Box mt={4}>
-          <Text fontStyle="italic" fontSize="sm" mb={2}>Price Action On: {market_date}</Text>
+          <Text fontStyle="italic" fontSize="sm" mb={2}>Price Action On: {formatDate(market_date)}</Text>
           {open_price ? (
             <Flex align="center" gap={4} mb={3}>
               <Text>O: {open_price}</Text>
