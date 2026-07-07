@@ -44,7 +44,3 @@ func dateOnly(value time.Time) time.Time {
 func FormatPublicationDatetime(unixSeconds int64) string {
 	return time.Unix(unixSeconds, 0).UTC().Format("2006-01-02 15:04:05")
 }
-
-func ParsePublicationDatetime(unixSeconds int64) time.Time {
-	return time.Unix(unixSeconds, 0).UTC()
-}

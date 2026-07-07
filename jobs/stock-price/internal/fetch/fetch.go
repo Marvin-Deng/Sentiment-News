@@ -68,7 +68,7 @@ func (s *Service) updateTicker(ctx context.Context, ticker, marketDate string) e
 	}
 
 	expiresAt := time.Now().Add(tickerRecordTTL)
-	if _, err := s.store.UpsertTicker(ctx, ticker, marketDate, prices.OpenPrice, prices.ClosePrice, expiresAt); err != nil {
+	if err := s.store.UpsertTicker(ctx, ticker, marketDate, prices.OpenPrice, prices.ClosePrice, expiresAt); err != nil {
 		return fmt.Errorf("upsert ticker %s on %s: %w", ticker, marketDate, err)
 	}
 

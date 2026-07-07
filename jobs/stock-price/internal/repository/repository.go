@@ -8,15 +8,6 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-type Ticker struct {
-	DocID      string
-	Ticker     string
-	MarketDate string
-	OpenPrice  *float64
-	ClosePrice *float64
-	ExpiresAt  time.Time
-}
-
 type Store struct {
 	client *firestore.Client
 }
@@ -47,7 +38,7 @@ func (s *Store) UpsertTicker(
 	ticker, marketDate string,
 	openPrice, closePrice *float64,
 	expiresAt time.Time,
-) (*Ticker, error) {
+) error {
 	docID := TickerDocID(ticker, marketDate)
 	doc := map[string]any{
 		"ticker":     ticker,
@@ -60,16 +51,8 @@ func (s *Store) UpsertTicker(
 	if closePrice != nil {
 		doc["closePrice"] = *closePrice
 	}
-	_, err := s.client.Collection("tickers").Doc(docID).Set(ctx, doc, firestore.MergeAll)
-	if err != nil {
-		return nil, fmt.Errorf("upsert ticker: %w", err)
+	if _, err := s.client.Collection("tickers").Doc(docID).Set(ctx, doc, firestore.MergeAll); err != nil {
+		return fmt.Errorf("upsert ticker: %w", err)
 	}
-	return &Ticker{
-		DocID:      docID,
-		Ticker:     ticker,
-		MarketDate: marketDate,
-		OpenPrice:  openPrice,
-		ClosePrice: closePrice,
-		ExpiresAt:  expiresAt,
-	}, nil
+	return nil
 }
