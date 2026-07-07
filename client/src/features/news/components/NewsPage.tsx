@@ -13,6 +13,7 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import { Article, fetchArticles } from "../api";
 import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
+import { SENTIMENT_OPTIONS } from "@/src/constants/sentiment";
 
 interface NewsDisplayProps {
   initialTickerList: string[];
@@ -30,11 +31,9 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
   const [selectedPriceAction, setSelectedPriceAction] = useState<number | null>(null);
   const [selectedDateRange, setSelectedDateRange] = useState<number | null>(null);
 
-  const sentimentOptions = new Map<number, string>([
-    [0, "Positive"],
-    [1, "Negative"],
-    [2, "Neutral"],
-  ]);
+  const sentimentOptions = new Map<number, string>(
+    SENTIMENT_OPTIONS.map((option, index) => [index, option]),
+  );
   const priceActionOptions = new Map<number, string>([
     [0, "Positive"],
     [1, "Negative"],

@@ -2,6 +2,7 @@ import { Article } from "../api";
 import { getPriceColorStr, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
 import { Badge } from "@/src/components/ui/badge";
+import { getSentimentBadgeVariant } from "@/src/constants/sentiment";
 import {
   Box,
   Card,
@@ -40,7 +41,7 @@ const ArticleCard = ({
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={3}>
             <Text fontSize="sm" fontWeight="semibold">{ticker}</Text>
-            <Badge variant={sentiment === "Positive" ? "positive" : sentiment === "Negative" ? "negative" : "neutral"}>
+            <Badge variant={getSentimentBadgeVariant(sentiment)}>
               {sentiment}
             </Badge>
           </Flex>

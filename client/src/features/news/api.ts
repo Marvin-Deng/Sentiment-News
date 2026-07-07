@@ -1,11 +1,13 @@
 "use server";
 
+import { Sentiment } from "@/src/constants/sentiment";
+
 export type Article = {
   title: string;
   publication_datetime: string;
   summary: string;
   ticker: string;
-  sentiment: string;
+  sentiment: Sentiment;
   image_url: string;
   article_url: string;
   market_date: string;
