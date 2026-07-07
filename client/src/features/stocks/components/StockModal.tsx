@@ -8,6 +8,7 @@ import DataTable from "@/src/features/stocks/components/DataTable";
 import { fetchEodData, fetchQuoteInfo, QuoteInfo } from "@/src/features/stocks/api";
 import { PriceData, DEFAULT_PRICE_DATA } from "@/src/features/stocks/types";
 import { getPriceColorStr, getPriceDiffStr, getPercentChangeStr } from "@/src/utils/priceUtils";
+import { formatDateEST } from "@/src/utils/dateUtils";
 
 interface StockModalProps {
   company: string;
@@ -18,9 +19,27 @@ interface StockModalProps {
 
 const RANGES = ["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"];
 
+const getRangeStartDate = (range: string): Date => {
+  const today = new Date();
+  let start = new Date();
+  start.setHours(0, 0, 0, 0);
+  switch (range) {
+    case "1W": start.setDate(today.getDate() - 7); break;
+    case "1M": start.setMonth(today.getMonth() - 1); break;
+    case "3M": start.setMonth(today.getMonth() - 3); break;
+    case "6M": start.setMonth(today.getMonth() - 6); break;
+    case "YTD": start = new Date(today.getFullYear(), 0, 1); break;
+    case "1Y": start.setFullYear(today.getFullYear() - 1); break;
+    case "2Y": start.setFullYear(today.getFullYear() - 2); break;
+    case "5Y": start.setFullYear(today.getFullYear() - 5); break;
+    default: start.setDate(today.getDate() - 7);
+  }
+  return start;
+};
+
 const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handleClose }) => {
   const [selectedRange, setSelectedRange] = useState("YTD");
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(() => getRangeStartDate("YTD"));
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
@@ -46,7 +65,9 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
         fetchStockPrices();
       } else {
         const earliestData = new Date(tickerStockData[0].date);
-        if (startDate < earliestData) fetchStockPrices();
+        const latestData = new Date(tickerStockData[tickerStockData.length - 1].date);
+        const isStale = Date.now() - latestData.getTime() > 24 * 60 * 60 * 1000;
+        if (startDate < earliestData || isStale) fetchStockPrices();
       }
     }
   }, [ticker, startDate]);
@@ -76,20 +97,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   }, [isOpen, ticker]);
 
   useEffect(() => {
-    const today = new Date();
-    let start = new Date();
-    switch (selectedRange) {
-      case "1W": start.setDate(today.getDate() - 7); break;
-      case "1M": start.setMonth(today.getMonth() - 1); break;
-      case "3M": start.setMonth(today.getMonth() - 3); break;
-      case "6M": start.setMonth(today.getMonth() - 6); break;
-      case "YTD": start = new Date(today.getFullYear(), 0, 1); break;
-      case "1Y": start.setFullYear(today.getFullYear() - 1); break;
-      case "2Y": start.setFullYear(today.getFullYear() - 2); break;
-      case "5Y": start.setFullYear(today.getFullYear() - 5); break;
-      default: start.setDate(today.getDate() - 7);
-    }
-    setStartDate(start);
+    setStartDate(getRangeStartDate(selectedRange));
   }, [selectedRange]);
 
   if (!isOpen) return null;
@@ -147,7 +155,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
           ))}
         </Flex>
 
-        <Box pl={{ base: 4, md: "12vw" }} p={4}>
+        <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
           <Flex align="baseline" gap={3}>
             <Text fontSize="xl" fontWeight="semibold">
               {currPriceData.close}
@@ -158,11 +166,11 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
             </Text>
           </Flex>
           <Text fontSize="sm" mt={1}>
-            At close on {String(currPriceData.date)}
+            At close on {formatDateEST(currPriceData.date)}
           </Text>
         </Box>
 
-        <LineChart ticker={ticker} priceData={getPriceDataRange()} />
+        <LineChart ticker={ticker} priceData={getPriceDataRange()} range={selectedRange} />
 
         <Flex justify="center">
           <Box w={{ base: "80%", sm: "50%" }}>

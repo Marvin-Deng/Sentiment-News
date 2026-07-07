@@ -24,3 +24,7 @@ export const utcStringToLocal = (utcDatetime: string): string => {
 export const formatDate = (date: string): string => {
   return dayjs(date).format("MMMM D, YYYY");
 };
+
+export const formatDateEST = (date: string | Date): string => {
+  return dayjs(date).tz("America/New_York").format("MMMM D, YYYY");
+};

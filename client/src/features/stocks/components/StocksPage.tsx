@@ -122,7 +122,7 @@ const StocksPage = () => {
         filters={filters}
       >
         {filteredStockInfo && Array.isArray(filteredStockInfo) && (
-          <>
+          <Box mt={8}>
             {filteredStockInfo.slice(0, page * PAGE_SIZE).map((stock) => (
               <Box
                 key={stock.symbol}
@@ -132,7 +132,7 @@ const StocksPage = () => {
                 <TickerCard ticker={stock.symbol} />
               </Box>
             ))}
-          </>
+          </Box>
         )}
         <Center mt={10}>
           {isLoading ? <Loader /> : <NextButton onClick={loadNextPageStocks} />}
