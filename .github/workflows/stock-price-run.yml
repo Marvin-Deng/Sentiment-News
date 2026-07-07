@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   run:
@@ -22,14 +23,15 @@ jobs:
         with:
           go-version: "1.22"
 
-      - name: Decode service account key
-        run: echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 -d > "$RUNNER_TEMP/gcp-sa-key.json"
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Run stock-price job
         working-directory: jobs/stock-price
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-sa-key.json
           MARKET_DATE: ${{ inputs.market_date }}
         run: go run .
