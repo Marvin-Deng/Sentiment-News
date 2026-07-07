@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Box, Button, Card, Text } from "@chakra-ui/react";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
 
@@ -16,22 +16,36 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   setSelectedOption,
 }) => {
   const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const handleOptionSelect = (key: number) => {
     setSelectedOption(selectedOption === key ? null : key);
     setOpen(false);
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
   return (
-    <Box position="relative" w="25%">
+    <Box position="relative" w="25%" ref={containerRef}>
       <Button
         onClick={() => setOpen(!open)}
         variant="outline"
         colorPalette="gray"
         w="full"
-        borderRadius="full"
+        borderRadius="md"
         justifyContent="space-between"
         size="sm"
+        borderColor="gray.400"
+        _dark={{ borderColor: "whiteAlpha.400" }}
       >
         <Text truncate>
           {selectedOption !== null ? originalOptions.get(selectedOption) : placeholder}
@@ -39,7 +53,16 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         <MdKeyboardDoubleArrowDown />
       </Button>
       {open && (
-        <Card.Root position="absolute" mt={2} w="full" zIndex={50} p={3}>
+        <Card.Root
+          position="absolute"
+          mt={2}
+          w="full"
+          zIndex={50}
+          p={3}
+          borderWidth="1px"
+          borderColor="gray.400"
+          _dark={{ borderColor: "whiteAlpha.400" }}
+        >
           {Array.from(originalOptions.entries()).map(([key, value]) => (
             <Box
               key={key}
@@ -63,11 +86,6 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
               <Text fontSize="sm">{value}</Text>
             </Box>
           ))}
-          <Box mt={3} display="flex" justifyContent="flex-end">
-            <Button variant="outline" colorPalette="gray" size="sm" onClick={() => setOpen(false)}>
-              Close
-            </Button>
-          </Box>
         </Card.Root>
       )}
     </Box>

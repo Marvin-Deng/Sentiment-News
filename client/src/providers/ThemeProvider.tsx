@@ -4,6 +4,7 @@ import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
 import { useState } from "react";
+import { ColorModeProvider } from "../components/ui/color-mode";
 
 function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
   const [cache] = useState(() => {
@@ -35,7 +36,9 @@ function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <EmotionCacheProvider>
-      <ChakraProvider value={defaultSystem}>{children}</ChakraProvider>
+      <ChakraProvider value={defaultSystem}>
+        <ColorModeProvider defaultTheme="dark">{children}</ColorModeProvider>
+      </ChakraProvider>
     </EmotionCacheProvider>
   );
 };

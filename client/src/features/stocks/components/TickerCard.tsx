@@ -104,16 +104,16 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
               />
             )}
             <Box minW={0}>
-              <Text fontWeight="semibold" truncate>
+              <Text fontWeight="semibold" truncate mb={1}>
                 {companyProfile.name}
               </Text>
-              <Text fontSize="sm" color="gray.500" truncate>
+              <Text fontSize="sm" color="fg.muted" truncate>
                 {companyProfile.ticker} · {companyProfile.exchange}
               </Text>
             </Box>
           </Flex>
           {quoteInfo && (
-            <Flex direction="column" align="flex-end" flexShrink={0} fontSize="sm" fontWeight="bold">
+            <Flex direction="column" align="flex-end" gap={2} flexShrink={0} fontSize="sm" fontWeight="bold">
               <Text>{quoteInfo.current.toFixed(2)}</Text>
               <Text
                 display="inline-block"
@@ -121,7 +121,7 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
                 py={1}
                 borderRadius="md"
                 color="white"
-                bg={quoteInfo.change >= 0 ? "green.500" : "red.500"}
+                bg={quoteInfo.change >= 0 ? "green.600" : "red.500"}
               >
                 {quoteInfo.change >= 0 ? "▲" : "▼"} {Math.abs(quoteInfo.change).toFixed(2)} (
                 {Math.abs(quoteInfo.percent).toFixed(2)}%)

@@ -30,10 +30,10 @@ const NewsCard = ({
   const isPositive = isPricePositive(open_price, close_price);
 
   return (
-    <Card.Root>
+    <Card.Root borderWidth="1px" borderColor="gray.400" _dark={{ borderColor: "whiteAlpha.400" }}>
       <Card.Body>
         <Image src={image_url} alt={title} w="full" h="56" objectFit="cover" mb={3} borderRadius="lg" />
-        <Text fontStyle="italic" fontSize="sm" color="gray.500" mb={2}>
+        <Text fontStyle="italic" fontSize="sm" color="fg.muted" mb={2}>
           {utcStringToLocal(publication_datetime)}
         </Text>
         <Flex align="center" justify="space-between" mb={2}>
@@ -44,11 +44,13 @@ const NewsCard = ({
             </Badge>
           </Flex>
         </Flex>
-        <Text fontSize="sm" color="gray.700">
+        <Text fontSize="sm" color="fg">
           {truncateSummary(summary, 300)}
         </Text>
         <Box mt={4}>
-          <Text fontStyle="italic" fontSize="sm" mb={2}>Price Action On: {formatDate(market_date)}</Text>
+          <Text fontStyle="italic" fontSize="sm" color="fg.muted" mb={2}>
+            Price Action On: {market_date ? formatDate(market_date) : "Pending"}
+          </Text>
           {open_price ? (
             <Flex align="center" gap={4} mb={3}>
               <Text>O: {open_price}</Text>
@@ -60,8 +62,19 @@ const NewsCard = ({
           ) : (
             <Text>Not available yet</Text>
           )}
-          <Flex justify="flex-end">
-            <Link href={article_url} mt={2}>
+          <Flex justify="flex-start">
+            <Link
+              href={article_url}
+              mt={2}
+              px={3}
+              py={1}
+              border="1px solid"
+              borderColor="gray.400"
+              _dark={{ borderColor: "whiteAlpha.400" }}
+              borderRadius="md"
+              cursor="pointer"
+              _hover={{ textDecoration: "none", bg: "fg", color: "bg" }}
+            >
               Read More
             </Link>
           </Flex>

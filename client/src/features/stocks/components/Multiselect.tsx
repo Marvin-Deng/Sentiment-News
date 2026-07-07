@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Box,
   Button,
@@ -25,6 +25,7 @@ const MultiSelectDropdown = ({
 }: MultiSelectDropdownProps) => {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const filtered = originalOptions.filter((name) =>
     name.toLowerCase().includes(filter.toLowerCase()),
@@ -36,22 +37,44 @@ const MultiSelectDropdown = ({
     );
   };
 
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
+
   return (
-    <Box position="relative" w="25%">
+    <Box position="relative" w="25%" ref={containerRef}>
       <Button
         onClick={() => setOpen((prev) => !prev)}
         variant="outline"
         colorPalette="gray"
         w="full"
-        borderRadius="full"
+        borderRadius="md"
         justifyContent="space-between"
         size="sm"
+        borderColor="gray.400"
+        _dark={{ borderColor: "whiteAlpha.400" }}
       >
         <Text truncate>{selectName}</Text>
         <MdKeyboardDoubleArrowDown />
       </Button>
       {open && (
-        <Card.Root position="absolute" mt={2} w="full" zIndex={50} p={3}>
+        <Card.Root
+          position="absolute"
+          mt={2}
+          w="full"
+          zIndex={50}
+          p={3}
+          borderWidth="1px"
+          borderColor="gray.400"
+          _dark={{ borderColor: "whiteAlpha.400" }}
+        >
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}

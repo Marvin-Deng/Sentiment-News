@@ -121,7 +121,14 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
             {loadingMore ? (
               <Loader />
             ) : articles.length !== 0 ? (
-              <Button onClick={loadNextPageArticles} colorPalette="gray" variant="solid">
+              <Button
+                onClick={loadNextPageArticles}
+                variant="outline"
+                bg="transparent"
+                color="fg"
+                border="1px solid"
+                borderColor="fg"
+              >
                 Load More
               </Button>
             ) : (

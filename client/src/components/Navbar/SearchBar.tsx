@@ -35,8 +35,10 @@ const SearchBar = () => {
         placeholder="Search"
         value={searchString}
         onChange={(e) => setSearchString(e.target.value)}
-        borderRadius="full"
+        borderRadius="md"
         pr={10}
+        borderColor="gray.400"
+        _dark={{ borderColor: "whiteAlpha.400" }}
       />
       <IconButton
         type="submit"
