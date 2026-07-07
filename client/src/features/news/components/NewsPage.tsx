@@ -82,7 +82,6 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
 
   const filters = (
     <>
-      <SearchBar />
       <MultiSelectDropdown
         selectName="Stocks"
         originalOptions={initialTickerList}
@@ -112,7 +111,12 @@ const NewsDisplay = ({ initialTickerList }: NewsDisplayProps) => {
   );
 
   return (
-    <PageLayout title="News" subtitle="View the latest financial news" filters={filters}>
+    <PageLayout
+      title="News"
+      subtitle="View the latest financial news"
+      searchBar={<SearchBar />}
+      filters={filters}
+    >
       {loading ? (
         <Center position="fixed" top="66%" left="50%" transform="translate(-50%, -50%)">
           <Loader />

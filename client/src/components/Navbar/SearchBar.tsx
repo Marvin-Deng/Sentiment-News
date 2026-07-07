@@ -14,7 +14,7 @@ const SearchBar = () => {
   };
 
   return (
-    <form style={{ position: "relative", width: "100%", maxWidth: "28rem" }} onSubmit={handleSubmit}>
+    <form style={{ position: "relative", width: "100%" }} onSubmit={handleSubmit}>
       <Input
         type="search"
         placeholder="Search"
