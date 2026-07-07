@@ -13,19 +13,13 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@google-cloud/firestore": "^8.6.0",
-    "@hugeicons/core-free-icons": "^4.2.1",
-    "@hugeicons/react": "^1.1.7",
     "next": "16.2.9",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "react-modal": "^3.16.3",
     "recharts": "^3.9.2"
   },
   "optionalDependencies": {
-    "@tanstack/react-query": "^5",
-    "axios": "^1",
     "dayjs": "^1",
-    "next-themes": "^0.2",
     "react-icons": "^4"
   },
   "devDependencies": {

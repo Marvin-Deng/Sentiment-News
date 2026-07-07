@@ -4,7 +4,6 @@ import React from "react";
 interface BadgeProps {
   children?: React.ReactNode;
   variant?: "positive" | "negative" | "neutral";
-  className?: string;
 }
 
 const colorMap = {
@@ -13,8 +12,8 @@ const colorMap = {
   neutral: "gray",
 };
 
-export const Badge: React.FC<BadgeProps> = ({ children, variant = "neutral", className }) => (
-  <ChakraBadge colorPalette={colorMap[variant]} variant="subtle" className={className}>
+export const Badge: React.FC<BadgeProps> = ({ children, variant = "neutral" }) => (
+  <ChakraBadge colorPalette={colorMap[variant]} variant="subtle">
     {children}
   </ChakraBadge>
 );

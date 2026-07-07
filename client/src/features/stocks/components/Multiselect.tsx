@@ -6,7 +6,6 @@ import {
   Checkbox,
   Input,
   Text,
-  VStack,
   SimpleGrid,
 } from "@chakra-ui/react";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";

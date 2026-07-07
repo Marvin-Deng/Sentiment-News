@@ -11,12 +11,8 @@ export const SearchContext = createContext<SearchContextProps | undefined>(undef
 const SearchProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [searchQuery, setSearchQuery] = useState("");
 
-  const updateSearchQuery = (query: string) => {
-    setSearchQuery(query);
-  };
-
   return (
-    <SearchContext.Provider value={{ searchQuery, updateSearchQuery }}>
+    <SearchContext.Provider value={{ searchQuery, updateSearchQuery: setSearchQuery }}>
       {children}
     </SearchContext.Provider>
   );

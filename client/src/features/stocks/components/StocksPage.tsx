@@ -22,7 +22,6 @@ const StocksPage = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
   const [currCompany, setCurrCompany] = useState("");
@@ -43,10 +42,6 @@ const StocksPage = () => {
     };
     fetchStocks();
   }, []);
-
-  useEffect(() => {
-    setIsLoading(!stockInfo);
-  }, [stockInfo]);
 
   const exchangeMics = useMemo(() => {
     if (!stockInfo) return [];
@@ -83,11 +78,7 @@ const StocksPage = () => {
   }, [stockInfo, searchQuery, selectedTickers, selectedExchange, exchangeMics]);
 
   const loadNextPageStocks = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setPage((prev) => prev + 1);
-      setIsLoading(false);
-    }, 2000);
+    setPage((prev) => prev + 1);
   };
 
   const handleOpenModal = (company: string, ticker: string) => {
@@ -135,7 +126,7 @@ const StocksPage = () => {
           </Box>
         )}
         <Center mt={10}>
-          {isLoading ? <Loader /> : <NextButton onClick={loadNextPageStocks} />}
+          {stockInfo === null ? <Loader /> : <NextButton onClick={loadNextPageStocks} />}
         </Center>
       </PageLayout>
       <StockModal

@@ -1,6 +1,5 @@
 "use client";
 import React, { useMemo } from "react";
-import { useTheme } from "next-themes";
 import { Box, Center } from "@chakra-ui/react";
 import {
   AreaChart,
@@ -165,8 +164,7 @@ const ChartTooltip = ({
 };
 
 const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range }) => {
-  const { resolvedTheme } = useTheme();
-  const axisColor = resolvedTheme === "dark" ? "white" : "black";
+  const axisColor = "var(--chakra-colors-fg)";
 
   const { priceLineColor, priceFillColor } = (() => {
     if (priceData.length === 0) {
