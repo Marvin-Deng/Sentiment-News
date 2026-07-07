@@ -62,9 +62,13 @@ export const ColorModeButton = forwardRef<HTMLButtonElement, ColorModeButtonProp
       <IconButton
         onClick={toggleColorMode}
         variant="outline"
+        bg="transparent"
+        color="fg"
         border="1px solid"
         borderColor="gray.400"
         _dark={{ borderColor: "whiteAlpha.400" }}
+        transition="background-color 0.3s ease, color 0.3s ease"
+        _hover={{ bg: "fg", color: "bg" }}
         size="sm"
         aria-label="Toggle color mode"
         ref={ref}

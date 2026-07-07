@@ -2,7 +2,7 @@
 import { Flex, Box } from "@chakra-ui/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ColorModeButton } from "../ui/color-mode";
+import { ColorModeButton } from "../ui/ColorMode";
 
 const NAV_LINKS = [
   { label: "News", href: "/" },

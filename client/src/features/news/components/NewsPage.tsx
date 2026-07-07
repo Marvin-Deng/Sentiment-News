@@ -1,9 +1,10 @@
 "use client";
 import { useState, useEffect } from "react";
-import { SimpleGrid, Button, Center, Text } from "@chakra-ui/react";
+import { SimpleGrid, Center, Text } from "@chakra-ui/react";
 
 import NewsCard from "./NewsCard";
-import Loader from "@/src/components/ui/loader";
+import Loader from "@/src/components/ui/Loader";
+import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import SearchBar from "@/src/components/Navbar/SearchBar";
 import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
@@ -121,16 +122,7 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
             {loadingMore ? (
               <Loader />
             ) : articles.length !== 0 ? (
-              <Button
-                onClick={loadNextPageArticles}
-                variant="outline"
-                bg="transparent"
-                color="fg"
-                border="1px solid"
-                borderColor="fg"
-              >
-                Load More
-              </Button>
+              <LoadMoreButton onClick={loadNextPageArticles} />
             ) : (
               <Text>No Articles Available</Text>
             )}

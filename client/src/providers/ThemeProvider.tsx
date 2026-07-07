@@ -4,7 +4,7 @@ import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
 import { useState } from "react";
-import { ColorModeProvider } from "../components/ui/color-mode";
+import { ColorModeProvider } from "../components/ui/ColorMode";
 
 function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
   const [cache] = useState(() => {

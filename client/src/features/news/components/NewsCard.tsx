@@ -1,7 +1,7 @@
 import { Article } from "../types";
 import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
-import Badge from "@/src/components/ui/badge";
+import Badge from "@/src/components/ui/Badge";
 import { getSentimentBadgeVariant } from "@/src/constants/sentiment";
 import {
   Box,
@@ -37,8 +37,10 @@ const NewsCard = ({
           {utcStringToLocal(publication_datetime)}
         </Text>
         <Flex align="center" justify="space-between" mb={2}>
-          <Flex align="center" gap={3}>
-            <Text fontSize="sm" fontWeight="semibold">{ticker}</Text>
+          <Flex align="center" gap={ticker ? 3 : 0}>
+            {ticker && (
+              <Text fontSize="sm" fontWeight="semibold">{ticker}</Text>
+            )}
             <Badge variant={getSentimentBadgeVariant(sentiment)}>
               {sentiment}
             </Badge>
@@ -73,6 +75,7 @@ const NewsCard = ({
               _dark={{ borderColor: "whiteAlpha.400" }}
               borderRadius="md"
               cursor="pointer"
+              transition="background-color 0.3s ease, color 0.3s ease"
               _hover={{ textDecoration: "none", bg: "fg", color: "bg" }}
             >
               Read More

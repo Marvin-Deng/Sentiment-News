@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Box, Button, Center } from "@chakra-ui/react";
+import { Box, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
 import StockModal from "@/src/features/stocks/components/StockModal";
 import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
-import Loader from "@/src/components/ui/loader";
+import Loader from "@/src/components/ui/Loader";
+import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import PageLayout from "@/src/components/layout/PageLayout";
 import SearchBar from "@/src/components/Navbar/SearchBar";
 
@@ -121,9 +122,7 @@ const StocksPage = () => {
           {stockInfo === null ? (
             <Loader />
           ) : (
-            <Button onClick={loadNextPageStocks} colorPalette="gray" variant="solid">
-              Load More
-            </Button>
+            <LoadMoreButton onClick={loadNextPageStocks} />
           )}
         </Center>
       </PageLayout>

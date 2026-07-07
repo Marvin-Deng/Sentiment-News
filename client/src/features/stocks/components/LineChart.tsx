@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import Loader from "@/src/components/ui/loader";
+import Loader from "@/src/components/ui/Loader";
 import { getPriceDiff } from "@/src/utils/priceUtils";
 import { PriceData } from "@/src/features/stocks/types";
 
