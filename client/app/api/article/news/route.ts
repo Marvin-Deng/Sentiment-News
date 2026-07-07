@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { Article } from "@/src/features/news/api";
+import { Article } from "@/src/features/news/types";
 import { getFirestore } from "@/lib/firestore";
 import { SENTIMENT_CATEGORY_MEMBERS, SentimentCategory } from "@/src/constants/sentiment";
 

@@ -9,7 +9,8 @@ import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import PageLayout from "@/src/components/layout/PageLayout";
 
-import { Article, fetchArticles } from "../api";
+import { fetchArticles } from "../api";
+import { Article } from "../types";
 import { useSearch } from "@/src/providers/SearchProvider";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
 import { SENTIMENT_CATEGORIES } from "@/src/constants/sentiment";

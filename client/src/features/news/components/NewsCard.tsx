@@ -1,4 +1,4 @@
-import { Article } from "../api";
+import { Article } from "../types";
 import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
 import Badge from "@/src/components/ui/badge";
