@@ -1,0 +1,16 @@
+export const DEFAULT_TICKERS = [
+  "AAPL",
+  "NVDA",
+  "MSFT",
+  "AMZN",
+  "GOOGL",
+  "TSLA",
+  "META",
+  "NFLX",
+  "JPM",
+  "AMD",
+  "V",
+  "PYPL",
+  "QCOM",
+  "AVGO",
+];

@@ -1,7 +1,6 @@
 import NewsDisplay from "../src/features/news/components/NewsPage";
-
-const TICKER_LIST = ["AAPL", "MSFT", "GOOG", "TSLA", "AMZN", "NVDA"];
+import { DEFAULT_TICKERS } from "../src/constants/tickers";
 
 export default function Home() {
-  return <NewsDisplay initialTickerList={TICKER_LIST} />;
+  return <NewsDisplay initialTickerList={DEFAULT_TICKERS} />;
 }

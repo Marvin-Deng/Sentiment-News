@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
+import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 export async function GET() {
-  // TODO: replace with real ticker source
-  const tickers = ["AAPL", "MSFT", "GOOG", "TSLA", "AMZN", "NVDA"];
-  return NextResponse.json({ tickers });
+  return NextResponse.json({ tickers: DEFAULT_TICKERS });
 }
