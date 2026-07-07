@@ -24,7 +24,7 @@ export const SENTIMENT_CATEGORY_MEMBERS: Record<SentimentCategory, Sentiment[]> 
 
 export const SENTIMENT_CATEGORIES = Object.keys(SENTIMENT_CATEGORY_MEMBERS) as SentimentCategory[];
 
-export const getSentimentCategory = (sentiment: string): SentimentCategory =>
+const getSentimentCategory = (sentiment: string): SentimentCategory =>
   SENTIMENT_CATEGORIES.find((category) =>
     SENTIMENT_CATEGORY_MEMBERS[category].includes(sentiment as Sentiment),
   ) ?? "Neutral";

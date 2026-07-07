@@ -14,12 +14,8 @@ export const getPercentChange = (
   return parseFloat(percentChange.toFixed(2));
 };
 
-export const getPriceColorStr = (
-  firstPrice: number,
-  secondPrice: number,
-): string => {
-  return firstPrice < secondPrice ? "green-500" : "red-500";
-};
+export const isPricePositive = (firstPrice: number, secondPrice: number): boolean =>
+  firstPrice < secondPrice;
 
 export const getPriceDiffStr = (
   firstPrice: number,

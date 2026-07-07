@@ -32,7 +32,7 @@ function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
   return <CacheProvider value={cache}>{children}</CacheProvider>;
 }
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <EmotionCacheProvider>
       <ChakraProvider value={defaultSystem}>{children}</ChakraProvider>

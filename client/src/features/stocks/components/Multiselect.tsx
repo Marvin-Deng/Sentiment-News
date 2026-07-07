@@ -1,4 +1,4 @@
-import React, { ChangeEvent } from "react";
+import { useState } from "react";
 import {
   Box,
   Button,
@@ -17,37 +17,29 @@ interface MultiSelectDropdownProps {
   setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
 }
 
-const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
+const MultiSelectDropdown = ({
   selectName,
   originalOptions,
   selectedOptions,
   setSelectedOptions,
-}) => {
-  const [open, setOpen] = React.useState(false);
-  const [filter, setFilter] = React.useState("");
-
-  const handleToggleDropdown = () => setOpen(!open);
-
-  const handleFilterChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setFilter(event.target.value);
-  };
-
-  const handleCheckboxChange = (value: string) => {
-    if (selectedOptions.includes(value)) {
-      setSelectedOptions((prev) => prev.filter((o) => o !== value));
-    } else {
-      setSelectedOptions((prev) => [...prev, value]);
-    }
-  };
+}: MultiSelectDropdownProps) => {
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState("");
 
   const filtered = originalOptions.filter((name) =>
-    name.toLowerCase().includes(filter.toLowerCase())
+    name.toLowerCase().includes(filter.toLowerCase()),
   );
+
+  const toggleOption = (value: string) => {
+    setSelectedOptions((prev) =>
+      prev.includes(value) ? prev.filter((option) => option !== value) : [...prev, value],
+    );
+  };
 
   return (
     <Box position="relative" w="25%">
       <Button
-        onClick={handleToggleDropdown}
+        onClick={() => setOpen((prev) => !prev)}
         variant="outline"
         colorPalette="gray"
         w="full"
@@ -62,7 +54,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
         <Card.Root position="absolute" mt={2} w="full" zIndex={50} p={3}>
           <Input
             value={filter}
-            onChange={handleFilterChange}
+            onChange={(event) => setFilter(event.target.value)}
             placeholder="Search"
             size="sm"
             mb={2}
@@ -72,7 +64,7 @@ const MultiSelectDropdown: React.FC<MultiSelectDropdownProps> = ({
               <Checkbox.Root
                 key={name}
                 checked={selectedOptions.includes(name)}
-                onCheckedChange={() => handleCheckboxChange(name)}
+                onCheckedChange={() => toggleOption(name)}
                 cursor="pointer"
               >
                 <Checkbox.HiddenInput />

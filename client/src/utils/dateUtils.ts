@@ -5,7 +5,7 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-export const dateToISOString = (date: Date) => dayjs(date).format("YYYY-MM-DD");
+const dateToISOString = (date: Date) => dayjs(date).format("YYYY-MM-DD");
 
 export const getDateDaysBefore = (days_duration: number) => {
   const startDate = new Date();

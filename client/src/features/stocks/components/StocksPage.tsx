@@ -1,18 +1,17 @@
 "use client";
-import { useState, useEffect, useMemo, useContext } from "react";
-import { Box, Center } from "@chakra-ui/react";
+import { useState, useEffect, useMemo } from "react";
+import { Box, Button, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
 import StockModal from "@/src/features/stocks/components/StockModal";
 import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import Loader from "@/src/components/ui/loader";
-import NextButton from "@/src/components/ui/next-button";
 import PageLayout from "@/src/components/layout/PageLayout";
 import SearchBar from "@/src/components/Navbar/SearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
-import { SearchContext, SearchContextProps } from "@/src/providers/SearchProvider";
+import { useSearch } from "@/src/providers/SearchProvider";
 import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 import { formatExchangeLabel } from "@/src/constants/exchanges";
 
@@ -21,13 +20,11 @@ const PAGE_SIZE = 10;
 const StocksPage = () => {
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
-  const [isOpen, setIsOpen] = useState(false);
+  const [selectedStock, setSelectedStock] = useState<{ company: string; ticker: string } | null>(null);
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
-  const [currCompany, setCurrCompany] = useState("");
-  const [currTicker, setCurrTicker] = useState("");
 
-  const { searchQuery } = useContext(SearchContext) as SearchContextProps;
+  const { searchQuery } = useSearch();
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -35,8 +32,7 @@ const StocksPage = () => {
         const res = await fetch("/api/stock/exchange");
         const data = await res.json();
         setStockInfo(data.stocks);
-      } catch (error) {
-        console.error("Error fetching stocks from exchange:", error);
+      } catch {
         setStockInfo(null);
       }
     };
@@ -82,9 +78,7 @@ const StocksPage = () => {
   };
 
   const handleOpenModal = (company: string, ticker: string) => {
-    setIsOpen(true);
-    setCurrCompany(company);
-    setCurrTicker(ticker);
+    setSelectedStock({ company, ticker });
   };
 
   const filters = (
@@ -112,29 +106,28 @@ const StocksPage = () => {
         searchBar={<SearchBar />}
         filters={filters}
       >
-        {filteredStockInfo && Array.isArray(filteredStockInfo) && (
+        {filteredStockInfo && (
           <Box mt={8}>
             {filteredStockInfo.slice(0, page * PAGE_SIZE).map((stock) => (
-              <Box
+              <TickerCard
                 key={stock.symbol}
+                ticker={stock.symbol}
                 onClick={() => handleOpenModal(stock.description, stock.symbol)}
-                cursor="pointer"
-              >
-                <TickerCard ticker={stock.symbol} />
-              </Box>
+              />
             ))}
           </Box>
         )}
         <Center mt={10}>
-          {stockInfo === null ? <Loader /> : <NextButton onClick={loadNextPageStocks} />}
+          {stockInfo === null ? (
+            <Loader />
+          ) : (
+            <Button onClick={loadNextPageStocks} colorPalette="gray" variant="solid">
+              Load More
+            </Button>
+          )}
         </Center>
       </PageLayout>
-      <StockModal
-        company={currCompany}
-        ticker={currTicker}
-        isOpen={isOpen}
-        handleClose={() => setIsOpen(false)}
-      />
+      <StockModal stock={selectedStock} onClose={() => setSelectedStock(null)} />
     </>
   );
 };

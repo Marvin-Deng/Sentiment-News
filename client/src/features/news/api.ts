@@ -1,5 +1,3 @@
-"use server";
-
 import { Sentiment } from "@/src/constants/sentiment";
 
 export type Article = {
@@ -20,7 +18,6 @@ export const fetchArticles = async (
   searchQuery: string,
   selectedTickers: string[],
   sentiment: string,
-  priceAction: string,
   endDate: string,
 ): Promise<Article[]> => {
   const params = new URLSearchParams({
@@ -28,11 +25,9 @@ export const fetchArticles = async (
     search_query: searchQuery,
     tickers: selectedTickers.join(","),
     sentiment,
-    price_action: priceAction,
     end_date: endDate,
   });
-  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const res = await fetch(`${base}/api/article/news?${params}`, { cache: "no-store" });
+  const res = await fetch(`/api/article/news?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`fetchArticles failed: ${res.status}`);
   const { articles } = await res.json();
   return articles as Article[];

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { EodDataPoint } from "@/src/features/stocks/api";
+import { PriceData } from "@/src/features/stocks/types";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     if (!res.ok) throw new Error(`Tiingo eod request failed: ${res.status}`);
 
     const records = await res.json();
-    const eod_data: EodDataPoint[] = records.map((record: Record<string, unknown>) => ({
+    const eod_data: PriceData[] = records.map((record: Record<string, unknown>) => ({
       date: record.date,
       open: record.open,
       close: record.close,

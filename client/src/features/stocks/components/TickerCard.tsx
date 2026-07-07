@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { CompanyProfile } from "@/src/features/stocks/types";
-import { fetchQuoteInfo } from "@/src/features/stocks/api";
+import { QuoteInfo, fetchQuoteInfo } from "@/src/features/stocks/api";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 const QUOTE_TTL_SECONDS = 120;
@@ -10,11 +10,12 @@ const PROFILE_TTL_SECONDS = 3600;
 
 interface TickerCardProps {
   ticker: string;
+  onClick?: () => void;
 }
 
-type QuoteState = { current: number; change: number; percent: number };
+type QuoteState = Pick<QuoteInfo, "current" | "change" | "percent">;
 
-const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
+const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [quoteInfo, setQuoteInfo] = useState<QuoteState | null>(null);
   const [fetchSuccess, setFetchSuccess] = useState(true);
@@ -77,6 +78,7 @@ const TickerCard: React.FC<TickerCardProps> = ({ ticker }) => {
       cursor="pointer"
       transition="transform 0.3s ease-in-out"
       _hover={{ transform: "scale(1.02)" }}
+      onClick={onClick}
     >
       {companyProfile && (
         <Flex

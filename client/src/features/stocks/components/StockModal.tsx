@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
@@ -7,14 +7,12 @@ import DataTable from "@/src/features/stocks/components/DataTable";
 
 import { fetchEodData, fetchQuoteInfo, QuoteInfo } from "@/src/features/stocks/api";
 import { PriceData, DEFAULT_PRICE_DATA } from "@/src/features/stocks/types";
-import { getPriceColorStr, getPriceDiffStr, getPercentChangeStr } from "@/src/utils/priceUtils";
+import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
 interface StockModalProps {
-  company: string;
-  ticker: string;
-  isOpen: boolean;
-  handleClose: () => void;
+  stock: { company: string; ticker: string } | null;
+  onClose: () => void;
 }
 
 const RANGES = ["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"];
@@ -37,9 +35,10 @@ const getRangeStartDate = (range: string): Date => {
   return start;
 };
 
-const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handleClose }) => {
+const StockModal = ({ stock, onClose }: StockModalProps) => {
+  const ticker = stock?.ticker ?? "";
   const [selectedRange, setSelectedRange] = useState("YTD");
-  const [startDate, setStartDate] = useState(() => getRangeStartDate("YTD"));
+  const startDate = useMemo(() => getRangeStartDate(selectedRange), [selectedRange]);
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
@@ -56,10 +55,10 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   useEffect(() => {
     const fetchStockPrices = async () => {
       const priceData = await fetchEodData(ticker, startDate);
-      setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData as PriceData[])));
+      setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData)));
     };
 
-    if (isOpen) {
+    if (stock) {
       const tickerStockData = getCurrTickerData();
       if (tickerStockData.length === 0) {
         fetchStockPrices();
@@ -70,7 +69,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
         if (startDate < earliestData || isStale) fetchStockPrices();
       }
     }
-  }, [ticker, startDate]);
+  }, [stock, ticker, startDate]);
 
   useEffect(() => {
     const tickerData = getCurrTickerData();
@@ -80,7 +79,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
   }, [stockDataMap, ticker]);
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!stock) return;
 
     const fetchQuote = async () => {
       try {
@@ -94,15 +93,11 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
     fetchQuote();
     const interval = setInterval(fetchQuote, 5000);
     return () => clearInterval(interval);
-  }, [isOpen, ticker]);
+  }, [stock, ticker]);
 
-  useEffect(() => {
-    setStartDate(getRangeStartDate(selectedRange));
-  }, [selectedRange]);
+  if (!stock) return null;
 
-  if (!isOpen) return null;
-
-  const priceColor = getPriceColorStr(currPriceData.open, currPriceData.close) === "green-500" ? "green.600" : "red.600";
+  const priceColor = isPricePositive(currPriceData.open, currPriceData.close) ? "green.600" : "red.600";
 
   return (
     <Flex
@@ -112,7 +107,7 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
       justify="center"
       zIndex={50}
       bg="blackAlpha.600"
-      onClick={handleClose}
+      onClick={onClose}
     >
       <Box
         position="relative"
@@ -129,9 +124,9 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
       >
         <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
           <Text fontSize="xl" fontWeight="semibold">
-            {company} ({ticker})
+            {stock.company} ({stock.ticker})
           </Text>
-          <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={handleClose}>
+          <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={onClose}>
             ✕
           </IconButton>
         </Flex>

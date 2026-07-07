@@ -1,32 +1,31 @@
 "use client";
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input, IconButton } from "@chakra-ui/react";
 import { FaSearch } from "react-icons/fa";
-import { SearchContext } from "../../providers/SearchProvider";
+import { useSearch } from "../../providers/SearchProvider";
 
 const DEBOUNCE_MS = 300;
 
 const SearchBar = () => {
-  const [searchString, setSearchString] = useState<string>("");
-  const ctx = useContext(SearchContext);
+  const [searchString, setSearchString] = useState("");
+  const { updateSearchQuery } = useSearch();
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
-      ctx?.updateSearchQuery(searchString);
+      updateSearchQuery(searchString);
     }, DEBOUNCE_MS);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchString]);
+  }, [searchString, updateSearchQuery]);
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    ctx?.updateSearchQuery(searchString);
+    updateSearchQuery(searchString);
   };
 
   return (

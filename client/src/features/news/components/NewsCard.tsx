@@ -1,7 +1,7 @@
 import { Article } from "../api";
-import { getPriceColorStr, getPriceStrArrow } from "@/src/utils/priceUtils";
+import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
-import { Badge } from "@/src/components/ui/badge";
+import Badge from "@/src/components/ui/badge";
 import { getSentimentBadgeVariant } from "@/src/constants/sentiment";
 import {
   Box,
@@ -12,7 +12,7 @@ import {
   Link,
 } from "@chakra-ui/react";
 
-const ArticleCard = ({
+const NewsCard = ({
   title,
   publication_datetime,
   summary,
@@ -24,12 +24,10 @@ const ArticleCard = ({
   open_price,
   close_price,
 }: Article) => {
-  const truncateSummary = (text: string, maxLength: number) => {
-    if (text.length <= maxLength) return text;
-    return text.slice(0, maxLength) + "...";
-  };
+  const truncateSummary = (text: string, maxLength: number) =>
+    text.length <= maxLength ? text : `${text.slice(0, maxLength)}...`;
 
-  const isPositive = getPriceColorStr(open_price, close_price) === "green-500";
+  const isPositive = isPricePositive(open_price, close_price);
 
   return (
     <Card.Root>
@@ -73,4 +71,4 @@ const ArticleCard = ({
   );
 };
 
-export default ArticleCard;
+export default NewsCard;

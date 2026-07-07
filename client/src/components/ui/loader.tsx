@@ -1,9 +1,5 @@
-import { Spinner, Center } from "@chakra-ui/react";
+import { Spinner } from "@chakra-ui/react";
 
-const Loader = () => (
-  <Center>
-    <Spinner size="lg" />
-  </Center>
-);
+const Loader = () => <Spinner size="lg" />;
 
 export default Loader;

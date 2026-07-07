@@ -1,69 +1,71 @@
-import React, { ReactNode } from "react";
 import { Box, Table, Heading } from "@chakra-ui/react";
 import { PriceData } from "@/src/features/stocks/types";
 import { QuoteInfo } from "@/src/features/stocks/api";
-
-interface TableBodyProps {
-  children: ReactNode;
-}
-
-interface TableColumnProps {
-  label: string;
-  value: number;
-}
 
 interface DataTableProps {
   currPriceData: PriceData;
   quoteInfo: QuoteInfo | null;
 }
 
-const TableBody: React.FC<TableBodyProps> = ({ children }) => (
-  <Table.Root variant="outline" size="sm">
-    <Table.Body>{children}</Table.Body>
-  </Table.Root>
-);
+type TableSection = {
+  title: string;
+  rows: { label: string; value: number }[];
+};
 
-const TableColumn: React.FC<TableColumnProps> = ({ label, value }) => (
-  <Table.Row>
-    <Table.Cell>{label}</Table.Cell>
-    <Table.Cell textAlign="right">{`${value}`}</Table.Cell>
-  </Table.Row>
-);
+const DataTable = ({ currPriceData, quoteInfo }: DataTableProps) => {
+  const sections: TableSection[] = [
+    {
+      title: "Latest Quote",
+      rows: [
+        { label: "Current Price", value: quoteInfo?.current ?? 0 },
+        { label: "Change", value: quoteInfo?.change ?? 0 },
+      ],
+    },
+    {
+      title: "End of Day Data",
+      rows: [
+        { label: "Open", value: currPriceData.open },
+        { label: "High", value: currPriceData.high },
+        { label: "Low", value: currPriceData.low },
+        { label: "Close", value: currPriceData.close },
+        { label: "Volume", value: currPriceData.volume },
+        { label: "Dividend", value: currPriceData.divCash },
+        { label: "Split", value: currPriceData.splitFactor },
+      ],
+    },
+    {
+      title: "Adjusted Prices",
+      rows: [
+        { label: "Adj Open", value: currPriceData.adjOpen },
+        { label: "Adj High", value: currPriceData.adjHigh },
+        { label: "Adj Low", value: currPriceData.adjLow },
+        { label: "Adj Close", value: currPriceData.adjClose },
+        { label: "Adj Volume", value: currPriceData.adjVolume },
+      ],
+    },
+  ];
 
-const DataTable: React.FC<DataTableProps> = ({ currPriceData, quoteInfo }) => (
-  <Box p={4}>
-    <Heading size="sm" mb={2}>
-      Latest Quote
-    </Heading>
-    <TableBody>
-      <TableColumn label="Current Price" value={quoteInfo?.current ?? 0} />
-      <TableColumn label="Change" value={quoteInfo?.change ?? 0} />
-    </TableBody>
-
-    <Heading size="sm" mt={5} mb={2}>
-      End of Day Data
-    </Heading>
-    <TableBody>
-      <TableColumn label="Open" value={currPriceData.open} />
-      <TableColumn label="High" value={currPriceData.high} />
-      <TableColumn label="Low" value={currPriceData.low} />
-      <TableColumn label="Close" value={currPriceData.close} />
-      <TableColumn label="Volume" value={currPriceData.volume} />
-      <TableColumn label="Dividend" value={currPriceData.divCash} />
-      <TableColumn label="Split" value={currPriceData.splitFactor} />
-    </TableBody>
-
-    <Heading size="sm" mt={5} mb={2}>
-      Adjusted Prices
-    </Heading>
-    <TableBody>
-      <TableColumn label="Adj Open" value={currPriceData.adjOpen} />
-      <TableColumn label="Adj High" value={currPriceData.adjHigh} />
-      <TableColumn label="Adj Low" value={currPriceData.adjLow} />
-      <TableColumn label="Adj Close" value={currPriceData.adjClose} />
-      <TableColumn label="Adj Volume" value={currPriceData.adjVolume} />
-    </TableBody>
-  </Box>
-);
+  return (
+    <Box p={4}>
+      {sections.map((section, index) => (
+        <Box key={section.title} mt={index === 0 ? 0 : 5}>
+          <Heading size="sm" mb={2}>
+            {section.title}
+          </Heading>
+          <Table.Root variant="outline" size="sm">
+            <Table.Body>
+              {section.rows.map((row) => (
+                <Table.Row key={row.label}>
+                  <Table.Cell>{row.label}</Table.Cell>
+                  <Table.Cell textAlign="right">{row.value}</Table.Cell>
+                </Table.Row>
+              ))}
+            </Table.Body>
+          </Table.Root>
+        </Box>
+      ))}
+    </Box>
+  );
+};
 
 export default DataTable;
