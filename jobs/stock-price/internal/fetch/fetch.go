@@ -33,7 +33,10 @@ type Result struct {
 }
 
 func (s *Service) Run(ctx context.Context) (Result, error) {
-	marketDate := stock.MarketDate(time.Now()).Format("2006-01-02")
+	marketDate := s.cfg.MarketDate
+	if marketDate == "" {
+		marketDate = stock.MarketDate(time.Now()).Format("2006-01-02")
+	}
 
 	var updated []string
 	group, ctx := errgroup.WithContext(ctx)

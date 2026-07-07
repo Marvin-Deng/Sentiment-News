@@ -2,30 +2,34 @@ name: Stock Price Run
 
 on:
   workflow_dispatch:
-
-env:
-  REGION: us-central1
-  JOB: stock-price
+    inputs:
+      market_date:
+        description: "Market date to update prices for (YYYY-MM-DD). Leave blank to use today's market date."
+        required: false
+        type: string
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   run:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: google-github-actions/auth@v2
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
         with:
-          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          go-version: "1.22"
 
-      - uses: google-github-actions/setup-gcloud@v2
+      - name: Decode service account key
+        run: echo "${{ secrets.GCP_SA_KEY_BASE64 }}" | base64 -d > "$RUNNER_TEMP/gcp-sa-key.json"
 
-      - name: Execute Cloud Run Job
-        run: |
-          gcloud run jobs execute "${{ env.JOB }}" \
-            --project "${{ secrets.GCP_PROJECT_ID }}" \
-            --region "${{ env.REGION }}" \
-            --wait
+      - name: Run stock-price job
+        working-directory: jobs/stock-price
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/gcp-sa-key.json
+          MARKET_DATE: ${{ inputs.market_date }}
+        run: go run .

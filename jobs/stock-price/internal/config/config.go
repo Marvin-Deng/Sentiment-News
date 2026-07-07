@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 var DefaultTickers = []string{
@@ -15,6 +16,7 @@ type Config struct {
 	GCPProjectID string
 	TiingoToken  string
 	Tickers      []string
+	MarketDate   string // optional override, "YYYY-MM-DD"; empty means use today's market date
 }
 
 func Load() (Config, error) {
@@ -22,6 +24,7 @@ func Load() (Config, error) {
 		GCPProjectID: os.Getenv("GCP_PROJECT_ID"),
 		TiingoToken:  os.Getenv("TIINGO_TOKEN"),
 		Tickers:      DefaultTickers,
+		MarketDate:   strings.TrimSpace(os.Getenv("MARKET_DATE")),
 	}
 
 	if raw := strings.TrimSpace(os.Getenv("TICKERS")); raw != "" {
@@ -33,6 +36,11 @@ func Load() (Config, error) {
 	}
 	if cfg.TiingoToken == "" {
 		return cfg, fmt.Errorf("TIINGO_TOKEN is required")
+	}
+	if cfg.MarketDate != "" {
+		if _, err := time.Parse("2006-01-02", cfg.MarketDate); err != nil {
+			return cfg, fmt.Errorf("MARKET_DATE must be in YYYY-MM-DD format: %w", err)
+		}
 	}
 
 	return cfg, nil
