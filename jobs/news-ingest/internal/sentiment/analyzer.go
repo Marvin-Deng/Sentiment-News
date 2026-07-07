@@ -14,6 +14,11 @@ import (
 	"github.com/sentiment-news/jobs/news-ingest/internal/config"
 )
 
+const (
+	primaryGeminiModel  = "gemini-3-flash-preview"
+	fallbackGeminiModel = "gemini-3.1-flash-lite"
+)
+
 type Analyzer struct {
 	geminiKey  string
 	httpClient *http.Client
@@ -30,13 +35,18 @@ func NewAnalyzer(geminiKey string) *Analyzer {
 
 func (a *Analyzer) Evaluate(ctx context.Context, title, summary string) string {
 	text := fmt.Sprintf("%s: %s", title, summary)
-	if sentiment := a.analyzeWithGemini(ctx, text); sentiment != "" {
+	sentiment := a.analyzeWithGemini(ctx, primaryGeminiModel, text)
+	if sentiment == "" {
+		log.Printf("warning: falling back to %s for sentiment analysis", fallbackGeminiModel)
+		sentiment = a.analyzeWithGemini(ctx, fallbackGeminiModel, text)
+	}
+	if sentiment != "" {
 		return titleCase(sentiment)
 	}
 	return "Neutral"
 }
 
-func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) string {
+func (a *Analyzer) analyzeWithGemini(ctx context.Context, model, text string) string {
 	prompt := fmt.Sprintf(
 		"Analyze the sentiment of the following text using only one of the following: %s. %s",
 		config.SentimentOptions,
@@ -59,7 +69,7 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) string {
 		return ""
 	}
 
-	endpoint := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+	endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent", model)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		log.Printf("warning: failed to build gemini request: %v", err)
@@ -81,7 +91,7 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) string {
 		return ""
 	}
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("warning: gemini request returned status %d: %s", resp.StatusCode, string(respBody))
+		log.Printf("warning: gemini request to %s returned status %d: %s", model, resp.StatusCode, string(respBody))
 		return ""
 	}
 

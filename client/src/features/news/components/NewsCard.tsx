@@ -39,7 +39,7 @@ const NewsCard = ({
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={ticker ? 3 : 0}>
             {ticker && (
-              <Text fontSize="sm" fontWeight="semibold">{ticker}</Text>
+              <Text fontSize="md" fontWeight="semibold">{ticker}</Text>
             )}
             <Badge variant={getSentimentBadgeVariant(sentiment)}>
               {sentiment}
@@ -62,7 +62,7 @@ const NewsCard = ({
               </Text>
             </Flex>
           ) : (
-            <Text>Not available yet</Text>
+            <Text fontSize="sm">Not available yet</Text>
           )}
           <Flex justify="flex-start">
             <Link
