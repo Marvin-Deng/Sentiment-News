@@ -1,0 +1,31 @@
+name: Stock Price Run
+
+on:
+  workflow_dispatch:
+
+env:
+  REGION: us-central1
+  JOB: stock-price
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Execute Cloud Run Job
+        run: |
+          gcloud run jobs execute "${{ env.JOB }}" \
+            --project "${{ secrets.GCP_PROJECT_ID }}" \
+            --region "${{ env.REGION }}" \
+            --wait

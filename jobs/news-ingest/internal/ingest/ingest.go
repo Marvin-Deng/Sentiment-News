@@ -19,7 +19,6 @@ type Service struct {
 	cfg       config.Config
 	finnhub   *finnhub.Client
 	sentiment *sentiment.Analyzer
-	tiingo    *stock.TiingoClient
 	store     *repository.Store
 }
 
@@ -28,7 +27,6 @@ func NewService(cfg config.Config, store *repository.Store) *Service {
 		cfg:       cfg,
 		finnhub:   finnhub.NewClient(cfg.FinnhubAPIKey),
 		sentiment: sentiment.NewAnalyzer(cfg.GeminiAPIKey),
-		tiingo:    stock.NewTiingoClient(cfg.TiingoToken),
 		store:     store,
 	}
 }
@@ -87,52 +85,24 @@ func (s *Service) processTicker(
 
 	log.Printf("found %d articles for %s", len(validArticles), ticker)
 
-	tickerObject, err := s.ensureTicker(ctx, ticker, time.Now())
-	if err != nil {
-		return fmt.Errorf("ensure ticker %s: %w", ticker, err)
-	}
+	marketDate := stock.MarketDate(time.Now()).Format("2006-01-02")
+	tickerDocID := repository.TickerDocID(ticker, marketDate)
 
 	articleGroup, articleCtx := errgroup.WithContext(ctx)
 	for _, article := range validArticles {
 		article := article
 		articleGroup.Go(func() error {
-			return s.addArticle(articleCtx, article, tickerObject, processed, mu, titles)
+			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, titles)
 		})
 	}
 
 	return articleGroup.Wait()
 }
 
-func (s *Service) ensureTicker(ctx context.Context, ticker string, publication time.Time) (*repository.Ticker, error) {
-	marketDate := stock.MarketDate(publication).Format("2006-01-02")
-
-	existing, err := s.store.GetTicker(ctx, ticker, marketDate)
-	if err != nil {
-		return nil, err
-	}
-	if existing != nil {
-		log.Printf("ticker already exists: %s on %s", existing.Ticker, existing.MarketDate)
-		return existing, nil
-	}
-
-	prices, err := s.tiingo.GetEOD(ctx, ticker, marketDate)
-	if err != nil {
-		log.Printf("warning: failed to fetch tiingo eod for %s on %s: %v", ticker, marketDate, err)
-	}
-
-	upserted, err := s.store.UpsertTicker(ctx, ticker, marketDate, prices.OpenPrice, prices.ClosePrice)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Printf("upserted ticker %s on %s", upserted.Ticker, upserted.MarketDate)
-	return upserted, nil
-}
-
 func (s *Service) addArticle(
 	ctx context.Context,
 	article finnhub.Article,
-	tickerObject *repository.Ticker,
+	tickerDocID, ticker, marketDate string,
 	processed map[int]struct{},
 	mu *sync.Mutex,
 	titles *[]string,
@@ -165,7 +135,7 @@ func (s *Service) addArticle(
 		Summary:             article.Summary,
 		PublicationDatetime: publicationDatetime,
 		Sentiment:           sentimentValue,
-		TickerDocID:         tickerObject.DocID,
+		TickerDocID:         tickerDocID,
 		ExpiresAt:           time.Now().AddDate(0, 0, 7),
 	})
 	if err != nil {
@@ -176,6 +146,6 @@ func (s *Service) addArticle(
 	*titles = append(*titles, article.Headline)
 	mu.Unlock()
 
-	log.Printf("created article: %s on %s", tickerObject.Ticker, tickerObject.MarketDate)
+	log.Printf("created article: %s on %s", ticker, marketDate)
 	return nil
 }

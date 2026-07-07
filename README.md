@@ -57,12 +57,18 @@ cp jobs/.env.example jobs/.env
 
 Required variables in `jobs/.env`:
 
-| Variable          | Description                                                              |
-| ----------------- | ------------------------------------------------------------------------ |
-| `GCP_PROJECT_ID`  | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore |
-| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          |
-| `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            |
-| `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             |
+| Variable          | Description                                                              | Used by                  |
+| ----------------- | ------------------------------------------------------------------------ | ------------------------- |
+| `GCP_PROJECT_ID`  | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore | news-ingest, stock-price |
+| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          | news-ingest              |
+| `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            | news-ingest              |
+| `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             | stock-price              |
+
+There are two independent jobs: `news-ingest` fetches news articles and scores their sentiment;
+`stock-price` fetches each ticker's end-of-day price and writes it to the same `tickers`
+collection, keyed by `ticker_marketDate` so articles can join to it. `stock-price` is scheduled to
+run after market close (2pm PST) since Tiingo's EOD price isn't available until then; running it
+earlier just means that day's price stays unpopulated until the next scheduled run.
 
 3. Run the news ingest job:
 
@@ -81,11 +87,10 @@ cd jobs/news-ingest
 TICKERS=AAPL go run .
 ```
 
-### Run with Docker
+4. Run the stock price job:
 
 ```bash
-cd jobs/news-ingest
-docker build -t news-ingest .
-
-docker run --rm --env-file ../.env news-ingest
+cd jobs/stock-price
+go mod download
+go run .
 ```

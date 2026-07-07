@@ -11,21 +11,17 @@ var DefaultTickers = []string{
 	"JPM", "AMD", "V", "PYPL", "QCOM", "AVGO",
 }
 
-const SentimentOptions = "Optimistic, Positive, Stable, Pessimistic, Negative, Inconsistent, Cautious, Neutral"
-
 type Config struct {
-	GCPProjectID  string
-	FinnhubAPIKey string
-	GeminiAPIKey  string
-	Tickers       []string
+	GCPProjectID string
+	TiingoToken  string
+	Tickers      []string
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		GCPProjectID:  os.Getenv("GCP_PROJECT_ID"),
-		FinnhubAPIKey: os.Getenv("FINNHUB_API_KEY"),
-		GeminiAPIKey:  os.Getenv("GEMINI_KEY"),
-		Tickers:       DefaultTickers,
+		GCPProjectID: os.Getenv("GCP_PROJECT_ID"),
+		TiingoToken:  os.Getenv("TIINGO_TOKEN"),
+		Tickers:      DefaultTickers,
 	}
 
 	if raw := strings.TrimSpace(os.Getenv("TICKERS")); raw != "" {
@@ -35,11 +31,8 @@ func Load() (Config, error) {
 	if cfg.GCPProjectID == "" {
 		return cfg, fmt.Errorf("GCP_PROJECT_ID is required")
 	}
-	if cfg.FinnhubAPIKey == "" {
-		return cfg, fmt.Errorf("FINNHUB_API_KEY is required")
-	}
-	if cfg.GeminiAPIKey == "" {
-		return cfg, fmt.Errorf("GEMINI_KEY is required")
+	if cfg.TiingoToken == "" {
+		return cfg, fmt.Errorf("TIINGO_TOKEN is required")
 	}
 
 	return cfg, nil

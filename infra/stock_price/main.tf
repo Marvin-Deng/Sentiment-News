@@ -1,11 +1,10 @@
 locals {
   region           = "us-central1"
-  job_name         = "news-ingest"
-  artifact_repo_id = "news-ingest"
-  scheduler_job_id = "news-ingest-trigger"
+  job_name         = "stock-price"
+  artifact_repo_id = "stock-price"
+  scheduler_job_id = "stock-price-trigger"
 
-  finnhub_key_secret_id = "finnhub-key"
-  gemini_key_secret_id  = "gemini-key"
+  tiingo_api_key_secret_id = "tiingo-api-key"
 }
 
 data "google_project" "current" {
@@ -36,7 +35,7 @@ resource "google_project_service" "iam" {
   disable_on_destroy = false
 }
 
-resource "google_artifact_registry_repository" "news_ingest" {
+resource "google_artifact_registry_repository" "stock_price" {
   project       = var.project_id
   location      = local.region
   repository_id = local.artifact_repo_id
@@ -45,7 +44,7 @@ resource "google_artifact_registry_repository" "news_ingest" {
   depends_on = [google_project_service.artifact_registry]
 }
 
-resource "google_cloud_run_v2_job" "news_ingest" {
+resource "google_cloud_run_v2_job" "stock_price" {
   project  = var.project_id
   name     = local.job_name
   location = local.region
@@ -59,20 +58,10 @@ resource "google_cloud_run_v2_job" "news_ingest" {
         image = var.image
 
         env {
-          name = "FINNHUB_API_KEY"
+          name = "TIINGO_TOKEN"
           value_source {
             secret_key_ref {
-              secret  = local.finnhub_key_secret_id
-              version = "latest"
-            }
-          }
-        }
-
-        env {
-          name = "GEMINI_KEY"
-          value_source {
-            secret_key_ref {
-              secret  = local.gemini_key_secret_id
+              secret  = local.tiingo_api_key_secret_id
               version = "latest"
             }
           }
@@ -91,21 +80,21 @@ resource "google_cloud_run_v2_job" "news_ingest" {
 
 resource "google_service_account" "scheduler_invoker" {
   project      = var.project_id
-  account_id   = "news-ingest-scheduler"
-  display_name = "Invokes the news-ingest Cloud Run Job on a schedule"
+  account_id   = "stock-price-scheduler"
+  display_name = "Invokes the stock-price Cloud Run Job on a schedule"
 
   depends_on = [google_project_service.iam]
 }
 
 resource "google_cloud_run_v2_job_iam_member" "scheduler_invoker" {
   project  = var.project_id
-  location = google_cloud_run_v2_job.news_ingest.location
-  name     = google_cloud_run_v2_job.news_ingest.name
+  location = google_cloud_run_v2_job.stock_price.location
+  name     = google_cloud_run_v2_job.stock_price.name
   role     = "roles/run.invoker"
   member   = "serviceAccount:${google_service_account.scheduler_invoker.email}"
 }
 
-resource "google_cloud_scheduler_job" "news_ingest_trigger" {
+resource "google_cloud_scheduler_job" "stock_price_trigger" {
   project   = var.project_id
   region    = local.region
   name      = local.scheduler_job_id
@@ -113,7 +102,7 @@ resource "google_cloud_scheduler_job" "news_ingest_trigger" {
   time_zone = var.time_zone
 
   http_target {
-    uri         = "https://${local.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.news_ingest.name}:run"
+    uri         = "https://${local.region}-run.googleapis.com/apis/run.googleapis.com/v1/namespaces/${var.project_id}/jobs/${google_cloud_run_v2_job.stock_price.name}:run"
     http_method = "POST"
 
     oauth_token {

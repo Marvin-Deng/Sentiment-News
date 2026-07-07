@@ -3,7 +3,7 @@ locals {
   firestore_location          = "us-central1"
   firestore_database_type     = "FIRESTORE_NATIVE"
   firestore_delete_protection = "DELETE_PROTECTION_ENABLED"
-  firestore_ttl_collections   = toset(["articles"])
+  firestore_ttl_collections   = toset(["articles", "tickers"])
   firestore_ttl_field         = "expiresAt"
   document_ttl_days           = 7
 }

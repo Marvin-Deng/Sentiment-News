@@ -8,14 +8,6 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-type Ticker struct {
-	DocID      string
-	Ticker     string
-	MarketDate string
-	OpenPrice  *float64
-	ClosePrice *float64
-}
-
 type Article struct {
 	ArticleID           int
 	Title               string
@@ -44,62 +36,11 @@ func (s *Store) Close() {
 	s.client.Close()
 }
 
-func tickerDocID(ticker, marketDate string) string {
+// TickerDocID must match the doc ID scheme used by the stock-price job
+// (jobs/stock-price/internal/repository) so articles can be joined to their ticker's price doc
+// even before that doc exists.
+func TickerDocID(ticker, marketDate string) string {
 	return ticker + "_" + marketDate
-}
-
-func (s *Store) GetTicker(ctx context.Context, ticker, marketDate string) (*Ticker, error) {
-	docID := tickerDocID(ticker, marketDate)
-	snap, err := s.client.Collection("tickers").Doc(docID).Get(ctx)
-	if err != nil {
-		if snap != nil && !snap.Exists() {
-			return nil, nil
-		}
-		// status.Code check would require grpc — use string match as fallback
-		return nil, fmt.Errorf("get ticker: %w", err)
-	}
-	if !snap.Exists() {
-		return nil, nil
-	}
-
-	data := snap.Data()
-	t := &Ticker{
-		DocID:      docID,
-		Ticker:     stringField(data, "ticker"),
-		MarketDate: stringField(data, "marketDate"),
-	}
-	if v, ok := data["openPrice"].(float64); ok {
-		t.OpenPrice = &v
-	}
-	if v, ok := data["closePrice"].(float64); ok {
-		t.ClosePrice = &v
-	}
-	return t, nil
-}
-
-func (s *Store) UpsertTicker(
-	ctx context.Context,
-	ticker, marketDate string,
-	openPrice, closePrice *float64,
-) (*Ticker, error) {
-	docID := tickerDocID(ticker, marketDate)
-	doc := map[string]any{
-		"ticker":     ticker,
-		"marketDate": marketDate,
-		"openPrice":  openPrice,
-		"closePrice": closePrice,
-	}
-	_, err := s.client.Collection("tickers").Doc(docID).Set(ctx, doc, firestore.MergeAll)
-	if err != nil {
-		return nil, fmt.Errorf("upsert ticker: %w", err)
-	}
-	return &Ticker{
-		DocID:      docID,
-		Ticker:     ticker,
-		MarketDate: marketDate,
-		OpenPrice:  openPrice,
-		ClosePrice: closePrice,
-	}, nil
 }
 
 func (s *Store) ArticleExistsByURL(ctx context.Context, articleURL string) (bool, error) {
@@ -132,9 +73,4 @@ func (s *Store) UpsertArticle(ctx context.Context, article Article) error {
 		return fmt.Errorf("upsert article %d: %w", article.ArticleID, err)
 	}
 	return nil
-}
-
-func stringField(data map[string]any, key string) string {
-	v, _ := data[key].(string)
-	return v
 }
