@@ -5,6 +5,7 @@ locals {
   scheduler_job_id = "stock-price-trigger"
 
   tiingo_api_key_secret_id = "tiingo-api-key"
+  finnhub_key_secret_id    = "finnhub-key"
 }
 
 data "google_project" "current" {
@@ -62,6 +63,16 @@ resource "google_cloud_run_v2_job" "stock_price" {
           value_source {
             secret_key_ref {
               secret  = local.tiingo_api_key_secret_id
+              version = "latest"
+            }
+          }
+        }
+
+        env {
+          name = "FINNHUB_API_KEY"
+          value_source {
+            secret_key_ref {
+              secret  = local.finnhub_key_secret_id
               version = "latest"
             }
           }

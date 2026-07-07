@@ -15,16 +15,18 @@ import (
 const tickerRecordTTL = 30 * 24 * time.Hour
 
 type Service struct {
-	cfg    config.Config
-	tiingo *stock.TiingoClient
-	store  *repository.Store
+	cfg     config.Config
+	tiingo  *stock.TiingoClient
+	finnhub *stock.FinnhubClient
+	store   *repository.Store
 }
 
 func NewService(cfg config.Config, store *repository.Store) *Service {
 	return &Service{
-		cfg:    cfg,
-		tiingo: stock.NewTiingoClient(cfg.TiingoToken),
-		store:  store,
+		cfg:     cfg,
+		tiingo:  stock.NewTiingoClient(cfg.TiingoToken),
+		finnhub: stock.NewFinnhubClient(cfg.FinnhubAPIKey),
+		store:   store,
 	}
 }
 
@@ -63,7 +65,17 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 func (s *Service) updateTicker(ctx context.Context, ticker, marketDate string) error {
 	prices, err := s.tiingo.GetEOD(ctx, ticker, marketDate)
 	if err != nil {
-		return fmt.Errorf("fetch tiingo eod for %s on %s: %w", ticker, marketDate, err)
+		isToday := marketDate == time.Now().Format("2006-01-02")
+		if s.cfg.FinnhubAPIKey == "" || !isToday {
+			return fmt.Errorf("fetch tiingo eod for %s on %s: %w", ticker, marketDate, err)
+		}
+		// Finnhub's free quote endpoint only exposes the latest quote, so it's only a valid
+		// fallback when the requested market date is today.
+		log.Printf("warning: tiingo eod failed for %s on %s (%v), falling back to finnhub", ticker, marketDate, err)
+		prices, err = s.finnhub.GetEOD(ctx, ticker)
+		if err != nil {
+			return fmt.Errorf("fetch finnhub eod for %s on %s: %w", ticker, marketDate, err)
+		}
 	}
 	if prices.OpenPrice == nil && prices.ClosePrice == nil {
 		log.Printf("warning: no tiingo price data yet for %s on %s", ticker, marketDate)

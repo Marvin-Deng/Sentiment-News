@@ -13,18 +13,20 @@ var DefaultTickers = []string{
 }
 
 type Config struct {
-	GCPProjectID string
-	TiingoToken  string
-	Tickers      []string
-	MarketDate   string // optional override, "YYYY-MM-DD"; empty means use today's market date
+	GCPProjectID  string
+	TiingoToken   string
+	FinnhubAPIKey string
+	Tickers       []string
+	MarketDate    string // optional override, "YYYY-MM-DD"; empty means use today's market date
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		GCPProjectID: os.Getenv("GCP_PROJECT_ID"),
-		TiingoToken:  os.Getenv("TIINGO_TOKEN"),
-		Tickers:      DefaultTickers,
-		MarketDate:   strings.TrimSpace(os.Getenv("MARKET_DATE")),
+		GCPProjectID:  os.Getenv("GCP_PROJECT_ID"),
+		TiingoToken:   os.Getenv("TIINGO_TOKEN"),
+		FinnhubAPIKey: os.Getenv("FINNHUB_API_KEY"),
+		Tickers:       DefaultTickers,
+		MarketDate:    strings.TrimSpace(os.Getenv("MARKET_DATE")),
 	}
 
 	if raw := strings.TrimSpace(os.Getenv("TICKERS")); raw != "" {
