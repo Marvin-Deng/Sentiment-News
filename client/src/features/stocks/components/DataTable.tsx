@@ -1,4 +1,5 @@
 import React, { ReactNode } from "react";
+import { Box, Table, Heading } from "@chakra-ui/react";
 import { PriceData } from "@/src/features/stocks/types";
 import { QuoteInfo } from "@/src/features/stocks/api";
 
@@ -17,50 +18,52 @@ interface DataTableProps {
 }
 
 const TableBody: React.FC<TableBodyProps> = ({ children }) => (
-  <table className="table-fixed w-full border-collapse border border-gray-300">{children}</table>
+  <Table.Root variant="outline" size="sm">
+    <Table.Body>{children}</Table.Body>
+  </Table.Root>
 );
 
 const TableColumn: React.FC<TableColumnProps> = ({ label, value }) => (
-  <tr className="border-b border-gray-300">
-    <td className="px-4 py-2 w-1/2">{label}</td>
-    <td className="px-4 py-2 text-right">{`${value}`}</td>
-  </tr>
+  <Table.Row>
+    <Table.Cell>{label}</Table.Cell>
+    <Table.Cell textAlign="right">{`${value}`}</Table.Cell>
+  </Table.Row>
 );
 
 const DataTable: React.FC<DataTableProps> = ({ currPriceData, quoteInfo }) => (
-  <div className="p-4">
-    <h2 className="font-bold mb-2">Latest Quote</h2>
+  <Box p={4}>
+    <Heading size="sm" mb={2}>
+      Latest Quote
+    </Heading>
     <TableBody>
-      <tbody>
-        <TableColumn label="Current Price" value={quoteInfo?.current ?? 0} />
-        <TableColumn label="Change" value={quoteInfo?.change ?? 0} />
-      </tbody>
+      <TableColumn label="Current Price" value={quoteInfo?.current ?? 0} />
+      <TableColumn label="Change" value={quoteInfo?.change ?? 0} />
     </TableBody>
 
-    <h2 className="font-bold mt-5 mb-2">End of Day Data</h2>
+    <Heading size="sm" mt={5} mb={2}>
+      End of Day Data
+    </Heading>
     <TableBody>
-      <tbody>
-        <TableColumn label="Open" value={currPriceData.open} />
-        <TableColumn label="High" value={currPriceData.high} />
-        <TableColumn label="Low" value={currPriceData.low} />
-        <TableColumn label="Close" value={currPriceData.close} />
-        <TableColumn label="Volume" value={currPriceData.volume} />
-        <TableColumn label="Dividend" value={currPriceData.divCash} />
-        <TableColumn label="Split" value={currPriceData.splitFactor} />
-      </tbody>
+      <TableColumn label="Open" value={currPriceData.open} />
+      <TableColumn label="High" value={currPriceData.high} />
+      <TableColumn label="Low" value={currPriceData.low} />
+      <TableColumn label="Close" value={currPriceData.close} />
+      <TableColumn label="Volume" value={currPriceData.volume} />
+      <TableColumn label="Dividend" value={currPriceData.divCash} />
+      <TableColumn label="Split" value={currPriceData.splitFactor} />
     </TableBody>
 
-    <h2 className="font-bold mt-5 mb-2">Adjusted Prices</h2>
+    <Heading size="sm" mt={5} mb={2}>
+      Adjusted Prices
+    </Heading>
     <TableBody>
-      <tbody>
-        <TableColumn label="Adj Open" value={currPriceData.adjOpen} />
-        <TableColumn label="Adj High" value={currPriceData.adjHigh} />
-        <TableColumn label="Adj Low" value={currPriceData.adjLow} />
-        <TableColumn label="Adj Close" value={currPriceData.adjClose} />
-        <TableColumn label="Adj Volume" value={currPriceData.adjVolume} />
-      </tbody>
+      <TableColumn label="Adj Open" value={currPriceData.adjOpen} />
+      <TableColumn label="Adj High" value={currPriceData.adjHigh} />
+      <TableColumn label="Adj Low" value={currPriceData.adjLow} />
+      <TableColumn label="Adj Close" value={currPriceData.adjClose} />
+      <TableColumn label="Adj Volume" value={currPriceData.adjVolume} />
     </TableBody>
-  </div>
+  </Box>
 );
 
 export default DataTable;

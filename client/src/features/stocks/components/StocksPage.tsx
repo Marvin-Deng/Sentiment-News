@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Box, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
@@ -8,6 +8,7 @@ import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import Loader from "@/src/components/ui/loader";
 import NextButton from "@/src/components/ui/next-button";
 import PageLayout from "@/src/components/layout/PageLayout";
+import SearchBar from "@/src/components/Navbar/SearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
 import { fetchTickerList } from "@/src/features/stocks/api";
@@ -103,7 +104,12 @@ const StocksPage = () => {
 
   return (
     <>
-      <PageLayout title="Stocks" subtitle="View the latest prices for 15,000+ stocks" filters={filters}>
+      <PageLayout
+        title="Stocks"
+        subtitle="View the latest prices for 15,000+ stocks"
+        searchBar={<SearchBar />}
+        filters={filters}
+      >
         {filteredStockInfo && Array.isArray(filteredStockInfo) && (
           <>
             {filteredStockInfo.slice(0, page * PAGE_SIZE).map((stock) => (

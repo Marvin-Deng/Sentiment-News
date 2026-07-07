@@ -34,7 +34,7 @@ export const fetchTickerList = async (): Promise<string[]> => {
 
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<EodDataPoint[]> => {
   const params = new URLSearchParams({ ticker, start_date: startDate.toISOString() });
-  const res = await fetch(`${base}/api/stock/tinngo_eod?${params}`, { cache: "no-store" });
+  const res = await fetch(`${base}/api/stock/eod?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`fetchEodData failed: ${res.status}`);
   const { eod_data } = await res.json();
   return eod_data as EodDataPoint[];

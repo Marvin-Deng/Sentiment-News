@@ -1,23 +1,19 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useTheme } from "next-themes";
-import { scaleTime } from "d3-scale";
-import { format } from "d3-format";
-import { timeFormat } from "d3-time-format";
-import { XAxis, YAxis } from "@react-financial-charts/axes";
+import { Box, Center } from "@chakra-ui/react";
 import {
-  ChartCanvas,
-  Chart,
-  CrossHairCursor,
-  MouseCoordinateX,
-  MouseCoordinateY,
-  AreaSeries,
-  HoverTooltip,
-} from "react-financial-charts";
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Label,
+  ResponsiveContainer,
+} from "recharts";
 
-import TooltipContent from "@/src/features/stocks/components/Tooltip";
 import Loader from "@/src/components/ui/loader";
-
 import { getPriceDiff } from "@/src/utils/priceUtils";
 import { PriceData } from "@/src/features/stocks/types";
 
@@ -26,103 +22,96 @@ interface LineChartProps {
   priceData: PriceData[];
 }
 
+const formatDateLabel = (date: Date | string) =>
+  new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+const ChartTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean;
+  payload?: { payload: PriceData }[];
+  label?: Date | string;
+}) => {
+  if (!active || !payload || payload.length === 0) return null;
+  const data = payload[0].payload;
+
+  return (
+    <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm">
+      <Box fontWeight="semibold" mb={1}>
+        {formatDateLabel(label ?? data.date)}
+      </Box>
+      <Box>Open: {data.open?.toFixed(2) ?? "N/A"}</Box>
+      <Box>Close: {data.close?.toFixed(2) ?? "N/A"}</Box>
+      <Box>Low: {data.low?.toFixed(2) ?? "N/A"}</Box>
+      <Box>High: {data.high?.toFixed(2) ?? "N/A"}</Box>
+      <Box>Volume: {data.volume?.toLocaleString() ?? "N/A"}</Box>
+    </Box>
+  );
+};
+
 const LineChart: React.FC<LineChartProps> = ({ ticker, priceData }) => {
   const { theme } = useTheme();
-  const [chartWidth, setChartWidth] = useState(600);
+  const axisColor = theme === "light" ? "black" : "white";
 
-  useEffect(() => {
-    const handleResize = () => {
-      const newWidth = Math.max(400, Math.min(window.innerWidth - 300, 600));
-      setChartWidth(newWidth);
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  const getChartColors = () => {
-    const axisColor = theme === "light" ? "black" : "white";
-    let priceLineColor = "rgba(255, 100, 100)";
-    let priceFillColor = "rgba(255, 100, 100, 0.2)";
-
-    if (priceData.length > 0) {
-      const priceDiff = getPriceDiff(
-        priceData[priceData.length - 1].open,
-        priceData[priceData.length - 1].close
-      );
-      if (priceDiff > 0) {
-        if (theme === "light") {
-          priceLineColor = "rgba(30, 255, 100)";
-          priceFillColor = "rgb(144, 238, 144, 0.3)";
-        } else {
-          priceLineColor = "rgba(100, 255, 100)";
-          priceFillColor = "rgb(144, 238, 144, 0.2)";
-        }
-      }
+  const { priceLineColor, priceFillColor } = (() => {
+    if (priceData.length === 0) {
+      return { priceLineColor: "rgba(255, 100, 100, 1)", priceFillColor: "rgba(255, 100, 100, 0.2)" };
     }
+    const last = priceData[priceData.length - 1];
+    const isPositive = getPriceDiff(last.open, last.close) > 0;
+    return isPositive
+      ? { priceLineColor: "rgba(30, 200, 100, 1)", priceFillColor: "rgba(144, 238, 144, 0.3)" }
+      : { priceLineColor: "rgba(255, 100, 100, 1)", priceFillColor: "rgba(255, 100, 100, 0.2)" };
+  })();
 
-    return { axisColor, priceLineColor, priceFillColor };
-  };
+  if (priceData.length === 0) {
+    return (
+      <Center h="400px">
+        <Loader />
+      </Center>
+    );
+  }
 
-  const { axisColor, priceLineColor, priceFillColor } = getChartColors();
-  const xAccessor = (d: PriceData) => d?.date;
-
-  return priceData.length === 0 ? (
-    <div className="flex justify-center items-center h-full">
-      <Loader />
-    </div>
-  ) : (
-    <div className="flex flex-col items-center justify-center px-4 py-2 w-full max-w-4xl mx-auto">
-      <ChartCanvas
-        height={400}
-        ratio={1}
-        width={chartWidth}
-        margin={{ left: 50, right: 50, top: 10, bottom: 30 }}
-        seriesName={ticker}
-        data={priceData}
-        xScale={scaleTime()}
-        xAccessor={xAccessor}
-        xExtents={[xAccessor(priceData[0]), xAccessor(priceData[priceData.length - 1])]}
-        disableZoom={true}
-        disablePan={false}
-      >
-        <Chart id={1} yExtents={(d: PriceData) => [d.close]}>
+  return (
+    <Box w="full" maxW="4xl" mx="auto" px={4} py={2} h="400px">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={priceData} margin={{ left: 10, right: 10, top: 10, bottom: 20 }}>
+          <defs>
+            <linearGradient id={`priceFill-${ticker}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={priceFillColor} stopOpacity={0.8} />
+              <stop offset="95%" stopColor={priceFillColor} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
           <XAxis
-            axisAt="bottom"
-            orient="bottom"
-            tickLabelFill={axisColor}
-            tickStrokeStyle={axisColor}
-            strokeStyle={axisColor}
-            gridLinesStrokeDasharray="Solid"
-            gridLinesStrokeStyle="#e0e0e0"
-            ticks={6}
-          />
+            dataKey="date"
+            tickFormatter={formatDateLabel}
+            stroke={axisColor}
+            tick={{ fill: axisColor, fontSize: 12 }}
+          >
+            <Label value="Date" position="insideBottom" offset={-10} fill={axisColor} />
+          </XAxis>
           <YAxis
-            axisAt="left"
-            orient="left"
-            tickLabelFill={axisColor}
-            tickStrokeStyle={axisColor}
-            strokeStyle={axisColor}
-            gridLinesStrokeDasharray="Solid"
-            gridLinesStrokeStyle="#e0e0e0"
+            domain={["auto", "auto"]}
+            stroke={axisColor}
+            tick={{ fill: axisColor, fontSize: 12 }}
+            tickFormatter={(value: number) => value.toFixed(2)}
+          >
+            <Label value="Price" angle={-90} position="insideLeft" fill={axisColor} />
+          </YAxis>
+          <Tooltip content={<ChartTooltip />} />
+          <Area
+            type="linear"
+            dataKey="close"
+            stroke={priceLineColor}
+            fill={`url(#priceFill-${ticker})`}
+            strokeWidth={2}
           />
-          <AreaSeries
-            yAccessor={(d: PriceData) => d.close}
-            baseAt={(scale) => scale(0)}
-            strokeStyle={priceLineColor}
-            fillStyle={priceFillColor}
-          />
-          <MouseCoordinateX at="bottom" orient="bottom" displayFormat={timeFormat("%Y-%m-%d")} />
-          <MouseCoordinateY at="right" orient="right" displayFormat={format(".2f")} />
-          <HoverTooltip
-            yAccessor={(d) => d.close}
-            tooltip={TooltipContent}
-            chartId={1}
-            fontSize={15}
-          />
-        </Chart>
-        <CrossHairCursor strokeStyle={axisColor} />
-      </ChartCanvas>
-    </div>
+        </AreaChart>
+      </ResponsiveContainer>
+    </Box>
   );
 };
 

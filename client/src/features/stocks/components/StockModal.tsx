@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
+import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
@@ -16,8 +16,9 @@ interface StockModalProps {
   handleClose: () => void;
 }
 
+const RANGES = ["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"];
+
 const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handleClose }) => {
-  const { theme } = useTheme();
   const [selectedRange, setSelectedRange] = useState("YTD");
   const [startDate, setStartDate] = useState(new Date());
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
@@ -93,70 +94,83 @@ const StockModal: React.FC<StockModalProps> = ({ company, ticker, isOpen, handle
 
   if (!isOpen) return null;
 
-  const bgColor = theme === "light" ? "white" : "black";
+  const priceColor = getPriceColorStr(currPriceData.open, currPriceData.close) === "green-500" ? "green.600" : "red.600";
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
-      <div className="relative w-full max-w-5xl max-h-[calc(100vh-5rem)] overflow-y-auto">
-        <div
-          className="relative pb-10 border-gray-400 border-2 rounded-xl"
-          style={{ backgroundColor: bgColor }}
-        >
-          <div className="flex items-center justify-between p-4 md:p-5 border-b dark:border-gray-600">
-            <h3 className="text-xl font-semibold">
-              {company} ({ticker})
-            </h3>
-            <button
-              type="button"
-              className="text-gray-400 bg-transparent hover:bg-gray-200 dark:hover:bg-gray-600 dark:hover:text-white hover:text-gray-900 font-bold rounded-lg text-xl ml-5 w-10 h-10 ms-auto inline-flex justify-center items-center"
-              onClick={handleClose}
+    <Flex
+      position="fixed"
+      inset={0}
+      align="center"
+      justify="center"
+      zIndex={50}
+      bg="blackAlpha.600"
+      onClick={handleClose}
+    >
+      <Box
+        position="relative"
+        w="full"
+        maxW="5xl"
+        maxH="calc(100vh - 5rem)"
+        overflowY="auto"
+        bg="bg"
+        borderWidth="2px"
+        borderColor="gray.400"
+        borderRadius="xl"
+        pb={10}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
+          <Text fontSize="xl" fontWeight="semibold">
+            {company} ({ticker})
+          </Text>
+          <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={handleClose}>
+            ✕
+          </IconButton>
+        </Flex>
+
+        <Flex justify="space-around" p={4} wrap="wrap" gap={2}>
+          {RANGES.map((range) => (
+            <Box
+              key={range}
+              as="button"
+              py={2}
+              px={4}
+              borderRadius="lg"
+              cursor="pointer"
+              bg={selectedRange === range ? "gray.600" : "transparent"}
+              color={selectedRange === range ? "white" : undefined}
+              _hover={{ bg: selectedRange === range ? "gray.600" : "gray.100" }}
+              onClick={() => setSelectedRange(range)}
             >
-              X<span className="sr-only">Close modal</span>
-            </button>
-          </div>
-          <div className="flex justify-around p-4">
-            {["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"].map((range) => (
-              <button
-                key={range}
-                className={`relative overflow-hidden py-2 px-4 rounded-lg ${
-                  selectedRange === range ? "bg-gray-600 text-white" : "bg-transparent"
-                } group`}
-                onClick={() => setSelectedRange(range)}
-              >
-                {range}
-                {selectedRange !== range && (
-                  <span
-                    className="absolute bottom-0 left-0 w-full h-0.5 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 ease-out"
-                    style={{ backgroundColor: theme === "light" ? "black" : "white" }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-col items-start ml-[12vw] p-4">
-            <div className="flex space-x-3">
-              <p className="text-xl font-semibold">{`${currPriceData.close}`}</p>
-              <p
-                className={`text-lg font-semibold text-${getPriceColorStr(
-                  currPriceData.open,
-                  currPriceData.close
-                )}`}
-              >
-                {getPriceDiffStr(currPriceData.open, currPriceData.close)}
-                <span> ({getPercentChangeStr(currPriceData.open, currPriceData.close)})</span>
-              </p>
-            </div>
-            <p className="text-sm mt-1">{`At close on ${currPriceData.date}`}</p>
-          </div>
-          <LineChart ticker={ticker} priceData={getPriceDataRange()} />
-          <div className="flex justify-center">
-            <div className="w-4/5 sm:w-1/2">
-              <DataTable currPriceData={currPriceData} quoteInfo={quoteInfo} />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+              {range}
+            </Box>
+          ))}
+        </Flex>
+
+        <Box pl={{ base: 4, md: "12vw" }} p={4}>
+          <Flex align="baseline" gap={3}>
+            <Text fontSize="xl" fontWeight="semibold">
+              {currPriceData.close}
+            </Text>
+            <Text fontSize="lg" fontWeight="semibold" color={priceColor}>
+              {getPriceDiffStr(currPriceData.open, currPriceData.close)} (
+              {getPercentChangeStr(currPriceData.open, currPriceData.close)})
+            </Text>
+          </Flex>
+          <Text fontSize="sm" mt={1}>
+            At close on {String(currPriceData.date)}
+          </Text>
+        </Box>
+
+        <LineChart ticker={ticker} priceData={getPriceDataRange()} />
+
+        <Flex justify="center">
+          <Box w={{ base: "80%", sm: "50%" }}>
+            <DataTable currPriceData={currPriceData} quoteInfo={quoteInfo} />
+          </Box>
+        </Flex>
+      </Box>
+    </Flex>
   );
 };
 

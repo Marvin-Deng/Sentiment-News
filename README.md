@@ -24,6 +24,8 @@ cp client/.env.example client/.env.local
 | ------------------- | ---------------------------------------------------------------------------- |
 | `GCP_PROJECT_ID`    | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore    |
 | `GCP_SA_KEY_BASE64` | Base64-encoded service account JSON key with Firestore access               |
+| `FINNHUB_KEY`       | [Finnhub](https://finnhub.io/dashboard) API key, used by the Stocks page's exchange/quote/company-profile routes |
+| `TIINGO_TOKEN`      | [Tiingo](https://www.tiingo.com/account/api/token) API token, used by the Stocks page's end-of-day price chart |
 
 To generate the service account key:
 
