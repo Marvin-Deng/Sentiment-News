@@ -1,6 +1,7 @@
 "use client";
-import { useMemo, useState } from "react";
-import { Box, Flex, Grid, IconButton, Text } from "@chakra-ui/react";
+import { useEffect, useMemo, useState } from "react";
+import NextLink from "next/link";
+import { Box, Flex, Grid, IconButton, Link, Portal, Text, Tooltip } from "@chakra-ui/react";
 
 import CalendarListView from "@/src/features/calendar/components/CalendarListView";
 import { DayEvents } from "@/src/features/calendar/types";
@@ -17,16 +18,86 @@ const toDateKey = (date: Date) =>
 const isSameDay = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const isPastDate = (day: Date, today: Date) => startOfDay(day) < startOfDay(today);
+
+const isSameMonth = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+
+const TOOLTIP_ITEM_LIMIT = 5;
+
+type TooltipItem =
+  | { type: "earnings"; key: string; symbol: string }
+  | { type: "ipo"; key: string; name: string };
+
+const DayEventsTooltipContent = ({ dayEvents }: { dayEvents: DayEvents }) => {
+  const items: TooltipItem[] = [
+    ...dayEvents.earnings.map((event, index) => ({
+      type: "earnings" as const,
+      key: `earnings-${event.symbol}-${index}`,
+      symbol: event.symbol,
+    })),
+    ...dayEvents.ipos.map((event, index) => ({
+      type: "ipo" as const,
+      key: `ipo-${event.symbol}-${index}`,
+      name: event.name,
+    })),
+  ];
+
+  const visibleItems = items.slice(0, TOOLTIP_ITEM_LIMIT);
+  const hasMore = items.length > TOOLTIP_ITEM_LIMIT;
+
+  return (
+    <Flex direction="column" gap={1.5} py={0.5}>
+      {visibleItems.map((item) =>
+        item.type === "earnings" ? (
+          <Flex key={item.key} align="center" gap={2}>
+            <Box w="8px" h="8px" borderRadius="full" bg="blue.400" flexShrink={0} />
+            <Text fontSize="sm" whiteSpace="nowrap" color="inherit">
+              <Link asChild color="inherit" _hover={{ textDecoration: "underline", color: "green.400" }}>
+                <NextLink href={`/stocks/${item.symbol}`}>{item.symbol} Earnings</NextLink>
+              </Link>
+            </Text>
+          </Flex>
+        ) : (
+          <Flex key={item.key} align="center" gap={2}>
+            <Box w="8px" h="8px" borderRadius="full" bg="purple.400" flexShrink={0} />
+            <Text fontSize="sm" whiteSpace="nowrap" color="inherit">
+              {item.name} IPO
+            </Text>
+          </Flex>
+        ),
+      )}
+      {hasMore && (
+        <Text fontSize="sm" color="inherit">
+          ...
+        </Text>
+      )}
+    </Flex>
+  );
+};
+
 const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
   const today = useMemo(() => new Date(), []);
   const [monthCursor, setMonthCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
-  const [selectedDate, setSelectedDate] = useState<string | null>(toDateKey(today));
+  const [selectedDate, setSelectedDate] = useState<string | null>(() => toDateKey(new Date()));
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, DayEvents>();
     daysEvents.forEach((day) => map.set(day.date, day));
     return map;
   }, [daysEvents]);
+
+  const isCurrentMonthView = isSameMonth(monthCursor, today);
+
+  useEffect(() => {
+    if (isCurrentMonthView) {
+      setSelectedDate(toDateKey(today));
+    } else {
+      setSelectedDate(null);
+    }
+  }, [monthCursor, isCurrentMonthView, today]);
 
   const weeks = useMemo(() => {
     const firstOfMonth = new Date(monthCursor.getFullYear(), monthCursor.getMonth(), 1);
@@ -50,6 +121,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
 
   const monthLabel = monthCursor.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const selectedDayEvents = selectedDate ? eventsByDate.get(selectedDate) : undefined;
+  const canGoToPreviousMonth = !isCurrentMonthView;
 
   return (
     <Box>
@@ -57,7 +129,12 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
         <IconButton
           aria-label="Previous month"
           variant="ghost"
-          size="sm"
+          size="lg"
+          fontSize="2xl"
+          lineHeight={1}
+          disabled={!canGoToPreviousMonth}
+          opacity={canGoToPreviousMonth ? 1 : 0}
+          pointerEvents={canGoToPreviousMonth ? "auto" : "none"}
           onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
         >
           ‹
@@ -68,7 +145,9 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
         <IconButton
           aria-label="Next month"
           variant="ghost"
-          size="sm"
+          size="lg"
+          fontSize="2xl"
+          lineHeight={1}
           onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
         >
           ›
@@ -88,24 +167,40 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
           {week.map((day) => {
             const dateKey = toDateKey(day);
             const dayEvents = eventsByDate.get(dateKey);
-            const isCurrentMonth = day.getMonth() === monthCursor.getMonth();
             const isToday = isSameDay(day, today);
             const isSelected = dateKey === selectedDate;
+            const isPast = isPastDate(day, today);
+            const isOutsideMonth = day.getMonth() !== monthCursor.getMonth();
 
-            return (
+            if (isPast) {
+              return <Box key={dateKey} minH="64px" />;
+            }
+
+            const dayCell = (
               <Box
-                key={dateKey}
                 as="button"
-                onClick={() => setSelectedDate(dayEvents ? dateKey : null)}
-                cursor={dayEvents ? "pointer" : "default"}
+                onClick={() => setSelectedDate(dateKey)}
+                cursor="pointer"
                 minH="64px"
                 p={2}
                 borderWidth="1px"
                 borderColor={isSelected ? "green.500" : "border"}
                 borderRadius="md"
                 bg={isSelected ? "green.subtle" : "transparent"}
-                opacity={isCurrentMonth ? 1 : 0.4}
+                opacity={isOutsideMonth ? 0.4 : 1}
                 textAlign="left"
+                w="full"
+                transition="background 0.15s ease, border-color 0.15s ease"
+                _hover={
+                  isSelected
+                    ? { bg: "green.muted", borderColor: "green.500" }
+                    : { bg: "bg.muted", borderColor: "border.emphasized" }
+                }
+                _focusVisible={{
+                  outline: "2px solid",
+                  outlineColor: "green.500",
+                  outlineOffset: "2px",
+                }}
               >
                 <Text fontSize="sm" fontWeight={isToday ? "bold" : "normal"}>
                   {day.getDate()}
@@ -113,12 +208,45 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
                 {dayEvents && (
                   <Flex gap={1} mt={1}>
                     {dayEvents.earnings.length > 0 && (
-                      <Box w="6px" h="6px" borderRadius="full" bg="blue.400" title="Earnings" />
+                      <Box w="6px" h="6px" borderRadius="full" bg="blue.400" />
                     )}
                     {dayEvents.ipos.length > 0 && (
-                      <Box w="6px" h="6px" borderRadius="full" bg="purple.400" title="IPO" />
+                      <Box w="6px" h="6px" borderRadius="full" bg="purple.400" />
                     )}
                   </Flex>
+                )}
+              </Box>
+            );
+
+            return (
+              <Box key={dateKey}>
+                {dayEvents ? (
+                  <Tooltip.Root openDelay={200} positioning={{ placement: "bottom" }}>
+                    <Tooltip.Trigger asChild>{dayCell}</Tooltip.Trigger>
+                    <Portal>
+                      <Tooltip.Positioner>
+                        <Tooltip.Content
+                          px={3}
+                          py={2}
+                          bg="white"
+                          color="gray.800"
+                          borderWidth="1px"
+                          borderColor="gray.200"
+                          borderRadius="md"
+                          boxShadow="lg"
+                          _dark={{
+                            bg: "gray.700",
+                            color: "white",
+                            borderColor: "gray.600",
+                          }}
+                        >
+                          <DayEventsTooltipContent dayEvents={dayEvents} />
+                        </Tooltip.Content>
+                      </Tooltip.Positioner>
+                    </Portal>
+                  </Tooltip.Root>
+                ) : (
+                  dayCell
                 )}
               </Box>
             );
@@ -138,10 +266,14 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
       </Flex>
 
       {selectedDayEvents ? (
-        <CalendarListView daysEvents={[selectedDayEvents]} />
+        <CalendarListView key={selectedDayEvents.date} daysEvents={[selectedDayEvents]} />
+      ) : selectedDate ? (
+        <Text fontSize="sm" color="gray.500">
+          No events on this day.
+        </Text>
       ) : (
         <Text fontSize="sm" color="gray.500">
-          Select a highlighted day to see its events.
+          Select a day to see its events.
         </Text>
       )}
     </Box>

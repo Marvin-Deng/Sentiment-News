@@ -12,13 +12,13 @@ import { DayEvents, EarningsEvent, IpoEvent } from "@/src/features/calendar/type
 import { getDateDaysAfter, getDateDaysBefore } from "@/src/utils/dateUtils";
 
 const LOOKAHEAD_DAYS = 30;
-const VIEWS = ["List", "Month"] as const;
+const VIEWS = ["Calendar", "List"] as const;
 type View = (typeof VIEWS)[number];
 
 const CalendarPage = () => {
   const [ipoEvents, setIpoEvents] = useState<IpoEvent[] | null>(null);
   const [earningsEvents, setEarningsEvents] = useState<EarningsEvent[] | null>(null);
-  const [view, setView] = useState<View>("List");
+  const [view, setView] = useState<View>("Calendar");
 
   useEffect(() => {
     const today = getDateDaysBefore(0);
