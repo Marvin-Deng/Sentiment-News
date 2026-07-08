@@ -5,8 +5,14 @@ import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
 
-import { fetchEodData, fetchQuoteInfo, fetchCompanyProfile, QuoteInfo } from "@/src/features/stocks/api";
-import { PriceData, DEFAULT_PRICE_DATA } from "@/src/features/stocks/types";
+import {
+  fetchEodData,
+  fetchQuoteInfo,
+  fetchCompanyProfile,
+  fetchBasicFinancials,
+  QuoteInfo,
+} from "@/src/features/stocks/api";
+import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials } from "@/src/features/stocks/types";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
@@ -43,6 +49,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
   const [companyName, setCompanyName] = useState("");
+  const [basicFinancials, setBasicFinancials] = useState<BasicFinancials | null>(null);
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
 
@@ -102,6 +109,14 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
     fetchCompanyProfile(ticker)
       .then((profile) => setCompanyName(profile.name))
       .catch(() => setCompanyName(ticker));
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!ticker) return;
+
+    fetchBasicFinancials(ticker)
+      .then(setBasicFinancials)
+      .catch(() => setBasicFinancials(null));
   }, [ticker]);
 
   if (!ticker) return null;
@@ -189,7 +204,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
 
         <Flex justify="center">
           <Box w={{ base: "80%", sm: "50%" }}>
-            <DataTable currPriceData={currPriceData} quoteInfo={quoteInfo} />
+            <DataTable currPriceData={currPriceData} basicFinancials={basicFinancials} />
           </Box>
         </Flex>
       </Box>

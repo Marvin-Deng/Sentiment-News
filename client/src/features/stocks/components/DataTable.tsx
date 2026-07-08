@@ -1,10 +1,9 @@
 import { Box, Table, Heading } from "@chakra-ui/react";
-import { PriceData } from "@/src/features/stocks/types";
-import { QuoteInfo } from "@/src/features/stocks/api";
+import { BasicFinancials, PriceData } from "@/src/features/stocks/types";
 
 interface DataTableProps {
   currPriceData: PriceData;
-  quoteInfo: QuoteInfo | null;
+  basicFinancials?: BasicFinancials | null;
 }
 
 type TableSection = {
@@ -12,15 +11,8 @@ type TableSection = {
   rows: { label: string; value: number }[];
 };
 
-const DataTable = ({ currPriceData, quoteInfo }: DataTableProps) => {
+const DataTable = ({ currPriceData, basicFinancials }: DataTableProps) => {
   const sections: TableSection[] = [
-    {
-      title: "Latest Quote",
-      rows: [
-        { label: "Current Price", value: quoteInfo?.current ?? 0 },
-        { label: "Change", value: quoteInfo?.change ?? 0 },
-      ],
-    },
     {
       title: "End of Day Data",
       rows: [
@@ -29,20 +21,27 @@ const DataTable = ({ currPriceData, quoteInfo }: DataTableProps) => {
         { label: "Low", value: currPriceData.low },
         { label: "Close", value: currPriceData.close },
         { label: "Volume", value: currPriceData.volume },
-        { label: "Dividend", value: currPriceData.divCash },
-        { label: "Split", value: currPriceData.splitFactor },
       ],
     },
-    {
-      title: "Adjusted Prices",
-      rows: [
-        { label: "Adj Open", value: currPriceData.adjOpen },
-        { label: "Adj High", value: currPriceData.adjHigh },
-        { label: "Adj Low", value: currPriceData.adjLow },
-        { label: "Adj Close", value: currPriceData.adjClose },
-        { label: "Adj Volume", value: currPriceData.adjVolume },
-      ],
-    },
+    ...(basicFinancials
+      ? [
+          {
+            title: "Basic Financials",
+            rows: [
+              { label: "Market Cap", value: basicFinancials.marketCapitalization ?? 0 },
+              { label: "P/E (TTM)", value: basicFinancials.peBasicExclExtraTTM ?? 0 },
+              { label: "EPS (TTM)", value: basicFinancials.epsBasicExclExtraItemsTTM ?? 0 },
+              { label: "Beta", value: basicFinancials.beta ?? 0 },
+              { label: "52 Week High", value: basicFinancials["52WeekHigh"] ?? 0 },
+              { label: "52 Week Low", value: basicFinancials["52WeekLow"] ?? 0 },
+              { label: "Net Margin (TTM)", value: basicFinancials.netMarginTTM ?? 0 },
+              { label: "Gross Margin (TTM)", value: basicFinancials.grossMarginTTM ?? 0 },
+              { label: "ROE (TTM)", value: basicFinancials.roeTTM ?? 0 },
+              { label: "Dividend Yield", value: basicFinancials.dividendYieldIndicatedAnnual ?? 0 },
+            ],
+          },
+        ]
+      : []),
   ];
 
   return (

@@ -34,6 +34,26 @@ export type CompanyProfile = {
   logo: string;
 };
 
+export type BasicFinancials = {
+  "10DayAverageTradingVolume"?: number;
+  "52WeekHigh"?: number;
+  "52WeekLow"?: number;
+  "52WeekLowDate"?: string;
+  "52WeekHighDate"?: string;
+  beta?: number;
+  marketCapitalization?: number;
+  peBasicExclExtraTTM?: number;
+  epsBasicExclExtraItemsTTM?: number;
+  netMarginTTM?: number;
+  grossMarginTTM?: number;
+  operatingMarginTTM?: number;
+  roeTTM?: number;
+  roaTTM?: number;
+  dividendYieldIndicatedAnnual?: number;
+  currentRatioAnnual?: number;
+  [key: string]: number | string | undefined;
+};
+
 export const DEFAULT_PRICE_DATA: PriceData = {
   date: new Date(),
   open: 0,

@@ -1,4 +1,4 @@
-import { CompanyProfile, PriceData } from "@/src/features/stocks/types";
+import { BasicFinancials, CompanyProfile, PriceData } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 export type QuoteInfo = {
@@ -20,6 +20,20 @@ export const fetchCompanyProfile = async (ticker: string): Promise<CompanyProfil
   const { company_profile } = await res.json();
   setCached(cacheKey, company_profile, PROFILE_TTL_SECONDS);
   return company_profile as CompanyProfile;
+};
+
+const FINANCIALS_TTL_SECONDS = 3600;
+
+export const fetchBasicFinancials = async (ticker: string): Promise<BasicFinancials> => {
+  const cacheKey = `stock-basic-financials:${ticker}`;
+  const cached = getCached<BasicFinancials>(cacheKey);
+  if (cached) return cached;
+
+  const res = await fetch(`/api/stock/basic_financials?ticker=${ticker}`);
+  if (!res.ok) throw new Error(`fetchBasicFinancials failed: ${res.status}`);
+  const { basic_financials } = await res.json();
+  setCached(cacheKey, basic_financials, FINANCIALS_TTL_SECONDS);
+  return basic_financials as BasicFinancials;
 };
 
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<PriceData[]> => {
