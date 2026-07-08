@@ -18,6 +18,7 @@ type Article struct {
 	Sentiment           string
 	Ticker              string
 	TickerDocID         string
+	MarketDate          string
 	ExpiresAt           time.Time
 }
 
@@ -73,6 +74,7 @@ func (s *Store) UpsertArticle(ctx context.Context, docID string, article Article
 		"sentiment":           article.Sentiment,
 		"ticker":              article.Ticker,
 		"tickerDocId":         article.TickerDocID,
+		"marketDate":          article.MarketDate,
 		"expiresAt":           article.ExpiresAt,
 	}
 	_, err := s.client.Collection("articles").Doc(docID).Set(ctx, doc, firestore.MergeAll)

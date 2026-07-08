@@ -60,7 +60,7 @@ const NewsCard = ({
             <Flex align="center" gap={4} mb={3}>
               <Text>O: {open_price}</Text>
               <Text>C: {close_price}</Text>
-              <Text color={isPositive ? "green.600" : "red.600"}>
+              <Text color={isPositive ? "green.600" : "red.500"}>
                 {getPriceStrArrow(open_price, close_price)}
               </Text>
             </Flex>

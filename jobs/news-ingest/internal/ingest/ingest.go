@@ -145,6 +145,7 @@ func (s *Service) addArticle(
 		Sentiment:           sentimentValue,
 		Ticker:              ticker,
 		TickerDocID:         tickerDocID,
+		MarketDate:          marketDate,
 		ExpiresAt:           time.Now().AddDate(0, 0, 7),
 	})
 	if err != nil {
