@@ -79,7 +79,7 @@ export async function GET(request: Request) {
       sentiment: data.sentiment,
       image_url: data.imageUrl,
       article_url: data.articleUrl,
-      market_date: tickerData.marketDate ?? "",
+      market_date: data.marketDate ?? tickerData.marketDate ?? "",
       open_price: tickerData.openPrice ?? null,
       close_price: tickerData.closePrice ?? null,
     };
