@@ -2,11 +2,10 @@
 import { useState, useEffect } from "react";
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
 import { CompanyProfile } from "@/src/features/stocks/types";
-import { QuoteInfo, fetchQuoteInfo } from "@/src/features/stocks/api";
+import { QuoteInfo, fetchQuoteInfo, fetchCompanyProfile } from "@/src/features/stocks/api";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 const QUOTE_TTL_SECONDS = 120;
-const PROFILE_TTL_SECONDS = 3600;
 
 interface TickerCardProps {
   ticker: string;
@@ -24,18 +23,9 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
     if (!ticker) return;
 
     const fetchProfile = async () => {
-      const cacheKey = `stock-profile:${ticker}`;
-      const cached = getCached<CompanyProfile>(cacheKey);
-      if (cached) {
-        setCompanyProfile(cached);
-        return;
-      }
       try {
-        const res = await fetch(`/api/stock/company_profile?ticker=${ticker}`);
-        if (!res.ok) throw new Error("Failed to fetch company profile");
-        const data = await res.json();
-        setCompanyProfile(data.company_profile);
-        setCached(cacheKey, data.company_profile, PROFILE_TTL_SECONDS);
+        const profile = await fetchCompanyProfile(ticker);
+        setCompanyProfile(profile);
       } catch {
         setCompanyProfile(null);
         setFetchSuccess(false);

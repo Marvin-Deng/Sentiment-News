@@ -5,13 +5,13 @@ import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
 
-import { fetchEodData, fetchQuoteInfo, QuoteInfo } from "@/src/features/stocks/api";
+import { fetchEodData, fetchQuoteInfo, fetchCompanyProfile, QuoteInfo } from "@/src/features/stocks/api";
 import { PriceData, DEFAULT_PRICE_DATA } from "@/src/features/stocks/types";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
 interface StockModalProps {
-  stock: { company: string; ticker: string } | null;
+  ticker: string | null;
   onClose: () => void;
 }
 
@@ -35,13 +35,14 @@ const getRangeStartDate = (range: string): Date => {
   return start;
 };
 
-const StockModal = ({ stock, onClose }: StockModalProps) => {
-  const ticker = stock?.ticker ?? "";
+const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
+  const ticker = tickerProp ?? "";
   const [selectedRange, setSelectedRange] = useState("YTD");
   const startDate = useMemo(() => getRangeStartDate(selectedRange), [selectedRange]);
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
+  const [companyName, setCompanyName] = useState("");
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
 
@@ -58,7 +59,7 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
       setStockDataMap((prevMap) => new Map(prevMap.set(ticker, priceData)));
     };
 
-    if (stock) {
+    if (ticker) {
       const tickerStockData = getCurrTickerData();
       if (tickerStockData.length === 0) {
         fetchStockPrices();
@@ -69,7 +70,7 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
         if (startDate < earliestData || isStale) fetchStockPrices();
       }
     }
-  }, [stock, ticker, startDate]);
+  }, [ticker, startDate]);
 
   useEffect(() => {
     const tickerData = getCurrTickerData();
@@ -79,7 +80,7 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
   }, [stockDataMap, ticker]);
 
   useEffect(() => {
-    if (!stock) return;
+    if (!ticker) return;
 
     const fetchQuote = async () => {
       try {
@@ -93,9 +94,17 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
     fetchQuote();
     const interval = setInterval(fetchQuote, 5000);
     return () => clearInterval(interval);
-  }, [stock, ticker]);
+  }, [ticker]);
 
-  if (!stock) return null;
+  useEffect(() => {
+    if (!ticker) return;
+
+    fetchCompanyProfile(ticker)
+      .then((profile) => setCompanyName(profile.name))
+      .catch(() => setCompanyName(ticker));
+  }, [ticker]);
+
+  if (!ticker) return null;
 
   const rangeData = getPriceDataRange();
   const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
@@ -127,7 +136,7 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
       >
         <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
           <Text fontSize="xl" fontWeight="semibold">
-            {stock.company} ({stock.ticker})
+            {companyName || ticker} ({ticker})
           </Text>
           <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={onClose}>
             ✕

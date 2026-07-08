@@ -1,3 +1,4 @@
+import NextLink from "next/link";
 import { Article } from "../types";
 import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
@@ -39,7 +40,9 @@ const NewsCard = ({
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={ticker ? 3 : 0}>
             {ticker && (
-              <Text fontSize="md" fontWeight="semibold">{ticker}</Text>
+              <Link asChild fontSize="md" fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
+                <NextLink href={`/stocks/${ticker}`}>{ticker}</NextLink>
+              </Link>
             )}
             <Badge variant={getSentimentBadgeVariant(sentiment)}>
               {sentiment}
