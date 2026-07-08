@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { SimpleGrid, Center, Text } from "@chakra-ui/react";
 
 import NewsCard from "./NewsCard";
+import PublicationDateFilter from "./PublicationDateFilter";
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import SearchBar from "@/src/components/Navbar/SearchBar";
@@ -13,24 +14,11 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import { fetchArticles } from "../api";
 import { Article } from "../types";
 import { useSearch } from "@/src/providers/SearchProvider";
-import { getDateDaysBefore } from "@/src/utils/dateUtils";
 import { SENTIMENT_CATEGORIES } from "@/src/constants/sentiment";
 
 const SENTIMENT_OPTIONS = new Map(
   SENTIMENT_CATEGORIES.map((option, index) => [index, option]),
 );
-
-const DATE_RANGE_OPTIONS = new Map<number, string>([
-  [0, "24 hours ago"],
-  [1, "3 days ago"],
-  [2, "1 week ago"],
-]);
-
-const DATE_RANGE_DAYS = new Map<number, number>([
-  [0, 1],
-  [1, 2],
-  [2, 6],
-]);
 
 interface NewsPageProps {
   initialTickerList: string[];
@@ -45,16 +33,18 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
   const { searchQuery } = useSearch();
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedSentiment, setSelectedSentiment] = useState<number | null>(null);
-  const [selectedDateRange, setSelectedDateRange] = useState<number | null>(null);
+  const [selectedPublicationDate, setSelectedPublicationDate] = useState<string | null>(null);
 
   const getPageArticles = async (currPage: number) => {
     const sentiment =
       selectedSentiment != null ? SENTIMENT_OPTIONS.get(selectedSentiment) || "" : "";
-    const endDate =
-      selectedDateRange != null
-        ? getDateDaysBefore(DATE_RANGE_DAYS.get(selectedDateRange) ?? 0)
-        : "";
-    return fetchArticles(currPage, searchQuery, selectedTickers, sentiment, endDate);
+    return fetchArticles(
+      currPage,
+      searchQuery,
+      selectedTickers,
+      sentiment,
+      selectedPublicationDate ?? "",
+    );
   };
 
   const getNewlyFilteredArticles = async () => {
@@ -75,7 +65,7 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
 
   useEffect(() => {
     getNewlyFilteredArticles();
-  }, [selectedTickers, selectedSentiment, searchQuery, selectedDateRange]);
+  }, [selectedTickers, selectedSentiment, searchQuery, selectedPublicationDate]);
 
   const filters = (
     <>
@@ -91,11 +81,9 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
         selectedOption={selectedSentiment}
         setSelectedOption={setSelectedSentiment}
       />
-      <SingleSelectDropdown
-        placeholder="Date"
-        originalOptions={DATE_RANGE_OPTIONS}
-        selectedOption={selectedDateRange}
-        setSelectedOption={setSelectedDateRange}
+      <PublicationDateFilter
+        selectedDate={selectedPublicationDate}
+        onDateChange={setSelectedPublicationDate}
       />
     </>
   );

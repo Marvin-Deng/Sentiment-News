@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Article } from "@/src/features/news/types";
 import { getFirestore } from "@/lib/firestore";
+import { getNextDateString } from "@/src/utils/dateUtils";
 import {
   SENTIMENT_CATEGORY_MEMBERS,
   SentimentCategory,
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
   const searchQuery = searchParams.get("search_query")?.trim() ?? "";
   const tickersParam = searchParams.get("tickers") ?? "";
   const sentiment = searchParams.get("sentiment")?.trim() ?? "";
-  const endDate = searchParams.get("end_date")?.trim() ?? "";
+  const publicationDate = searchParams.get("publication_date")?.trim() ?? "";
 
   const tickers = tickersParam
     .split(",")
@@ -40,8 +41,10 @@ export async function GET(request: Request) {
       ? query.where("sentiment", "in", sentimentMembers)
       : query.where("sentiment", "==", sentiment);
   }
-  if (endDate) {
-    query = query.where("publicationDatetime", "<=", endDate);
+  if (publicationDate) {
+    query = query
+      .where("publicationDatetime", ">=", `${publicationDate} 00:00:00`)
+      .where("publicationDatetime", "<", `${getNextDateString(publicationDate)} 00:00:00`);
   }
 
   query = query

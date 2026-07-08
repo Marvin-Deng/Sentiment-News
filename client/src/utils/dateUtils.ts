@@ -19,6 +19,8 @@ export const getDateDaysAfter = (days_duration: number) => {
   return dateToISOString(endDate);
 };
 
+export const getNextDateString = (date: string) => dayjs(date).add(1, "day").format("YYYY-MM-DD");
+
 export const utcStringToLocal = (utcDatetime: string): string => {
   const localDate = dayjs.utc(utcDatetime).local();
   const tzAbbreviation = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
