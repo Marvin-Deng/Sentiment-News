@@ -72,7 +72,6 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
               p={2}
               borderRadius="md"
               cursor="pointer"
-              _hover={{ bg: "gray.100" }}
               onClick={() => handleOptionSelect(key)}
             >
               <Box

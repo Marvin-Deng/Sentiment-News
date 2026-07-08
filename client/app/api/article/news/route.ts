@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import { Article } from "@/src/features/news/types";
 import { getFirestore } from "@/lib/firestore";
-import { SENTIMENT_CATEGORY_MEMBERS, SentimentCategory } from "@/src/constants/sentiment";
+import {
+  SENTIMENT_CATEGORY_MEMBERS,
+  SentimentCategory,
+} from "@/src/constants/sentiment";
 
 const PAGE_SIZE = 10;
 
@@ -18,16 +21,23 @@ export async function GET(request: Request) {
     .map((t) => t.trim())
     .filter(Boolean);
 
+  const sentimentMembers = sentiment
+    ? SENTIMENT_CATEGORY_MEMBERS[sentiment as SentimentCategory]
+    : undefined;
+
   const db = getFirestore();
   let query: FirebaseFirestore.Query = db.collection("articles");
 
-  if (tickers.length > 0 && tickers.length <= 10) {
+  const applyTickerFilter = tickers.length > 0 && tickers.length <= 10;
+  const applySentimentInFirestore =
+    !!sentiment && (!applyTickerFilter || !sentimentMembers);
+
+  if (applyTickerFilter) {
     query = query.where("ticker", "in", tickers);
   }
-  if (sentiment) {
-    const members = SENTIMENT_CATEGORY_MEMBERS[sentiment as SentimentCategory];
-    query = members
-      ? query.where("sentiment", "in", members)
+  if (applySentimentInFirestore) {
+    query = sentimentMembers
+      ? query.where("sentiment", "in", sentimentMembers)
       : query.where("sentiment", "==", sentiment);
   }
   if (endDate) {
@@ -39,7 +49,16 @@ export async function GET(request: Request) {
     .offset(page * PAGE_SIZE)
     .limit(PAGE_SIZE);
 
-  const snapshot = await query.get();
+  let snapshot: FirebaseFirestore.QuerySnapshot;
+  try {
+    snapshot = await query.get();
+  } catch (error) {
+    console.error("failed to query articles", error);
+    return NextResponse.json(
+      { error: "Failed to fetch articles" },
+      { status: 500 },
+    );
+  }
 
   const tickerDocIds = Array.from(
     new Set(snapshot.docs.map((doc) => doc.get("tickerDocId")).filter(Boolean)),
@@ -65,6 +84,14 @@ export async function GET(request: Request) {
       close_price: tickerData.closePrice ?? null,
     };
   });
+
+  if (sentiment && !applySentimentInFirestore) {
+    articles = sentimentMembers
+      ? articles.filter((article) =>
+          sentimentMembers.includes(article.sentiment as never),
+        )
+      : articles.filter((article) => article.sentiment === sentiment);
+  }
 
   if (searchQuery) {
     const lowered = searchQuery.toLowerCase();
