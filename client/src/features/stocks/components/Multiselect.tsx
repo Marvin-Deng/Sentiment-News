@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Box,
-  Button,
   Card,
   Checkbox,
   Input,
@@ -9,6 +8,7 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
+import FilterControlButton from "@/src/components/ui/FilterControlButton";
 
 interface MultiSelectDropdownProps {
   selectName: string;
@@ -50,20 +50,16 @@ const MultiSelectDropdown = ({
 
   return (
     <Box position="relative" w="25%" ref={containerRef}>
-      <Button
+      <FilterControlButton
         onClick={() => setOpen((prev) => !prev)}
         variant="outline"
         colorPalette="gray"
         w="full"
-        borderRadius="md"
         justifyContent="space-between"
-        size="sm"
-        borderColor="gray.400"
-        _dark={{ borderColor: "whiteAlpha.400" }}
       >
         <Text truncate>{selectName}</Text>
         <MdKeyboardDoubleArrowDown />
-      </Button>
+      </FilterControlButton>
       {open && (
         <Card.Root
           position="absolute"

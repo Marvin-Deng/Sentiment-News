@@ -125,7 +125,14 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
 
   return (
     <Box>
-      <Flex align="center" justify="space-between" mb={4}>
+      <Box
+        p={4}
+        borderWidth="1px"
+        borderRadius="md"
+        borderColor="gray.400"
+        _dark={{ borderColor: "whiteAlpha.400" }}
+      >
+        <Flex align="center" justify="space-between" mb={4}>
         <IconButton
           aria-label="Previous month"
           variant="ghost"
@@ -254,7 +261,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
         </Grid>
       ))}
 
-      <Flex gap={4} mt={3} mb={6}>
+      <Flex gap={4} mt={3}>
         <Flex align="center" gap={2}>
           <Box w="8px" h="8px" borderRadius="full" bg="blue.400" />
           <Text fontSize="xs">Earnings</Text>
@@ -264,7 +271,9 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
           <Text fontSize="xs">IPO</Text>
         </Flex>
       </Flex>
+      </Box>
 
+      <Box mt={6}>
       {selectedDayEvents ? (
         <CalendarListView key={selectedDayEvents.date} daysEvents={[selectedDayEvents]} />
       ) : selectedDate ? (
@@ -276,6 +285,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
           Select a day to see its events.
         </Text>
       )}
+      </Box>
     </Box>
   );
 };

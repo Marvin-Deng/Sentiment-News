@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Input, IconButton } from "@chakra-ui/react";
-import { FaSearch } from "react-icons/fa";
+import { LuSearch } from "react-icons/lu";
 import { useSearch } from "../../providers/SearchProvider";
 
 const DEBOUNCE_MS = 300;
@@ -35,8 +35,11 @@ const SearchBar = () => {
         placeholder="Search"
         value={searchString}
         onChange={(e) => setSearchString(e.target.value)}
-        borderRadius="md"
         pr={10}
+        size="sm"
+        h="8"
+        borderWidth="1px"
+        borderRadius="md"
         borderColor="gray.400"
         _dark={{ borderColor: "whiteAlpha.400" }}
       />
@@ -49,8 +52,11 @@ const SearchBar = () => {
         right={1}
         top="50%"
         transform="translateY(-50%)"
+        color="fg.muted"
+        _hover={{ bg: "transparent" }}
+        _active={{ bg: "transparent" }}
       >
-        <FaSearch />
+        <LuSearch size={16} strokeWidth={1.75} />
       </IconButton>
     </form>
   );

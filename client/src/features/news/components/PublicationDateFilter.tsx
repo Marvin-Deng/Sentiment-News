@@ -4,6 +4,7 @@ import { Box, Button, Text, DatePicker, Portal } from "@chakra-ui/react";
 import { parseDate, today, getLocalTimeZone } from "@internationalized/date";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
 import { formatDate } from "@/src/utils/dateUtils";
+import FilterControlButton from "@/src/components/ui/FilterControlButton";
 
 interface PublicationDateFilterProps {
   selectedDate: string | null;
@@ -16,7 +17,7 @@ const PublicationDateFilter = ({ selectedDate, onDateChange }: PublicationDateFi
   return (
     <Box position="relative" w="25%">
       <DatePicker.Root
-        size="sm"
+        w="full"
         max={maxDate}
         value={selectedDate ? [parseDate(selectedDate)] : []}
         onValueChange={(details) => {
@@ -24,28 +25,31 @@ const PublicationDateFilter = ({ selectedDate, onDateChange }: PublicationDateFi
         }}
         positioning={{ placement: "bottom-start" }}
       >
-        <DatePicker.Control>
+        <DatePicker.Control w="full">
           <DatePicker.Trigger asChild>
-            <Button
+            <FilterControlButton
               variant="outline"
               colorPalette="gray"
               w="full"
-              borderRadius="md"
               justifyContent="space-between"
-              size="sm"
-              borderColor="gray.500"
-              _dark={{ borderColor: "whiteAlpha.400" }}
+              color="fg"
             >
-              <Text truncate>
-                {selectedDate ? formatDate(selectedDate) : "Publication date"}
+              <Text truncate color="fg">
+                {selectedDate ? formatDate(selectedDate) : "Date"}
               </Text>
               <MdKeyboardDoubleArrowDown />
-            </Button>
+            </FilterControlButton>
           </DatePicker.Trigger>
         </DatePicker.Control>
         <Portal>
           <DatePicker.Positioner>
-            <DatePicker.Content>
+            <DatePicker.Content
+              bg="bg"
+              borderWidth="1px"
+              borderRadius="md"
+              borderColor="gray.400"
+              _dark={{ borderColor: "whiteAlpha.400" }}
+            >
               <DatePicker.View view="day">
                 <DatePicker.Header />
                 <DatePicker.DayTable />

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Box, Button, Card, Text } from "@chakra-ui/react";
+import { Box, Card, Text } from "@chakra-ui/react";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
+import FilterControlButton from "@/src/components/ui/FilterControlButton";
 
 interface SingleSelectDropdownProps {
   placeholder: string | null;
@@ -36,22 +37,18 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
 
   return (
     <Box position="relative" w="25%" ref={containerRef}>
-      <Button
+      <FilterControlButton
         onClick={() => setOpen(!open)}
         variant="outline"
         colorPalette="gray"
         w="full"
-        borderRadius="md"
         justifyContent="space-between"
-        size="sm"
-        borderColor="gray.500"
-        _dark={{ borderColor: "whiteAlpha.400" }}
       >
         <Text truncate>
           {selectedOption !== null ? originalOptions.get(selectedOption) : placeholder}
         </Text>
         <MdKeyboardDoubleArrowDown />
-      </Button>
+      </FilterControlButton>
       {open && (
         <Card.Root
           position="absolute"
