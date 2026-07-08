@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { QuoteInfo } from "@/src/features/stocks/api";
+import { QuoteInfo } from "@/src/features/stocks/types";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

@@ -8,13 +8,17 @@ import EpsSurprisesChart from "@/src/features/stocks/components/EpsSurprisesChar
 
 import {
   fetchEodData,
-  fetchQuoteInfo,
   fetchCompanyProfile,
   fetchBasicFinancials,
   fetchEpsSurprises,
-  QuoteInfo,
 } from "@/src/features/stocks/api";
-import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials, EpsSurprise, CompanyProfile } from "@/src/features/stocks/types";
+import {
+  PriceData,
+  DEFAULT_PRICE_DATA,
+  BasicFinancials,
+  EpsSurprise,
+  CompanyProfile,
+} from "@/src/features/stocks/types";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
@@ -48,7 +52,6 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const [selectedRange, setSelectedRange] = useState("YTD");
   const startDate = useMemo(() => getRangeStartDate(selectedRange), [selectedRange]);
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
-  const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [basicFinancials, setBasicFinancials] = useState<BasicFinancials | null>(null);
@@ -88,23 +91,6 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
       setCurrPriceData(tickerData[tickerData.length - 1]);
     }
   }, [stockDataMap, ticker]);
-
-  useEffect(() => {
-    if (!ticker) return;
-
-    const fetchQuote = async () => {
-      try {
-        const data = await fetchQuoteInfo(ticker);
-        setQuoteInfo(data);
-      } catch {
-        setQuoteInfo(null);
-      }
-    };
-
-    fetchQuote();
-    const interval = setInterval(fetchQuote, 5000);
-    return () => clearInterval(interval);
-  }, [ticker]);
 
   useEffect(() => {
     if (!ticker) return;

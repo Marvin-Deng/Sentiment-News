@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Providers from "../src/providers";
-import Navbar from "../src/components/Navbar/Navbar";
+import Navbar from "../src/components/navbar/Navbar";
 
 export const metadata: Metadata = {
   title: "Sentiment News",

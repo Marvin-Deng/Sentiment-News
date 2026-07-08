@@ -11,6 +11,7 @@ interface CalendarMonthViewProps {
 }
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const TOOLTIP_ITEM_LIMIT = 5;
 
 const toDateKey = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
@@ -24,8 +25,6 @@ const isPastDate = (day: Date, today: Date) => startOfDay(day) < startOfDay(toda
 
 const isSameMonth = (a: Date, b: Date) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-
-const TOOLTIP_ITEM_LIMIT = 5;
 
 type TooltipItem =
   | { type: "earnings"; key: string; symbol: string }

@@ -15,6 +15,7 @@ interface MultiSelectDropdownProps {
   originalOptions: string[];
   selectedOptions: string[];
   setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>;
+  getLabel?: (value: string) => string;
 }
 
 const MultiSelectDropdown = ({
@@ -22,13 +23,14 @@ const MultiSelectDropdown = ({
   originalOptions,
   selectedOptions,
   setSelectedOptions,
+  getLabel = (value) => value,
 }: MultiSelectDropdownProps) => {
   const [open, setOpen] = useState(false);
   const [filter, setFilter] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const filtered = originalOptions.filter((name) =>
-    name.toLowerCase().includes(filter.toLowerCase()),
+  const filtered = originalOptions.filter((value) =>
+    getLabel(value).toLowerCase().includes(filter.toLowerCase()),
   );
 
   const toggleOption = (value: string) => {
@@ -78,17 +80,17 @@ const MultiSelectDropdown = ({
             _dark={{ borderColor: "whiteAlpha.600" }}
           />
           <SimpleGrid columns={2} gap={2} maxH="240px" overflowY="auto">
-            {filtered.map((name) => (
+            {filtered.map((value) => (
               <Checkbox.Root
-                key={name}
-                checked={selectedOptions.includes(name)}
-                onCheckedChange={() => toggleOption(name)}
+                key={value}
+                checked={selectedOptions.includes(value)}
+                onCheckedChange={() => toggleOption(value)}
                 cursor="pointer"
               >
                 <Checkbox.HiddenInput />
                 <Checkbox.Control cursor="pointer" />
                 <Checkbox.Label cursor="pointer">
-                  <Text fontSize="sm">{name}</Text>
+                  <Text fontSize="sm">{getLabel(value)}</Text>
                 </Checkbox.Label>
               </Checkbox.Root>
             ))}

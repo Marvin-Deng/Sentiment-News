@@ -3,12 +3,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import NextLink from "next/link";
 import { Box, Flex, Text, Link } from "@chakra-ui/react";
 
-import { fetchQuoteInfo, QuoteInfo } from "@/src/features/stocks/api";
+import { fetchQuoteInfo } from "@/src/features/stocks/api";
+import { QuoteInfo } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
-const QUOTE_TTL_SECONDS = 120;
-const REFRESH_INTERVAL_MS = 60_000;
+const QUOTE_TTL_SECONDS = 24 * 60 * 60;
 const AUTO_SCROLL_PX_PER_SEC = 20;
 
 type QuoteState = Pick<QuoteInfo, "current" | "change" | "percent">;
@@ -100,10 +100,8 @@ const TickerTape = () => {
     };
 
     fetchQuotes();
-    const interval = setInterval(fetchQuotes, REFRESH_INTERVAL_MS);
     return () => {
       cancelled = true;
-      clearInterval(interval);
     };
   }, []);
 

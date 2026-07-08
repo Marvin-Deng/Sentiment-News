@@ -9,12 +9,12 @@ import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect"
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import PageLayout from "@/src/components/layout/PageLayout";
-import SearchBar from "@/src/components/Navbar/SearchBar";
+import SearchBar from "@/src/components/navbar/SearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
 import { useSearch } from "@/src/providers/SearchProvider";
 import { DEFAULT_TICKERS } from "@/src/constants/tickers";
-import { formatExchangeLabel } from "@/src/constants/exchanges";
+import { compareExchangeMics, formatExchangeLabel } from "@/src/constants/exchanges";
 
 const PAGE_SIZE = 10;
 
@@ -42,7 +42,7 @@ const StocksPage = () => {
 
   const exchangeMics = useMemo(() => {
     if (!stockInfo) return [];
-    return Array.from(new Set(stockInfo.map((stock) => stock.mic))).sort();
+    return Array.from(new Set(stockInfo.map((stock) => stock.mic))).sort(compareExchangeMics);
   }, [stockInfo]);
 
   const exchangeOptions = useMemo(

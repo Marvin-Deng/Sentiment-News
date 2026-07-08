@@ -6,7 +6,7 @@ import NewsCard from "./NewsCard";
 import PublicationDateFilter from "./PublicationDateFilter";
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
-import SearchBar from "@/src/components/Navbar/SearchBar";
+import SearchBar from "@/src/components/navbar/SearchBar";
 import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import PageLayout from "@/src/components/layout/PageLayout";

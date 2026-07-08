@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
-import { CompanyProfile } from "@/src/features/stocks/types";
-import { QuoteInfo, fetchQuoteInfo, fetchCompanyProfile } from "@/src/features/stocks/api";
+import { CompanyProfile, QuoteInfo } from "@/src/features/stocks/types";
+import { fetchQuoteInfo, fetchCompanyProfile } from "@/src/features/stocks/api";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 const QUOTE_TTL_SECONDS = 120;

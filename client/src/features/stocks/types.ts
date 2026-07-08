@@ -65,6 +65,13 @@ export type EpsSurprise = {
   year: number;
 };
 
+export type QuoteInfo = {
+  ticker: string;
+  current: number;
+  change: number;
+  percent: number;
+};
+
 export const DEFAULT_PRICE_DATA: PriceData = {
   date: new Date(),
   open: 0,

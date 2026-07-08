@@ -1,14 +1,9 @@
-import { BasicFinancials, CompanyProfile, EpsSurprise, PriceData } from "@/src/features/stocks/types";
+import { BasicFinancials, CompanyProfile, EpsSurprise, PriceData, QuoteInfo } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
-export type QuoteInfo = {
-  ticker: string;
-  current: number;
-  change: number;
-  percent: number;
-};
-
 const PROFILE_TTL_SECONDS = 3600;
+const FINANCIALS_TTL_SECONDS = 86400;
+const EPS_SURPRISES_TTL_SECONDS = 86400;
 
 export const fetchCompanyProfile = async (ticker: string): Promise<CompanyProfile> => {
   const cacheKey = `stock-profile:${ticker}`;
@@ -22,8 +17,6 @@ export const fetchCompanyProfile = async (ticker: string): Promise<CompanyProfil
   return company_profile as CompanyProfile;
 };
 
-const FINANCIALS_TTL_SECONDS = 86400;
-
 export const fetchBasicFinancials = async (ticker: string): Promise<BasicFinancials> => {
   const cacheKey = `stock-basic-financials:${ticker}`;
   const cached = getCached<BasicFinancials>(cacheKey);
@@ -35,8 +28,6 @@ export const fetchBasicFinancials = async (ticker: string): Promise<BasicFinanci
   setCached(cacheKey, basic_financials, FINANCIALS_TTL_SECONDS);
   return basic_financials as BasicFinancials;
 };
-
-const EPS_SURPRISES_TTL_SECONDS = 86400;
 
 export const fetchEpsSurprises = async (ticker: string): Promise<EpsSurprise[]> => {
   const cacheKey = `stock-eps-surprises:${ticker}`;
