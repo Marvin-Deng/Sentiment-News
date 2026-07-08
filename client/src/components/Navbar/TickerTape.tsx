@@ -22,16 +22,15 @@ const TickerTape = () => {
   const isProgrammaticScrollRef = useRef(false);
   const animationFrameRef = useRef<number | null>(null);
   const lastTimestampRef = useRef<number | null>(null);
+  const scrollPositionRef = useRef(0);
 
-  const normalizeScroll = useCallback((container: HTMLDivElement) => {
+  const normalizePosition = useCallback((position: number) => {
     const segmentWidth = segmentWidthRef.current;
-    if (!segmentWidth) return;
+    if (!segmentWidth) return position;
 
-    if (container.scrollLeft >= segmentWidth * 2) {
-      container.scrollLeft -= segmentWidth;
-    } else if (container.scrollLeft <= 0) {
-      container.scrollLeft += segmentWidth;
-    }
+    if (position >= segmentWidth * 2) return position - segmentWidth;
+    if (position <= 0) return position + segmentWidth;
+    return position;
   }, []);
 
   const updateSegmentWidth = useCallback(() => {
@@ -51,6 +50,7 @@ const TickerTape = () => {
     if (!container || !segmentWidth || hasInitializedScrollRef.current) return;
 
     isProgrammaticScrollRef.current = true;
+    scrollPositionRef.current = segmentWidth;
     container.scrollLeft = segmentWidth;
     hasInitializedScrollRef.current = true;
     requestAnimationFrame(() => {
@@ -62,8 +62,11 @@ const TickerTape = () => {
     if (isProgrammaticScrollRef.current) return;
     const container = scrollRef.current;
     if (!container) return;
-    normalizeScroll(container);
-  }, [normalizeScroll]);
+
+    const normalized = normalizePosition(container.scrollLeft);
+    if (normalized !== container.scrollLeft) container.scrollLeft = normalized;
+    scrollPositionRef.current = normalized;
+  }, [normalizePosition]);
 
   useEffect(() => {
     let cancelled = false;
@@ -136,11 +139,11 @@ const TickerTape = () => {
         lastTimestampRef.current = timestamp;
 
         isProgrammaticScrollRef.current = true;
-        container.scrollLeft += (AUTO_SCROLL_PX_PER_SEC * delta) / 1000;
-        normalizeScroll(container);
-        requestAnimationFrame(() => {
-          isProgrammaticScrollRef.current = false;
-        });
+        scrollPositionRef.current = normalizePosition(
+          scrollPositionRef.current + (AUTO_SCROLL_PX_PER_SEC * delta) / 1000,
+        );
+        container.scrollLeft = scrollPositionRef.current;
+        isProgrammaticScrollRef.current = false;
       }
 
       animationFrameRef.current = requestAnimationFrame(step);
@@ -151,7 +154,7 @@ const TickerTape = () => {
       if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
       lastTimestampRef.current = null;
     };
-  }, [normalizeScroll]);
+  }, [normalizePosition]);
 
   if (tickers.length === 0) return null;
 
