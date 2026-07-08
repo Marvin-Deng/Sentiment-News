@@ -24,6 +24,25 @@ func MarketDate(publication time.Time) time.Time {
 	return publishedDate
 }
 
+// TodayMarketDate returns the trading day whose EOD price should be fetched right now: today in
+// US/Eastern (where the market actually trades), or the most recent weekday if today falls on a
+// weekend.
+func TodayMarketDate(now time.Time) time.Time {
+	loc, err := time.LoadLocation("America/New_York")
+	if err != nil {
+		loc = time.UTC
+	}
+	today := dateOnly(now.In(loc))
+	switch today.Weekday() {
+	case time.Saturday:
+		return today.AddDate(0, 0, -1)
+	case time.Sunday:
+		return today.AddDate(0, 0, -2)
+	default:
+		return today
+	}
+}
+
 func afterMarketClosed(publication time.Time) bool {
 	marketClose := time.Date(
 		publication.Year(),

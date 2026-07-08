@@ -37,7 +37,7 @@ type Result struct {
 func (s *Service) Run(ctx context.Context) (Result, error) {
 	marketDate := s.cfg.MarketDate
 	if marketDate == "" {
-		marketDate = stock.MarketDate(time.Now()).Format("2006-01-02")
+		marketDate = stock.TodayMarketDate(time.Now()).Format("2006-01-02")
 	}
 
 	var updated []string
@@ -66,7 +66,7 @@ func (s *Service) updateTicker(ctx context.Context, ticker, marketDate string) e
 	log.Printf("processing %s for %s: fetching tiingo eod", ticker, marketDate)
 	prices, err := s.tiingo.GetEOD(ctx, ticker, marketDate)
 	if err != nil {
-		isToday := marketDate == time.Now().Format("2006-01-02")
+		isToday := marketDate == stock.TodayMarketDate(time.Now()).Format("2006-01-02")
 		if s.cfg.FinnhubAPIKey == "" || !isToday {
 			return fmt.Errorf("fetch tiingo eod for %s on %s: %w", ticker, marketDate, err)
 		}
