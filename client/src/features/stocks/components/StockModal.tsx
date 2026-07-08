@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
+import { Box, Flex, Text, IconButton, Link } from "@chakra-ui/react";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
@@ -14,7 +14,7 @@ import {
   fetchEpsSurprises,
   QuoteInfo,
 } from "@/src/features/stocks/api";
-import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials, EpsSurprise } from "@/src/features/stocks/types";
+import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials, EpsSurprise, CompanyProfile } from "@/src/features/stocks/types";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
@@ -50,7 +50,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const [stockDataMap, setStockDataMap] = useState(new Map<string, PriceData[]>());
   const [quoteInfo, setQuoteInfo] = useState<QuoteInfo | null>(null);
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
-  const [companyName, setCompanyName] = useState("");
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [basicFinancials, setBasicFinancials] = useState<BasicFinancials | null>(null);
   const [epsSurprises, setEpsSurprises] = useState<EpsSurprise[]>([]);
 
@@ -110,8 +110,8 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
     if (!ticker) return;
 
     fetchCompanyProfile(ticker)
-      .then((profile) => setCompanyName(profile.name))
-      .catch(() => setCompanyName(ticker));
+      .then(setCompanyProfile)
+      .catch(() => setCompanyProfile(null));
   }, [ticker]);
 
   useEffect(() => {
@@ -136,6 +136,8 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
   const rangeEndPrice = currPriceData.close;
   const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "green.600" : "red.500";
+  const companyName = companyProfile?.name || ticker;
+  const companyWebUrl = companyProfile?.weburl;
 
   return (
     <Flex
@@ -162,7 +164,19 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
       >
         <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
           <Text fontSize="xl" fontWeight="semibold">
-            {companyName || ticker} ({ticker})
+            {companyWebUrl ? (
+              <Link
+                href={companyWebUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                _hover={{ textDecoration: "underline" }}
+              >
+                {companyName}
+              </Link>
+            ) : (
+              companyName
+            )}{" "}
+            ({ticker})
           </Text>
           <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={onClose}>
             ✕
