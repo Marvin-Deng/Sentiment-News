@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 var DefaultTickers = []string{
@@ -18,6 +19,7 @@ type Config struct {
 	FinnhubAPIKey string
 	GeminiAPIKey  string
 	Tickers       []string
+	NewsDate      string // optional override, "YYYY-MM-DD"; empty means use today's date
 }
 
 func Load() (Config, error) {
@@ -26,6 +28,7 @@ func Load() (Config, error) {
 		FinnhubAPIKey: os.Getenv("FINNHUB_API_KEY"),
 		GeminiAPIKey:  os.Getenv("GEMINI_KEY"),
 		Tickers:       DefaultTickers,
+		NewsDate:      strings.TrimSpace(os.Getenv("NEWS_DATE")),
 	}
 
 	if raw := strings.TrimSpace(os.Getenv("TICKERS")); raw != "" {
@@ -40,6 +43,11 @@ func Load() (Config, error) {
 	}
 	if cfg.GeminiAPIKey == "" {
 		return cfg, fmt.Errorf("GEMINI_KEY is required")
+	}
+	if cfg.NewsDate != "" {
+		if _, err := time.Parse("2006-01-02", cfg.NewsDate); err != nil {
+			return cfg, fmt.Errorf("NEWS_DATE must be in YYYY-MM-DD format: %w", err)
+		}
 	}
 
 	return cfg, nil

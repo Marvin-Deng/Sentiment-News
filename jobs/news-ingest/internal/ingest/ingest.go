@@ -36,7 +36,10 @@ type Result struct {
 }
 
 func (s *Service) Run(ctx context.Context) (Result, error) {
-	dateToday := time.Now().Format("2006-01-02")
+	dateToday := s.cfg.NewsDate
+	if dateToday == "" {
+		dateToday = time.Now().Format("2006-01-02")
+	}
 
 	var (
 		mu        sync.Mutex

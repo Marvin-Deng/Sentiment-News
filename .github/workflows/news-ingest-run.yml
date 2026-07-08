@@ -2,6 +2,11 @@ name: News Ingest Run
 
 on:
   workflow_dispatch:
+    inputs:
+      date:
+        description: "News date to fetch (YYYY-MM-DD). Leave blank for today."
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -29,4 +34,5 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
+          NEWS_DATE: ${{ inputs.date }}
         run: go run .
