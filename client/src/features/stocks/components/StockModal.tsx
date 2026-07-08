@@ -120,7 +120,7 @@ const StockModal = ({ stock, onClose }: StockModalProps) => {
         overflowY="auto"
         bg="bg"
         borderWidth="2px"
-        borderColor="gray.400"
+        borderColor="border"
         borderRadius="xl"
         pb={10}
         onClick={(e) => e.stopPropagation()}

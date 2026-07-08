@@ -44,7 +44,7 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
         borderRadius="md"
         justifyContent="space-between"
         size="sm"
-        borderColor="gray.400"
+        borderColor="gray.500"
         _dark={{ borderColor: "whiteAlpha.400" }}
       >
         <Text truncate>
@@ -79,8 +79,9 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
                 h={4}
                 borderRadius="full"
                 border="1px solid"
-                borderColor={selectedOption === key ? "gray.800" : "gray.300"}
-                bg={selectedOption === key ? "gray.800" : "transparent"}
+                borderColor={selectedOption === key ? "fg" : "gray.500"}
+                _dark={{ borderColor: selectedOption === key ? "fg" : "whiteAlpha.600" }}
+                bg={selectedOption === key ? "fg" : "transparent"}
               />
               <Text fontSize="sm">{value}</Text>
             </Box>

@@ -81,6 +81,8 @@ const MultiSelectDropdown = ({
             placeholder="Search"
             size="sm"
             mb={2}
+            borderColor="gray.400"
+            _dark={{ borderColor: "whiteAlpha.600" }}
           />
           <SimpleGrid columns={2} gap={2} maxH="240px" overflowY="auto">
             {filtered.map((name) => (
