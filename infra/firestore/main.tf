@@ -38,3 +38,37 @@ resource "google_firestore_field" "expires_at_ttl" {
 
   depends_on = [google_firestore_database.default]
 }
+
+resource "google_firestore_index" "articles_ticker_publication_datetime" {
+  project    = var.project_id
+  database   = google_firestore_database.default.name
+  collection = "articles"
+
+  fields {
+    field_path = "ticker"
+    order      = "ASCENDING"
+  }
+  fields {
+    field_path = "publicationDatetime"
+    order      = "DESCENDING"
+  }
+
+  depends_on = [google_firestore_database.default]
+}
+
+resource "google_firestore_index" "articles_sentiment_publication_datetime" {
+  project    = var.project_id
+  database   = google_firestore_database.default.name
+  collection = "articles"
+
+  fields {
+    field_path = "sentiment"
+    order      = "ASCENDING"
+  }
+  fields {
+    field_path = "publicationDatetime"
+    order      = "DESCENDING"
+  }
+
+  depends_on = [google_firestore_database.default]
+}
