@@ -1,4 +1,4 @@
-import { BasicFinancials, CompanyProfile, PriceData } from "@/src/features/stocks/types";
+import { BasicFinancials, CompanyProfile, EpsSurprise, PriceData } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 export type QuoteInfo = {
@@ -22,7 +22,7 @@ export const fetchCompanyProfile = async (ticker: string): Promise<CompanyProfil
   return company_profile as CompanyProfile;
 };
 
-const FINANCIALS_TTL_SECONDS = 3600;
+const FINANCIALS_TTL_SECONDS = 86400;
 
 export const fetchBasicFinancials = async (ticker: string): Promise<BasicFinancials> => {
   const cacheKey = `stock-basic-financials:${ticker}`;
@@ -34,6 +34,20 @@ export const fetchBasicFinancials = async (ticker: string): Promise<BasicFinanci
   const { basic_financials } = await res.json();
   setCached(cacheKey, basic_financials, FINANCIALS_TTL_SECONDS);
   return basic_financials as BasicFinancials;
+};
+
+const EPS_SURPRISES_TTL_SECONDS = 86400;
+
+export const fetchEpsSurprises = async (ticker: string): Promise<EpsSurprise[]> => {
+  const cacheKey = `stock-eps-surprises:${ticker}`;
+  const cached = getCached<EpsSurprise[]>(cacheKey);
+  if (cached) return cached;
+
+  const res = await fetch(`/api/stock/eps_surprises?ticker=${ticker}`);
+  if (!res.ok) throw new Error(`fetchEpsSurprises failed: ${res.status}`);
+  const { eps_surprises } = await res.json();
+  setCached(cacheKey, eps_surprises, EPS_SURPRISES_TTL_SECONDS);
+  return eps_surprises as EpsSurprise[];
 };
 
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<PriceData[]> => {

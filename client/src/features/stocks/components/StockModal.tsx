@@ -4,15 +4,17 @@ import { Box, Flex, Text, IconButton } from "@chakra-ui/react";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
+import EpsSurprisesChart from "@/src/features/stocks/components/EpsSurprisesChart";
 
 import {
   fetchEodData,
   fetchQuoteInfo,
   fetchCompanyProfile,
   fetchBasicFinancials,
+  fetchEpsSurprises,
   QuoteInfo,
 } from "@/src/features/stocks/api";
-import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials } from "@/src/features/stocks/types";
+import { PriceData, DEFAULT_PRICE_DATA, BasicFinancials, EpsSurprise } from "@/src/features/stocks/types";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
 import { formatDateEST } from "@/src/utils/dateUtils";
 
@@ -50,6 +52,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const [currPriceData, setCurrPriceData] = useState<PriceData>(DEFAULT_PRICE_DATA);
   const [companyName, setCompanyName] = useState("");
   const [basicFinancials, setBasicFinancials] = useState<BasicFinancials | null>(null);
+  const [epsSurprises, setEpsSurprises] = useState<EpsSurprise[]>([]);
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
 
@@ -117,6 +120,14 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
     fetchBasicFinancials(ticker)
       .then(setBasicFinancials)
       .catch(() => setBasicFinancials(null));
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!ticker) return;
+
+    fetchEpsSurprises(ticker)
+      .then(setEpsSurprises)
+      .catch(() => setEpsSurprises([]));
   }, [ticker]);
 
   if (!ticker) return null;
@@ -207,6 +218,8 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
             <DataTable currPriceData={currPriceData} basicFinancials={basicFinancials} />
           </Box>
         </Flex>
+
+        <EpsSurprisesChart epsSurprises={epsSurprises} />
       </Box>
     </Flex>
   );

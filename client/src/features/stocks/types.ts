@@ -54,6 +54,17 @@ export type BasicFinancials = {
   [key: string]: number | string | undefined;
 };
 
+export type EpsSurprise = {
+  actual: number;
+  estimate: number;
+  period: string;
+  quarter: number;
+  surprise: number;
+  surprisePercent: number;
+  symbol: string;
+  year: number;
+};
+
 export const DEFAULT_PRICE_DATA: PriceData = {
   date: new Date(),
   open: 0,

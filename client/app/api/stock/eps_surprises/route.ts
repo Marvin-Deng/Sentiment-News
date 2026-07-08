@@ -5,14 +5,11 @@ export async function GET(request: Request) {
   const ticker = searchParams.get("ticker");
 
   try {
-    const url = `https://finnhub.io/api/v1/stock/metric?symbol=${ticker}&metric=all&token=${process.env.FINNHUB_KEY}`;
+    const url = `https://finnhub.io/api/v1/stock/earnings?symbol=${ticker}&token=${process.env.FINNHUB_KEY}`;
     const res = await fetch(url, { next: { revalidate: 86400 } });
-    if (!res.ok) throw new Error(`Finnhub basic financials request failed: ${res.status}`);
+    if (!res.ok) throw new Error(`Finnhub EPS surprises request failed: ${res.status}`);
     const data = await res.json();
-    if (!data.metric) {
-      throw new Error(`Finnhub has no basic financials data for ${ticker}`);
-    }
-    return NextResponse.json({ basic_financials: data.metric });
+    return NextResponse.json({ eps_surprises: data });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });
   }
