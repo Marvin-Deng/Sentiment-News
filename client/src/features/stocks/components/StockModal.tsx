@@ -135,7 +135,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const rangeData = getPriceDataRange();
   const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
   const rangeEndPrice = currPriceData.close;
-  const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "green.600" : "red.500";
+  const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "positive" : "negative";
   const companyName = companyProfile?.name || ticker;
   const companyWebUrl = companyProfile?.weburl;
 

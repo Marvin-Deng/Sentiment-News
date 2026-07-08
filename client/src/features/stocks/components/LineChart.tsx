@@ -166,8 +166,14 @@ const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range, isPosit
   const axisColor = "var(--chakra-colors-fg)";
 
   const { priceLineColor, priceFillColor } = isPositive
-    ? { priceLineColor: "rgba(30, 200, 100, 1)", priceFillColor: "rgba(144, 238, 144, 0.3)" }
-    : { priceLineColor: "var(--chakra-colors-red-500)", priceFillColor: "rgba(239, 68, 68, 0.2)" };
+    ? {
+        priceLineColor: "var(--chakra-colors-positive)",
+        priceFillColor: "color-mix(in srgb, var(--chakra-colors-positive) 30%, transparent)",
+      }
+    : {
+        priceLineColor: "var(--chakra-colors-negative)",
+        priceFillColor: "color-mix(in srgb, var(--chakra-colors-negative) 20%, transparent)",
+      };
 
   const axisConfig = useMemo(() => getAxisConfig(priceData, range), [priceData, range]);
   const priceTicks = useMemo(() => getPriceTicks(priceData, 4), [priceData]);

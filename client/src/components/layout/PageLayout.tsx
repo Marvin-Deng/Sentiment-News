@@ -20,7 +20,7 @@ const PageLayout = ({ title, subtitle, searchBar, filters, children }: PageLayou
             <Text mt={3} fontSize="xl">
               {subtitle}
             </Text>
-            <Separator my={6} borderColor="gray.400" _dark={{ borderColor: "whiteAlpha.400" }} />
+            <Separator my={6} borderColor="border.control" />
             {searchBar && (
               <Box w="60%" mb={4}>
                 {searchBar}

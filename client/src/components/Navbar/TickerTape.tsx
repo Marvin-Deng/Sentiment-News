@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import NextLink from "next/link";
 import { Box, Flex, Text, Link } from "@chakra-ui/react";
 
@@ -9,26 +9,61 @@ import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 const QUOTE_TTL_SECONDS = 120;
 const REFRESH_INTERVAL_MS = 60_000;
-const SCROLL_RESUME_DELAY_MS = 2000;
+const AUTO_SCROLL_PX_PER_SEC = 20;
 
 type QuoteState = Pick<QuoteInfo, "current" | "change" | "percent">;
 
 const TickerTape = () => {
   const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
-  const [isPaused, setIsPaused] = useState(false);
-  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const segmentRef = useRef<HTMLDivElement>(null);
+  const segmentWidthRef = useRef(0);
+  const hasInitializedScrollRef = useRef(false);
+  const isProgrammaticScrollRef = useRef(false);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastTimestampRef = useRef<number | null>(null);
 
-  const handleScroll = () => {
-    setIsPaused(true);
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-    resumeTimeoutRef.current = setTimeout(() => setIsPaused(false), SCROLL_RESUME_DELAY_MS);
-  };
+  const normalizeScroll = useCallback((container: HTMLDivElement) => {
+    const segmentWidth = segmentWidthRef.current;
+    if (!segmentWidth) return;
 
-  useEffect(() => {
-    return () => {
-      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-    };
+    if (container.scrollLeft >= segmentWidth * 2) {
+      container.scrollLeft -= segmentWidth;
+    } else if (container.scrollLeft <= 0) {
+      container.scrollLeft += segmentWidth;
+    }
   }, []);
+
+  const updateSegmentWidth = useCallback(() => {
+    const segment = segmentRef.current;
+    if (!segment) return 0;
+
+    const segmentWidth = segment.offsetWidth;
+    if (!segmentWidth) return 0;
+
+    segmentWidthRef.current = segmentWidth;
+    return segmentWidth;
+  }, []);
+
+  const initializeScroll = useCallback(() => {
+    const container = scrollRef.current;
+    const segmentWidth = updateSegmentWidth();
+    if (!container || !segmentWidth || hasInitializedScrollRef.current) return;
+
+    isProgrammaticScrollRef.current = true;
+    container.scrollLeft = segmentWidth;
+    hasInitializedScrollRef.current = true;
+    requestAnimationFrame(() => {
+      isProgrammaticScrollRef.current = false;
+    });
+  }, [updateSegmentWidth]);
+
+  const handleUserScroll = useCallback(() => {
+    if (isProgrammaticScrollRef.current) return;
+    const container = scrollRef.current;
+    if (!container) return;
+    normalizeScroll(container);
+  }, [normalizeScroll]);
 
   useEffect(() => {
     let cancelled = false;
@@ -70,6 +105,54 @@ const TickerTape = () => {
   }, []);
 
   const tickers = DEFAULT_TICKERS.filter((ticker) => quotes[ticker]);
+
+  useEffect(() => {
+    if (tickers.length === 0) return;
+
+    hasInitializedScrollRef.current = false;
+    const frame = requestAnimationFrame(initializeScroll);
+    const segment = segmentRef.current;
+    if (!segment) return () => cancelAnimationFrame(frame);
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateSegmentWidth();
+    });
+    resizeObserver.observe(segment);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver.disconnect();
+    };
+  }, [tickers, quotes, initializeScroll, updateSegmentWidth]);
+
+  useEffect(() => {
+    const step = (timestamp: number) => {
+      const container = scrollRef.current;
+      const segmentWidth = segmentWidthRef.current;
+
+      if (container && segmentWidth > 0) {
+        if (!lastTimestampRef.current) lastTimestampRef.current = timestamp;
+        const delta = Math.min(timestamp - lastTimestampRef.current, 50);
+        lastTimestampRef.current = timestamp;
+
+        isProgrammaticScrollRef.current = true;
+        container.scrollLeft += (AUTO_SCROLL_PX_PER_SEC * delta) / 1000;
+        normalizeScroll(container);
+        requestAnimationFrame(() => {
+          isProgrammaticScrollRef.current = false;
+        });
+      }
+
+      animationFrameRef.current = requestAnimationFrame(step);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
+    return () => {
+      if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
+      lastTimestampRef.current = null;
+    };
+  }, [normalizeScroll]);
+
   if (tickers.length === 0) return null;
 
   const renderItems = (keyPrefix: string) =>
@@ -82,7 +165,7 @@ const TickerTape = () => {
             <NextLink href={`/stocks/${ticker}`}>{ticker}</NextLink>
           </Link>
           <Text>{quote.current.toFixed(2)}</Text>
-          <Text color={isPositive ? "green.500" : "red.500"}>
+          <Text color={isPositive ? "positive" : "negative"}>
             {isPositive ? "▲" : "▼"} {Math.abs(quote.percent).toFixed(2)}%
           </Text>
         </Flex>
@@ -91,31 +174,28 @@ const TickerTape = () => {
 
   return (
     <Box
+      ref={scrollRef}
       w="full"
-      overflowX="auto"
+      overflowX="scroll"
       overflowY="hidden"
       borderBottomWidth="1px"
       borderColor="border"
       bg="bg.subtle"
       py={2}
       fontSize="sm"
-      css={{ scrollbarWidth: "none", "&::-webkit-scrollbar": { display: "none" } }}
-      onWheel={handleScroll}
-      onTouchStart={handleScroll}
-      onScroll={handleScroll}
+      css={{
+        scrollbarWidth: "none",
+        "&::-webkit-scrollbar": { display: "none" },
+        WebkitOverflowScrolling: "touch",
+      }}
+      onScroll={handleUserScroll}
     >
-      <Flex
-        w="max-content"
-        animation={isPaused ? "none" : "marquee 40s linear infinite"}
-        css={{
-          "@keyframes marquee": {
-            from: { transform: "translateX(0)" },
-            to: { transform: "translateX(-50%)" },
-          },
-        }}
-      >
-        {renderItems("a")}
-        {renderItems("b")}
+      <Flex w="max-content" display="inline-flex">
+        <Flex ref={segmentRef} display="inline-flex">
+          {renderItems("a")}
+        </Flex>
+        <Flex display="inline-flex">{renderItems("b")}</Flex>
+        <Flex display="inline-flex">{renderItems("c")}</Flex>
       </Flex>
     </Box>
   );

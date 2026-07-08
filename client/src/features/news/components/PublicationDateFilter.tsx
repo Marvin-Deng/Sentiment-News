@@ -1,6 +1,6 @@
 "use client";
 import { useMemo } from "react";
-import { Box, Button, Text, DatePicker, Portal } from "@chakra-ui/react";
+import { Box, Button, Icon, Text, DatePicker, Portal } from "@chakra-ui/react";
 import { parseDate, today, getLocalTimeZone } from "@internationalized/date";
 import { MdKeyboardDoubleArrowDown } from "react-icons/md";
 import { formatDate } from "@/src/utils/dateUtils";
@@ -25,31 +25,35 @@ const PublicationDateFilter = ({ selectedDate, onDateChange }: PublicationDateFi
         }}
         positioning={{ placement: "bottom-start" }}
       >
-        <DatePicker.Control w="full">
+        <DatePicker.Control
+          w="full"
+          display="flex"
+          borderWidth="0"
+          p={0}
+          m={0}
+          minH="8"
+          bg="transparent"
+          shadow="none"
+        >
           <DatePicker.Trigger asChild>
             <FilterControlButton
-              variant="outline"
-              colorPalette="gray"
               w="full"
+              h="8"
               justifyContent="space-between"
               color="fg"
             >
               <Text truncate color="fg">
                 {selectedDate ? formatDate(selectedDate) : "Date"}
               </Text>
-              <MdKeyboardDoubleArrowDown />
+              <Icon boxSize="5">
+                <MdKeyboardDoubleArrowDown />
+              </Icon>
             </FilterControlButton>
           </DatePicker.Trigger>
         </DatePicker.Control>
         <Portal>
           <DatePicker.Positioner>
-            <DatePicker.Content
-              bg="bg"
-              borderWidth="1px"
-              borderRadius="md"
-              borderColor="gray.400"
-              _dark={{ borderColor: "whiteAlpha.400" }}
-            >
+            <DatePicker.Content bg="bg" borderWidth="1px" borderRadius="md" borderColor="border.control">
               <DatePicker.View view="day">
                 <DatePicker.Header />
                 <DatePicker.DayTable />

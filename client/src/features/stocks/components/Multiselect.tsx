@@ -52,8 +52,6 @@ const MultiSelectDropdown = ({
     <Box position="relative" w="25%" ref={containerRef}>
       <FilterControlButton
         onClick={() => setOpen((prev) => !prev)}
-        variant="outline"
-        colorPalette="gray"
         w="full"
         justifyContent="space-between"
       >
@@ -68,8 +66,7 @@ const MultiSelectDropdown = ({
           zIndex={50}
           p={3}
           borderWidth="1px"
-          borderColor="gray.400"
-          _dark={{ borderColor: "whiteAlpha.400" }}
+          borderColor="border.control"
         >
           <Input
             value={filter}

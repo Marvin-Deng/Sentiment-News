@@ -40,8 +40,7 @@ const SearchBar = () => {
         h="8"
         borderWidth="1px"
         borderRadius="md"
-        borderColor="gray.400"
-        _dark={{ borderColor: "whiteAlpha.400" }}
+        borderColor="border.control"
       />
       <IconButton
         type="submit"

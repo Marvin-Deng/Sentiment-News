@@ -111,7 +111,7 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
                 py={1}
                 borderRadius="md"
                 color="white"
-                bg={quoteInfo.change >= 0 ? "green.600" : "red.500"}
+                bg={quoteInfo.change >= 0 ? "positive" : "negative"}
               >
                 {quoteInfo.change >= 0 ? "▲" : "▼"} {Math.abs(quoteInfo.change).toFixed(2)} (
                 {Math.abs(quoteInfo.percent).toFixed(2)}%)

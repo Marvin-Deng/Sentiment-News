@@ -125,13 +125,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
 
   return (
     <Box>
-      <Box
-        p={4}
-        borderWidth="1px"
-        borderRadius="md"
-        borderColor="gray.400"
-        _dark={{ borderColor: "whiteAlpha.400" }}
-      >
+      <Box p={4} borderWidth="1px" borderRadius="md" borderColor="border.control">
         <Flex align="center" justify="space-between" mb={4}>
         <IconButton
           aria-label="Previous month"

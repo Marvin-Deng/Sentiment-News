@@ -45,7 +45,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
     const { x, y, payload } = props;
     const d = payload ? sorted[payload.value] : undefined;
     if (!d) return <g />;
-    const surpriseColor = d.surprise >= 0 ? "var(--chakra-colors-green-500)" : "var(--chakra-colors-red-500)";
+    const surpriseColor = d.surprise >= 0 ? "var(--chakra-colors-positive)" : "var(--chakra-colors-negative)";
     return (
       <g transform={`translate(${x},${y})`}>
         <text dy={16} textAnchor="middle" fill={axisColor} fontSize={12}>
@@ -95,7 +95,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
                     <Box fontWeight="semibold" mb={1}>{formatPeriodLabel(data.period)}</Box>
                     <Box>Actual: {data.actual}</Box>
                     <Box>Estimate: {data.estimate}</Box>
-                    <Box color={data.surprise >= 0 ? "green.500" : "red.500"}>
+                    <Box color={data.surprise >= 0 ? "positive" : "negative"}>
                       {data.surprise >= 0 ? "Beat" : "Missed"}: {Math.abs(data.surprise).toFixed(2)}
                     </Box>
                   </Box>
@@ -103,7 +103,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
               }}
             />
             <Legend verticalAlign="top" height={36} wrapperStyle={{ fontSize: 14 }} />
-            <Scatter name="Actual" data={actualData} fill="rgba(30, 200, 100, 0.8)" />
+            <Scatter name="Actual" data={actualData} fill="var(--chakra-colors-positive)" />
             <Scatter name="Estimate" data={estimateData} fill="rgba(59, 130, 246, 0.8)" />
           </ScatterChart>
         </ResponsiveContainer>

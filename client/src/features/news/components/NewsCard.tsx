@@ -31,7 +31,7 @@ const NewsCard = ({
   const isPositive = isPricePositive(open_price, close_price);
 
   return (
-    <Card.Root borderWidth="1px" borderColor="gray.400" _dark={{ borderColor: "whiteAlpha.400" }}>
+    <Card.Root borderWidth="1px" borderColor="border.control">
       <Card.Body>
         <Image src={image_url} alt={title} w="full" h="56" objectFit="cover" mb={3} borderRadius="lg" />
         <Text fontStyle="italic" fontSize="sm" color="fg.muted" mb={2}>
@@ -60,7 +60,7 @@ const NewsCard = ({
             <Flex align="center" gap={4} mb={3}>
               <Text>O: {open_price}</Text>
               <Text>C: {close_price}</Text>
-              <Text color={isPositive ? "green.600" : "red.500"}>
+              <Text color={isPositive ? "positive" : "negative"}>
                 {getPriceStrArrow(open_price, close_price)}
               </Text>
             </Flex>
@@ -74,8 +74,7 @@ const NewsCard = ({
               px={3}
               py={1}
               border="1px solid"
-              borderColor="gray.400"
-              _dark={{ borderColor: "whiteAlpha.400" }}
+              borderColor="border.control"
               borderRadius="md"
               cursor="pointer"
               transition="background-color 0.3s ease, color 0.3s ease"

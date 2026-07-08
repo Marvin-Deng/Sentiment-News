@@ -1,10 +1,11 @@
 "use client";
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import createCache from "@emotion/cache";
 import { CacheProvider } from "@emotion/react";
 import { useServerInsertedHTML } from "next/navigation";
 import { useState } from "react";
 import { ColorModeProvider } from "../components/ui/ColorMode";
+import { system } from "../theme/system";
 
 function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
   const [cache] = useState(() => {
@@ -36,7 +37,7 @@ function EmotionCacheProvider({ children }: { children: React.ReactNode }) {
 const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <EmotionCacheProvider>
-      <ChakraProvider value={defaultSystem}>
+      <ChakraProvider value={system}>
         <ColorModeProvider defaultTheme="dark">{children}</ColorModeProvider>
       </ChakraProvider>
     </EmotionCacheProvider>

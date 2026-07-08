@@ -39,8 +39,6 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
     <Box position="relative" w="25%" ref={containerRef}>
       <FilterControlButton
         onClick={() => setOpen(!open)}
-        variant="outline"
-        colorPalette="gray"
         w="full"
         justifyContent="space-between"
       >
@@ -57,8 +55,7 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
           zIndex={50}
           p={3}
           borderWidth="1px"
-          borderColor="gray.400"
-          _dark={{ borderColor: "whiteAlpha.400" }}
+          borderColor="border.control"
         >
           {Array.from(originalOptions.entries()).map(([key, value]) => (
             <Box
