@@ -13,6 +13,12 @@ export const getDateDaysBefore = (days_duration: number) => {
   return dateToISOString(startDate);
 };
 
+export const getDateDaysAfter = (days_duration: number) => {
+  const endDate = new Date();
+  endDate.setDate(endDate.getDate() + days_duration);
+  return dateToISOString(endDate);
+};
+
 export const utcStringToLocal = (utcDatetime: string): string => {
   const localDate = dayjs.utc(utcDatetime).local();
   const tzAbbreviation = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
