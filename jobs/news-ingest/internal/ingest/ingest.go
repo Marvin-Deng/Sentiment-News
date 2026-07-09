@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/sentiment-news/jobs/news-ingest/internal/config"
@@ -14,6 +15,8 @@ import (
 	"github.com/sentiment-news/jobs/news-ingest/internal/stock"
 	"golang.org/x/sync/errgroup"
 )
+
+const maxArticlesPerDay = 500
 
 type Service struct {
 	cfg       config.Config
@@ -42,9 +45,10 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 	}
 
 	var (
-		mu        sync.Mutex
-		processed = make(map[int]struct{})
-		titles    []string
+		mu          sync.Mutex
+		processed   = make(map[int]struct{})
+		titles      []string
+		articleCount int64
 	)
 
 	group, ctx := errgroup.WithContext(ctx)
@@ -53,7 +57,7 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 	for _, ticker := range s.cfg.Tickers {
 		ticker := ticker
 		group.Go(func() error {
-			return s.processTicker(ctx, ticker, dateToday, processed, &mu, &titles)
+			return s.processTicker(ctx, ticker, dateToday, processed, &mu, &titles, &articleCount)
 		})
 	}
 
@@ -70,6 +74,7 @@ func (s *Service) processTicker(
 	processed map[int]struct{},
 	mu *sync.Mutex,
 	titles *[]string,
+	articleCount *int64,
 ) error {
 	articles, err := s.finnhub.CompanyNews(ctx, ticker, dateToday, dateToday)
 	if err != nil {
@@ -93,9 +98,15 @@ func (s *Service) processTicker(
 
 	articleGroup, articleCtx := errgroup.WithContext(ctx)
 	for _, article := range validArticles {
+		// Check if we've hit the daily limit
+		if atomic.LoadInt64(articleCount) >= maxArticlesPerDay {
+			log.Printf("reached daily article limit of %d", maxArticlesPerDay)
+			break
+		}
+		
 		article := article
 		articleGroup.Go(func() error {
-			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, titles)
+			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, titles, articleCount)
 		})
 	}
 
@@ -109,6 +120,7 @@ func (s *Service) addArticle(
 	processed map[int]struct{},
 	mu *sync.Mutex,
 	titles *[]string,
+	articleCount *int64,
 ) error {
 	mu.Lock()
 	if _, seen := processed[article.ID]; seen {
@@ -151,6 +163,8 @@ func (s *Service) addArticle(
 	if err != nil {
 		return fmt.Errorf("create article %d: %w", article.ID, err)
 	}
+
+	atomic.AddInt64(articleCount, 1)
 
 	mu.Lock()
 	*titles = append(*titles, article.Headline)

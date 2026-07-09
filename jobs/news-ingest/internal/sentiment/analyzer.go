@@ -7,46 +7,89 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/sentiment-news/jobs/news-ingest/internal/config"
+	"golang.org/x/time/rate"
 )
 
 const (
-	primaryGeminiModel  = "gemini-3-flash-preview"
-	fallbackGeminiModel = "gemini-3.1-flash-lite"
+	geminiModel       = "gemini-3.1-flash-lite"
+	maxRetries        = 5
+	initialBackoffMs  = 100
+	maxBackoffMs      = 32000
+	rateLimitPerMin   = 15
 )
 
 type Analyzer struct {
 	geminiKey  string
 	httpClient *http.Client
+	limiter    *rate.Limiter
 }
 
 func NewAnalyzer(geminiKey string) *Analyzer {
+	// Create a rate limiter: 15 requests per minute = 0.25 requests per second
+	limiter := rate.NewLimiter(rate.Limit(rateLimitPerMin)/60.0, 1)
+	
 	return &Analyzer{
 		geminiKey: geminiKey,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		limiter: limiter,
 	}
 }
 
 func (a *Analyzer) Evaluate(ctx context.Context, title, summary string) string {
 	text := fmt.Sprintf("%s: %s", title, summary)
-	sentiment := a.analyzeWithGemini(ctx, primaryGeminiModel, text)
-	if sentiment == "" {
-		log.Printf("warning: falling back to %s for sentiment analysis", fallbackGeminiModel)
-		sentiment = a.analyzeWithGemini(ctx, fallbackGeminiModel, text)
-	}
+	sentiment := a.analyzeWithGeminiRetry(ctx, text)
 	if sentiment != "" {
 		return titleCase(sentiment)
 	}
 	return "Neutral"
 }
 
-func (a *Analyzer) analyzeWithGemini(ctx context.Context, model, text string) string {
+func (a *Analyzer) analyzeWithGeminiRetry(ctx context.Context, text string) string {
+	var lastErr error
+	
+	for attempt := 0; attempt < maxRetries; attempt++ {
+		// Wait for rate limit
+		if err := a.limiter.Wait(ctx); err != nil {
+			log.Printf("rate limiter error: %v", err)
+			return ""
+		}
+		
+		sentiment := a.analyzeWithGemini(ctx, text)
+		if sentiment != "" {
+			return sentiment
+		}
+		
+		// Calculate exponential backoff
+		if attempt < maxRetries-1 {
+			backoffMs := initialBackoffMs * int(math.Pow(2, float64(attempt)))
+			if backoffMs > maxBackoffMs {
+				backoffMs = maxBackoffMs
+			}
+			backoff := time.Duration(backoffMs) * time.Millisecond
+			log.Printf("sentiment analysis retry %d/%d after %v", attempt+1, maxRetries, backoff)
+			
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				return ""
+			}
+		}
+	}
+	
+	log.Printf("sentiment analysis failed after %d attempts: %v", maxRetries, lastErr)
+	return ""
+}
+
+func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) string {
 	prompt := fmt.Sprintf(
 		"Analyze the sentiment of the following text using only one of the following: %s. %s",
 		config.SentimentOptions,
@@ -69,7 +112,7 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, model, text string) st
 		return ""
 	}
 
-	endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent", model)
+	endpoint := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent", geminiModel)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(body))
 	if err != nil {
 		log.Printf("warning: failed to build gemini request: %v", err)
@@ -91,7 +134,7 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, model, text string) st
 		return ""
 	}
 	if resp.StatusCode != http.StatusOK {
-		log.Printf("warning: gemini request to %s returned status %d: %s", model, resp.StatusCode, string(respBody))
+		log.Printf("warning: gemini request returned status %d: %s", resp.StatusCode, string(respBody))
 		return ""
 	}
 
