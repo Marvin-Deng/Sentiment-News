@@ -1,0 +1,77 @@
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import { Box, Center, Text } from "@chakra-ui/react";
+
+import PageLayout from "@/src/components/layout/PageLayout";
+import StockSearchBar from "@/src/components/navbar/StockSearchBar";
+import Loader from "@/src/components/ui/Loader";
+import InsiderSentimentChart from "@/src/features/insider/components/InsiderSentimentChart";
+import InsiderTransactionsTable from "@/src/features/insider/components/InsiderTransactionsTable";
+import { fetchInsiderSentiment, fetchInsiderTransactions } from "@/src/features/insider/api";
+import { InsiderSentiment, InsiderTransaction } from "@/src/features/insider/types";
+import { getDateDaysBefore } from "@/src/utils/dateUtils";
+
+const DEFAULT_SYMBOL = "TSLA";
+const LOOKBACK_DAYS = 183;
+
+const InsiderPage = () => {
+  const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
+  const [sentiment, setSentiment] = useState<InsiderSentiment[] | null>(null);
+  const [transactions, setTransactions] = useState<InsiderTransaction[] | null>(null);
+
+  const { fromDate, toDate } = useMemo(
+    () => ({
+      fromDate: getDateDaysBefore(LOOKBACK_DAYS),
+      toDate: getDateDaysBefore(0),
+    }),
+    [],
+  );
+
+  useEffect(() => {
+    setSentiment(null);
+    setTransactions(null);
+
+    fetchInsiderSentiment(symbol, fromDate, toDate)
+      .then(setSentiment)
+      .catch(() => setSentiment([]));
+
+    fetchInsiderTransactions(symbol, fromDate, toDate)
+      .then(setTransactions)
+      .catch(() => setTransactions([]));
+  }, [symbol, fromDate, toDate]);
+
+  const isLoading = sentiment === null || transactions === null;
+
+  return (
+    <PageLayout
+      title="Insider"
+      subtitle="Insider sentiment and transactions for the past 6 months"
+      searchBar={<StockSearchBar selectOnly value={symbol} onSymbolSelect={setSymbol} />}
+    >
+      {isLoading && (
+        <Center mt={10}>
+          <Loader />
+        </Center>
+      )}
+
+      {!isLoading && (
+        <Box mt={8}>
+          <InsiderSentimentChart sentiment={sentiment} />
+          <InsiderTransactionsTable
+            key={symbol}
+            transactions={transactions}
+            symbol={symbol}
+          />
+        </Box>
+      )}
+
+      {!isLoading && sentiment.length === 0 && transactions.length === 0 && (
+        <Text mt={4} fontSize="lg">
+          No insider data available for {symbol} in the past 6 months.
+        </Text>
+      )}
+    </PageLayout>
+  );
+};
+
+export default InsiderPage;

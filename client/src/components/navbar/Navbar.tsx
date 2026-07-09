@@ -9,6 +9,7 @@ const NAV_LINKS = [
   { label: "News", href: "/" },
   { label: "Stocks", href: "/stocks" },
   { label: "Calendar", href: "/calendar" },
+  { label: "Insider", href: "/insider" },
 ];
 
 const Navbar = () => {

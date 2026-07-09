@@ -9,7 +9,7 @@ import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect"
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import PageLayout from "@/src/components/layout/PageLayout";
-import SearchBar from "@/src/components/navbar/SearchBar";
+import StockSearchBar from "@/src/components/navbar/StockSearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
 import { useSearch } from "@/src/providers/SearchProvider";
@@ -25,7 +25,7 @@ const StocksPage = () => {
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
 
-  const { searchQuery } = useSearch();
+  const { searchQuery, updateSearchQuery } = useSearch();
 
   useEffect(() => {
     const fetchStocks = async () => {
@@ -103,7 +103,17 @@ const StocksPage = () => {
     <PageLayout
       title="Stocks"
       subtitle="View the latest prices for 15,000+ stocks"
-      searchBar={<SearchBar />}
+      searchBar={
+        <StockSearchBar
+          value={searchQuery}
+          stocks={stockInfo}
+          onQueryChange={(query) => {
+            updateSearchQuery(query);
+            setPage(1);
+          }}
+          onSymbolSelect={handleOpenModal}
+        />
+      }
       filters={filters}
     >
       {filteredStockInfo && (
