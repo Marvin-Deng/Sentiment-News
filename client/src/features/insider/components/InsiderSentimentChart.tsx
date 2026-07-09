@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import { InsiderSentiment, SentimentChartPoint } from "@/src/features/insider/types";
+import { CHART_AXIS_FONT_SIZE } from "@/src/theme/system";
 
 interface InsiderSentimentChartProps {
   sentiment: InsiderSentiment[];
@@ -59,8 +60,8 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <Box w="full" px={4} py={2}>
-        <Heading size="sm" mb={2}>
+      <Box w="full" py={2}>
+        <Heading textStyle="sectionTitle" mb={2}>
           Insider Sentiment (MSPR)
         </Heading>
         <Text color="fg.muted">No sentiment data for this period.</Text>
@@ -78,8 +79,8 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
       : "color-mix(in srgb, var(--chakra-colors-negative) 20%, transparent)";
 
   return (
-    <Box w="full" px={4} py={2}>
-      <Heading size="sm" mb={1}>
+    <Box w="full" py={2}>
+      <Heading textStyle="sectionTitle" mb={1}>
         Insider Sentiment (MSPR)
       </Heading>
       <Text fontSize="sm" color="fg.muted" mb={4}>
@@ -98,7 +99,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
               dataKey="label"
               stroke={axisColor}
               tickLine={false}
-              tick={{ fill: axisColor, fontSize: 10 }}
+              tick={{ fill: axisColor, fontSize: CHART_AXIS_FONT_SIZE }}
               interval="preserveStartEnd"
             />
             <YAxis
@@ -106,7 +107,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
               ticks={MSPR_TICKS}
               stroke={axisColor}
               tickLine={false}
-              tick={{ fill: axisColor, fontSize: 10 }}
+              tick={{ fill: axisColor, fontSize: CHART_AXIS_FONT_SIZE }}
             />
             <ReferenceLine y={0} stroke={axisColor} strokeDasharray="3 3" />
             <Tooltip content={<ChartTooltip />} />

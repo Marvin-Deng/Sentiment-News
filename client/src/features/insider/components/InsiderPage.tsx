@@ -10,8 +10,8 @@ import InsiderStockPriceChart from "@/src/features/insider/components/InsiderSto
 import InsiderTransactionsTable from "@/src/features/insider/components/InsiderTransactionsTable";
 import { fetchInsiderSentiment, fetchInsiderTransactions } from "@/src/features/insider/api";
 import { InsiderSentiment, InsiderTransaction } from "@/src/features/insider/types";
-import { fetchEodData } from "@/src/features/stocks/api";
-import { PriceData } from "@/src/features/stocks/types";
+import { fetchCompanyProfile, fetchEodData } from "@/src/features/stocks/api";
+import { CompanyProfile, PriceData } from "@/src/features/stocks/types";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
 
 const DEFAULT_SYMBOL = "TSLA";
@@ -22,6 +22,7 @@ const InsiderPage = () => {
   const [sentiment, setSentiment] = useState<InsiderSentiment[] | null>(null);
   const [transactions, setTransactions] = useState<InsiderTransaction[] | null>(null);
   const [priceData, setPriceData] = useState<PriceData[] | null>(null);
+  const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
 
   const { fromDate, toDate } = useMemo(
     () => ({
@@ -35,6 +36,7 @@ const InsiderPage = () => {
     setSentiment(null);
     setTransactions(null);
     setPriceData(null);
+    setCompanyProfile(null);
 
     fetchInsiderSentiment(symbol, fromDate, toDate)
       .then(setSentiment)
@@ -47,6 +49,10 @@ const InsiderPage = () => {
     fetchEodData(symbol, new Date(fromDate))
       .then(setPriceData)
       .catch(() => setPriceData([]));
+
+    fetchCompanyProfile(symbol)
+      .then(setCompanyProfile)
+      .catch(() => setCompanyProfile(null));
   }, [symbol, fromDate, toDate]);
 
   const isLoading = sentiment === null || transactions === null || priceData === null;
@@ -65,8 +71,13 @@ const InsiderPage = () => {
 
       {!isLoading && (
         <Box mt={8}>
+          <InsiderStockPriceChart
+            priceData={priceData}
+            transactions={transactions}
+            symbol={symbol}
+            companyName={companyProfile?.name}
+          />
           <InsiderSentimentChart sentiment={sentiment} />
-          <InsiderStockPriceChart priceData={priceData} transactions={transactions} />
           <InsiderTransactionsTable
             key={symbol}
             transactions={transactions}

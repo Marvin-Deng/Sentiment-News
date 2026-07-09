@@ -1,4 +1,11 @@
-import { createSystem, defaultConfig, defineConfig, defineRecipe, defineSlotRecipe } from "@chakra-ui/react";
+import {
+  createSystem,
+  defaultConfig,
+  defineConfig,
+  defineRecipe,
+  defineSlotRecipe,
+  defineTextStyles,
+} from "@chakra-ui/react";
 
 const buttonRecipe = defineRecipe({
   variants: {
@@ -28,8 +35,20 @@ const datePickerRecipe = defineSlotRecipe({
   },
 });
 
+const textStyles = defineTextStyles({
+  sectionTitle: {
+    value: {
+      fontSize: "lg",
+      fontWeight: "semibold",
+    },
+  },
+});
+
+export const CHART_AXIS_FONT_SIZE = 13;
+
 const config = defineConfig({
   theme: {
+    textStyles,
     semanticTokens: {
       colors: {
         border: {

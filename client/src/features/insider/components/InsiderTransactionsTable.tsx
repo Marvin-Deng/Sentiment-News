@@ -1,7 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import NextLink from "next/link";
-import { Box, Center, Flex, Heading, Icon, Link, Table, Text } from "@chakra-ui/react";
+import { Box, Center, Flex, Heading, Icon, Table, Text } from "@chakra-ui/react";
 import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
@@ -38,11 +37,8 @@ const compareInsiderTransactions = (a: InsiderTransaction, b: InsiderTransaction
   return new Date(a.filingDate).getTime() - new Date(b.filingDate).getTime();
 };
 
-const TransactionsHeading = ({ symbol, mb }: { symbol: string; mb: number }) => (
-  <Heading size="sm" mb={mb}>
-    <Link asChild fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
-      <NextLink href={`/stocks/${symbol}`}>{symbol}</NextLink>
-    </Link>{" "}
+const TransactionsHeading = ({ mb }: { mb: number }) => (
+  <Heading textStyle="sectionTitle" mb={mb}>
     Insider Transactions
   </Heading>
 );
@@ -76,23 +72,23 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
   if (sorted.length === 0) {
     return (
       <Box mt={8}>
-        <TransactionsHeading symbol={symbol} mb={2} />
+        <TransactionsHeading mb={2} />
         <Text color="fg.muted">No transactions found for {symbol} in this period.</Text>
       </Box>
     );
   }
 
   return (
-    <Box mt={8} px={4}>
-      <TransactionsHeading symbol={symbol} mb={4} />
+    <Box mt={8}>
+      <TransactionsHeading mb={4} />
       <Table.Root variant="outline" size="sm">
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader minW="140px">Insider</Table.ColumnHeader>
-            <Table.ColumnHeader>Transaction Date</Table.ColumnHeader>
-            <Table.ColumnHeader>Filing Date</Table.ColumnHeader>
-            <Table.ColumnHeader>Type</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">
+            <Table.ColumnHeader minW="140px" fontSize="md">Insider</Table.ColumnHeader>
+            <Table.ColumnHeader fontSize="md">Transaction Date</Table.ColumnHeader>
+            <Table.ColumnHeader fontSize="md">Filing Date</Table.ColumnHeader>
+            <Table.ColumnHeader fontSize="md">Type</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right" fontSize="md">
               <Flex
                 as="button"
                 align="center"
@@ -117,8 +113,8 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
                 </Icon>
               </Flex>
             </Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">Shares Held After</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">Price</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right" fontSize="md">Shares Held After</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right" fontSize="md">Price</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -160,11 +156,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
 
       <Text mt={3} fontSize="sm" color="fg.muted">
         Shares Held After reflects holdings following that filing line only, not total current ownership.
-        Showing {visible.length} of {sorted.length} transaction{sorted.length === 1 ? "" : "s"}. View{" "}
-        <Link asChild fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
-          <NextLink href={`/stocks/${symbol}`}>{symbol}</NextLink>
-        </Link>{" "}
-        for more stock details.
+        Showing {visible.length} of {sorted.length} transaction{sorted.length === 1 ? "" : "s"}.
       </Text>
 
       {hasMore && (

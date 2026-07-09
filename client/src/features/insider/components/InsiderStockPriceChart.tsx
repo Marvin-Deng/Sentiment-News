@@ -1,6 +1,7 @@
 "use client";
 import { useMemo } from "react";
-import { Box, Heading, Text } from "@chakra-ui/react";
+import { Box, Heading, Link, Text } from "@chakra-ui/react";
+import NextLink from "next/link";
 import {
   AreaChart,
   Area,
@@ -14,10 +15,13 @@ import InsiderStockPriceChartDot from "@/src/features/insider/components/Insider
 import InsiderStockPriceChartTooltip from "@/src/features/insider/components/InsiderStockPriceChartTooltip";
 import { InsiderTransaction, ChartPoint } from "@/src/features/insider/types";
 import { PriceData } from "@/src/features/stocks/types";
+import { CHART_AXIS_FONT_SIZE } from "@/src/theme/system";
 
 interface InsiderStockPriceChartProps {
   priceData: PriceData[];
   transactions: InsiderTransaction[];
+  symbol: string;
+  companyName?: string;
 }
 
 const monthLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { month: "short" });
@@ -66,9 +70,29 @@ const getPriceTicks = (data: PriceData[] | ChartPoint[], count: number) => {
   return { ticks, domainMin, domainMax };
 };
 
+const StockPriceChartTitle = ({
+  symbol,
+  companyName,
+  mb,
+}: {
+  symbol: string;
+  companyName?: string;
+  mb: number;
+}) => (
+  <Heading textStyle="sectionTitle" mb={mb}>
+    <Link asChild _hover={{ textDecoration: "underline" }}>
+      <NextLink href={`/stocks/${symbol}`}>
+        {companyName ? `${companyName} (${symbol})` : symbol}
+      </NextLink>
+    </Link>
+  </Heading>
+);
+
 const InsiderStockPriceChart = ({
   priceData,
   transactions,
+  symbol,
+  companyName,
 }: InsiderStockPriceChartProps) => {
   const chartData = useMemo(() => {
     const transactionMap = new Map<string, InsiderTransaction[]>();
@@ -203,10 +227,8 @@ const InsiderStockPriceChart = ({
 
   if (priceData.length === 0) {
     return (
-      <Box w="full" px={4} py={2}>
-        <Heading size="sm" mb={2}>
-          Stock Price & Insider Trades
-        </Heading>
+      <Box w="full" py={2}>
+        <StockPriceChartTitle symbol={symbol} companyName={companyName} mb={2} />
         <Text color="fg.muted">No price data for this period.</Text>
       </Box>
     );
@@ -225,10 +247,8 @@ const InsiderStockPriceChart = ({
   }, [chartData]);
 
   return (
-    <Box w="full" px={4} py={2}>
-      <Heading size="sm" mb={4}>
-        Stock Price & Insider Trades
-      </Heading>
+    <Box w="full" py={2}>
+      <StockPriceChartTitle symbol={symbol} companyName={companyName} mb={4} />
       <Box h="320px">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ left: 10, right: 20, top: 10, bottom: 16 }}>
@@ -245,14 +265,14 @@ const InsiderStockPriceChart = ({
               interval={0}
               stroke={axisColor}
               tickLine={false}
-              tick={{ fill: axisColor, fontSize: 10 }}
+              tick={{ fill: axisColor, fontSize: CHART_AXIS_FONT_SIZE }}
             />
             <YAxis
               domain={[priceTicks.domainMin, priceTicks.domainMax]}
               ticks={priceTicks.ticks}
               stroke={axisColor}
               tickLine={false}
-              tick={{ fill: axisColor, fontSize: 10 }}
+              tick={{ fill: axisColor, fontSize: CHART_AXIS_FONT_SIZE }}
               tickFormatter={(value: number) => value.toFixed(2)}
             />
             <Tooltip content={<InsiderStockPriceChartTooltip />} />
