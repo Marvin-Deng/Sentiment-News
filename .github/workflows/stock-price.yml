@@ -1,12 +1,6 @@
 name: GCP Stock Price Deploy (inactive)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - jobs/stock-price/**
-      - infra/stock_price/**
   workflow_dispatch:
 
 permissions:

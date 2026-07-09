@@ -1,12 +1,6 @@
 name: GCP Deploy FE (inactive)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - client/**
-      - infra/client/**
   workflow_dispatch:
 
 permissions:

@@ -1,12 +1,6 @@
 name: GCP News Ingest Deploy (inactive)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - jobs/news-ingest/**
-      - infra/news_ingest/**
   workflow_dispatch:
 
 permissions:
