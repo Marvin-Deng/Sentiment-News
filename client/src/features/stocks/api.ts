@@ -4,6 +4,8 @@ import { getCached, setCached } from "@/src/utils/sessionCache";
 const PROFILE_TTL_SECONDS = 3600;
 const FINANCIALS_TTL_SECONDS = 86400;
 const EPS_SURPRISES_TTL_SECONDS = 86400;
+const EOD_TTL_SECONDS = 7200;
+const EOD_MAX_LOOKBACK_YEARS = 5;
 
 export const fetchCompanyProfile = async (ticker: string): Promise<CompanyProfile> => {
   const cacheKey = `stock-profile:${ticker}`;
@@ -41,12 +43,22 @@ export const fetchEpsSurprises = async (ticker: string): Promise<EpsSurprise[]> 
   return eps_surprises as EpsSurprise[];
 };
 
+const filterFromDate = (eodData: PriceData[], startDate: Date): PriceData[] =>
+  eodData.filter((point) => new Date(point.date) >= startDate);
+
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<PriceData[]> => {
-  const params = new URLSearchParams({ ticker, start_date: startDate.toISOString() });
-  const res = await fetch(`/api/stock/eod?${params}`, { cache: "no-store" });
+  const cacheKey = `stock-eod:${ticker}`;
+  const cached = getCached<PriceData[]>(cacheKey);
+  if (cached && new Date(cached[0]?.date ?? 0) <= startDate) return filterFromDate(cached, startDate);
+
+  const fetchFromDate = new Date();
+  fetchFromDate.setFullYear(fetchFromDate.getFullYear() - EOD_MAX_LOOKBACK_YEARS);
+  const params = new URLSearchParams({ ticker, start_date: fetchFromDate.toISOString() });
+  const res = await fetch(`/api/stock/eod?${params}`);
   if (!res.ok) throw new Error(`fetchEodData failed: ${res.status}`);
   const { eod_data } = await res.json();
-  return eod_data as PriceData[];
+  setCached(cacheKey, eod_data, EOD_TTL_SECONDS);
+  return filterFromDate(eod_data as PriceData[], startDate);
 };
 
 export const fetchQuoteInfo = async (ticker: string): Promise<QuoteInfo> => {
