@@ -61,7 +61,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
+      <Box w="full" px={4} py={2}>
         <Heading size="sm" mb={2}>
           Insider Sentiment (MSPR)
         </Heading>
@@ -80,7 +80,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
       : "color-mix(in srgb, var(--chakra-colors-negative) 20%, transparent)";
 
   return (
-    <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
+    <Box w="full" px={4} py={2}>
       <Heading size="sm" mb={1}>
         Insider Sentiment (MSPR)
       </Heading>

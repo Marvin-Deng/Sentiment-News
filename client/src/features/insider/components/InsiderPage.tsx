@@ -6,9 +6,12 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import StockSearchBar from "@/src/components/navbar/StockSearchBar";
 import Loader from "@/src/components/ui/Loader";
 import InsiderSentimentChart from "@/src/features/insider/components/InsiderSentimentChart";
+import InsiderStockPriceChart from "@/src/features/insider/components/InsiderStockPriceChart";
 import InsiderTransactionsTable from "@/src/features/insider/components/InsiderTransactionsTable";
 import { fetchInsiderSentiment, fetchInsiderTransactions } from "@/src/features/insider/api";
 import { InsiderSentiment, InsiderTransaction } from "@/src/features/insider/types";
+import { fetchEodData } from "@/src/features/stocks/api";
+import { PriceData } from "@/src/features/stocks/types";
 import { getDateDaysBefore } from "@/src/utils/dateUtils";
 
 const DEFAULT_SYMBOL = "TSLA";
@@ -18,6 +21,7 @@ const InsiderPage = () => {
   const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
   const [sentiment, setSentiment] = useState<InsiderSentiment[] | null>(null);
   const [transactions, setTransactions] = useState<InsiderTransaction[] | null>(null);
+  const [priceData, setPriceData] = useState<PriceData[] | null>(null);
 
   const { fromDate, toDate } = useMemo(
     () => ({
@@ -30,6 +34,7 @@ const InsiderPage = () => {
   useEffect(() => {
     setSentiment(null);
     setTransactions(null);
+    setPriceData(null);
 
     fetchInsiderSentiment(symbol, fromDate, toDate)
       .then(setSentiment)
@@ -38,9 +43,13 @@ const InsiderPage = () => {
     fetchInsiderTransactions(symbol, fromDate, toDate)
       .then(setTransactions)
       .catch(() => setTransactions([]));
+
+    fetchEodData(symbol, fromDate)
+      .then(setPriceData)
+      .catch(() => setPriceData([]));
   }, [symbol, fromDate, toDate]);
 
-  const isLoading = sentiment === null || transactions === null;
+  const isLoading = sentiment === null || transactions === null || priceData === null;
 
   return (
     <PageLayout
@@ -57,6 +66,7 @@ const InsiderPage = () => {
       {!isLoading && (
         <Box mt={8}>
           <InsiderSentimentChart sentiment={sentiment} />
+          <InsiderStockPriceChart priceData={priceData} transactions={transactions} />
           <InsiderTransactionsTable
             key={symbol}
             transactions={transactions}
