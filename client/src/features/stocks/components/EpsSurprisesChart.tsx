@@ -51,7 +51,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
         <text dy={16} textAnchor="middle" fill={axisColor} fontSize={12}>
           {formatPeriodLabel(d.period)}
         </text>
-        <text dy={34} textAnchor="middle" fill={surpriseColor} fontSize={14} fontWeight={600}>
+        <text dy={42} textAnchor="middle" fill={surpriseColor} fontSize={14} fontWeight={600}>
           {d.surprise >= 0 ? "Beat" : "Missed"}: {Math.abs(d.surprise).toFixed(2)}
         </text>
       </g>
@@ -65,7 +65,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
       </Heading>
       <Box h="380px">
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ left: 20, right: 30, top: 10, bottom: 30 }}>
+          <ScatterChart margin={{ left: 30, right: 30, top: 10, bottom: 30 }}>
             <XAxis
               dataKey="x"
               type="number"
@@ -79,7 +79,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
               dataKey="y"
               type="number"
               name="Quarterly EPS"
-              label={{ value: "Quarterly EPS", angle: -90, position: "insideLeft", dy: 40, fill: axisColor, fontSize: 12 }}
+              label={{ value: "Quarterly EPS", angle: -90, position: "insideLeft", dx: -10, dy: 40, fill: axisColor, fontSize: 12 }}
               stroke={axisColor}
               tickLine={false}
               tick={{ fill: axisColor, fontSize: 12 }}

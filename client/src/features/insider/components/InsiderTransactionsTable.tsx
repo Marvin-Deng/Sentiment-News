@@ -10,6 +10,7 @@ import { formatDate } from "@/src/utils/dateUtils";
 interface InsiderTransactionsTableProps {
   transactions: InsiderTransaction[];
   symbol: string;
+  mt?: number;
 }
 
 const PAGE_SIZE = 10;
@@ -48,7 +49,7 @@ const formatTransactionPrice = (price?: number) => {
   return `$${price.toFixed(2)}`;
 };
 
-const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsTableProps) => {
+const InsiderTransactionsTable = ({ transactions, symbol, mt = 8 }: InsiderTransactionsTableProps) => {
   const [page, setPage] = useState(1);
   const [changeSort, setChangeSort] = useState<ChangeSort>("default");
 
@@ -71,7 +72,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
 
   if (sorted.length === 0) {
     return (
-      <Box mt={8}>
+      <Box mt={mt}>
         <TransactionsHeading mb={2} />
         <Text color="fg.muted">No transactions found for {symbol} in this period.</Text>
       </Box>
@@ -79,7 +80,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
   }
 
   return (
-    <Box mt={8}>
+    <Box mt={mt}>
       <TransactionsHeading mb={4} />
       <Table.Root variant="outline" size="sm">
         <Table.Header>
