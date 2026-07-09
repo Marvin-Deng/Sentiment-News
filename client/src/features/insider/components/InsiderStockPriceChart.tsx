@@ -163,7 +163,7 @@ const InsiderStockPriceChart = ({
     });
 
     transactionMap.forEach((dayTransactions, dateStr) => {
-      if (!processedDates.has(dateStr)) {
+      if (!processedDates.has(dateStr) && priceData.length > 0) {
         const txDate = parseLocalDate(dateStr);
         let closestPrice = priceData[0];
         let minDiff = Math.abs(new Date(closestPrice.date).getTime() - txDate.getTime());

@@ -10,7 +10,6 @@ import (
 	"math"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/sentiment-news/jobs/news-ingest/internal/config"
