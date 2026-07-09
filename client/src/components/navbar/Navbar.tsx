@@ -32,11 +32,22 @@ const Navbar = () => {
           {NAV_LINKS.map(({ label, href }) => (
             <Box
               key={href}
+              position="relative"
               fontWeight={pathname === href ? "bold" : "normal"}
-              borderBottom={pathname === href ? "2px solid" : "2px solid transparent"}
-              borderColor={pathname === href ? "green.500" : "transparent"}
               pb={1}
-              _hover={{ color: "green.500" }}
+              _hover={{ color: "green.500", _after: { transform: "scaleX(1)" } }}
+              _after={{
+                content: '""',
+                position: "absolute",
+                left: 0,
+                bottom: 0,
+                width: "full",
+                height: "2px",
+                bg: "green.500",
+                transform: pathname === href ? "scaleX(1)" : "scaleX(0)",
+                transformOrigin: "center",
+                transition: "transform 0.3s ease",
+              }}
             >
               <Link href={href}>{label}</Link>
             </Box>

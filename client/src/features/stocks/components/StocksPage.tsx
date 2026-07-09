@@ -14,6 +14,7 @@ import { StockInfo } from "@/src/features/stocks/types";
 import { sortStocksBySearch } from "@/src/features/stocks/stockSearchRank";
 import { useSearch } from "@/src/providers/SearchProvider";
 import { compareExchangeMics, formatExchangeLabel } from "@/src/constants/exchanges";
+import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 const PAGE_SIZE = 10;
 
@@ -52,6 +53,13 @@ const StocksPage = () => {
     if (!stockInfo) return null;
 
     const selectedMic = selectedExchange != null ? exchangeMics[selectedExchange] : null;
+
+    if (!searchQuery.trim() && selectedExchange == null) {
+      const defaultStocks = DEFAULT_TICKERS.map((ticker) =>
+        stockInfo.find((stock) => stock.symbol === ticker),
+      ).filter((stock): stock is StockInfo => stock != null);
+      return defaultStocks;
+    }
 
     let results = stockInfo.filter((stock) => {
       const matchesExchange = !selectedMic || stock.mic === selectedMic;

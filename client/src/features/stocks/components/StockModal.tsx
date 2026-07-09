@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Box, Flex, Text, IconButton, Link } from "@chakra-ui/react";
+import { Box, Flex, Tabs, Text, IconButton, Link } from "@chakra-ui/react";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
 import EpsSurprisesChart from "@/src/features/stocks/components/EpsSurprisesChart";
+import EpsSurprisesTable from "@/src/features/stocks/components/EpsSurprisesTable";
 
 import {
   fetchEodData,
@@ -28,6 +29,11 @@ interface StockModalProps {
 }
 
 const RANGES = ["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"];
+
+const TAB_OPTIONS = [
+  { value: "profile", label: "Profile" },
+  { value: "eps", label: "EPS" },
+];
 
 const getRangeStartDate = (range: string): Date => {
   const today = new Date();
@@ -173,15 +179,23 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
             <Box
               key={range}
               as="button"
+              position="relative"
               py={2}
               px={4}
-              borderRadius="lg"
               cursor="pointer"
-              bg={selectedRange === range ? "gray.600" : "transparent"}
-              color={selectedRange === range ? "white" : undefined}
-              _hover={{
-                bg: selectedRange === range ? "gray.600" : "gray.100",
-                color: selectedRange === range ? "white" : "black",
+              fontWeight={selectedRange === range ? "bold" : "normal"}
+              _hover={{ _after: { transform: "scaleX(1)" } }}
+              _after={{
+                content: '""',
+                position: "absolute",
+                left: 0,
+                bottom: 0,
+                width: "full",
+                height: "2px",
+                bg: "white",
+                transform: selectedRange === range ? "scaleX(1)" : "scaleX(0)",
+                transformOrigin: "center",
+                transition: "transform 0.3s ease",
               }}
               onClick={() => setSelectedRange(range)}
             >
@@ -212,13 +226,22 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
           isPositive={isPricePositive(rangeStartPrice, rangeEndPrice)}
         />
 
-        <Flex justify="center">
-          <Box w={{ base: "80%", sm: "50%" }}>
+        <Tabs.Root defaultValue="profile" mt={4} lazyMount unmountOnExit>
+          <Tabs.List justifyContent="center">
+            {TAB_OPTIONS.map(({ value, label }) => (
+              <Tabs.Trigger key={value} value={value}>
+                {label}
+              </Tabs.Trigger>
+            ))}
+          </Tabs.List>
+          <Tabs.Content value="profile">
             <DataTable currPriceData={currPriceData} basicFinancials={basicFinancials} />
-          </Box>
-        </Flex>
-
-        <EpsSurprisesChart epsSurprises={epsSurprises} />
+          </Tabs.Content>
+          <Tabs.Content value="eps">
+            <EpsSurprisesChart epsSurprises={epsSurprises} />
+            <EpsSurprisesTable epsSurprises={epsSurprises} />
+          </Tabs.Content>
+        </Tabs.Root>
       </Box>
     </Flex>
   );
