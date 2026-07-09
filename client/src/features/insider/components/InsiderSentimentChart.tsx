@@ -10,13 +10,11 @@ import {
   ReferenceLine,
 } from "recharts";
 
-import { InsiderSentiment } from "@/src/features/insider/types";
+import { InsiderSentiment, SentimentChartPoint } from "@/src/features/insider/types";
 
 interface InsiderSentimentChartProps {
   sentiment: InsiderSentiment[];
 }
-
-type ChartPoint = InsiderSentiment & { label: string };
 
 const MSPR_MIN = -100;
 const MSPR_MAX = 100;
@@ -26,7 +24,7 @@ const MSPR_DOMAIN_MIN = MSPR_MIN - 15;
 const formatMonthYear = (year: number, month: number) =>
   new Date(year, month - 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
-const toChartData = (sentiment: InsiderSentiment[]): ChartPoint[] =>
+const toChartData = (sentiment: InsiderSentiment[]): SentimentChartPoint[] =>
   [...sentiment]
     .sort((a, b) => a.year - b.year || a.month - b.month)
     .map((item) => ({
@@ -39,7 +37,7 @@ const ChartTooltip = ({
   payload,
 }: {
   active?: boolean;
-  payload?: { payload: ChartPoint }[];
+  payload?: { payload: SentimentChartPoint }[];
 }) => {
   if (!active || !payload || payload.length === 0) return null;
   const data = payload[0].payload;

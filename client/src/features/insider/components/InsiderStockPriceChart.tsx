@@ -10,7 +10,9 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-import { InsiderTransaction } from "@/src/features/insider/types";
+import InsiderStockPriceChartDot from "@/src/features/insider/components/InsiderStockPriceChartDot";
+import InsiderStockPriceChartTooltip from "@/src/features/insider/components/InsiderStockPriceChartTooltip";
+import { InsiderTransaction, ChartPoint } from "@/src/features/insider/types";
 import { PriceData } from "@/src/features/stocks/types";
 
 interface InsiderStockPriceChartProps {
@@ -18,136 +20,190 @@ interface InsiderStockPriceChartProps {
   transactions: InsiderTransaction[];
 }
 
-type ChartPoint = PriceData & {
-  trades?: Array<{
-    name: string;
-    change: number;
-    isBuy: boolean;
-    tradePrice?: number;
-  }>;
+const monthLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { month: "short" });
+
+const parseLocalDate = (dateStr: string): Date => {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
 };
 
-const getMaxTradeSize = (transactions: InsiderTransaction[]): number => {
-  if (transactions.length === 0) return 1;
-  return Math.max(...transactions.map((t) => Math.abs(t.change)));
+const getLocalDateString = (date: Date | string): string => {
+  const dateObj = date instanceof Date ? date : new Date(date);
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };
 
-// Calculate circle radius based on trade size (range: 4-18)
-const getCircleRadius = (change: number, maxSize: number) => {
-  const normalized = Math.abs(change) / maxSize;
-  return 4 + normalized * 14; // 4-18px range
+const getMonthStartTicks = (data: PriceData[] | ChartPoint[]): any[] => {
+  const ticks: any[] = [];
+  let lastMonthKey = "";
+  for (const point of data) {
+    const d = point.date instanceof Date ? point.date : new Date(point.date);
+    const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+    if (monthKey !== lastMonthKey) {
+      ticks.push(point.date as unknown as string);
+      lastMonthKey = monthKey;
+    }
+  }
+  return ticks;
 };
 
-const ChartTooltip = ({
-  active,
-  payload,
-  label,
-}: {
-  active?: boolean;
-  payload?: { payload: ChartPoint }[];
-  label?: any;
-}) => {
-  if (!active || !payload || payload.length === 0) return null;
-  const data = payload[0].payload;
+const getPriceTicks = (data: PriceData[] | ChartPoint[], count: number) => {
+  if (data.length === 0) return { ticks: [], domainMin: 0, domainMax: 1 };
 
-  return (
-    <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm">
-      <Box fontWeight="semibold" mb={1}>
-        {new Date(label ?? data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
-      </Box>
-      <Box>Close: ${data.close.toFixed(2)}</Box>
-      {data.trades && data.trades.length > 0 && (
-        <>
-          {data.trades.map((trade, idx) => (
-            <Box key={idx} fontSize="xs" mt={1} pt={1} borderTopWidth="1px">
-              <Box fontWeight="medium">{trade.name}</Box>
-              <Box>{trade.isBuy ? "Buy" : "Sell"}: {Math.abs(trade.change).toLocaleString()} shares</Box>
-              {trade.tradePrice && <Box>Price: ${trade.tradePrice.toFixed(2)}</Box>}
-            </Box>
-          ))}
-        </>
-      )}
-    </Box>
-  );
-};
+  const closes = data.map((p) => p.close);
+  const dataMin = Math.min(...closes);
+  const dataMax = Math.max(...closes);
+  const range = dataMax - dataMin || 1;
 
-interface CustomDotProps {
-  cx?: number;
-  cy?: number;
-  payload?: ChartPoint;
-  maxTradeSize: number;
-}
+  const lowestTick = dataMin - range * 0.1;
+  const domainMax = dataMax;
+  const step = (domainMax - lowestTick) / (count - 1);
+  const domainMin = lowestTick - step * 0.6;
 
-const CustomDot = ({ cx, cy, payload, maxTradeSize }: CustomDotProps) => {
-  if (cx === undefined || cy === undefined || !payload?.trades) return null;
-
-  const trades = payload.trades.filter((t) => t.change !== 0);
-  if (trades.length === 0) return null;
-
-  return (
-    <>
-      {trades.map((trade, idx) => {
-        const radius = getCircleRadius(trade.change, maxTradeSize);
-        const offsetX = trades.length > 1 ? (idx - (trades.length - 1) / 2) * 8 : 0;
-
-        return (
-          <circle
-            key={`trade-${idx}`}
-            cx={(cx || 0) + offsetX}
-            cy={cy}
-            r={radius}
-            fill={trade.isBuy ? "#22c55e" : "#ef4444"}
-            fillOpacity={0.6}
-            stroke={trade.isBuy ? "#16a34a" : "#dc2626"}
-            strokeWidth={1.5}
-          />
-        );
-      })}
-    </>
-  );
+  const ticks = Array.from({ length: count }, (_, i) => lowestTick + step * i);
+  return { ticks, domainMin, domainMax };
 };
 
 const InsiderStockPriceChart = ({
   priceData,
   transactions,
 }: InsiderStockPriceChartProps) => {
-  const maxTradeSize = useMemo(() => getMaxTradeSize(transactions), [transactions]);
-  const axisColor = "var(--chakra-colors-fg)";
-
   const chartData = useMemo(() => {
-    // Create a map of transaction dates to transactions
     const transactionMap = new Map<string, InsiderTransaction[]>();
 
     transactions.forEach((tx) => {
-      const date = new Date(tx.transactionDate).toISOString().split("T")[0];
+      const date = getLocalDateString(tx.transactionDate);
       if (!transactionMap.has(date)) {
         transactionMap.set(date, []);
       }
       transactionMap.get(date)!.push(tx);
     });
 
-    // Combine price data with transactions
-    return priceData.map((price) => {
+    const priceMap = new Map<string, PriceData>();
+    priceData.forEach((price) => {
       const dateObj = price.date instanceof Date ? price.date : new Date(price.date);
-      const dateStr = dateObj.toISOString().split("T")[0];
+      const dateStr = getLocalDateString(dateObj);
+      priceMap.set(dateStr, { ...price, date: dateObj });
+    });
+
+    const combinedData: ChartPoint[] = [];
+    const processedDates = new Set<string>();
+
+    priceData.forEach((price) => {
+      const dateObj = price.date instanceof Date ? price.date : new Date(price.date);
+      const dateStr = getLocalDateString(dateObj);
+      processedDates.add(dateStr);
+
       const dayTransactions = transactionMap.get(dateStr) || [];
 
-      return {
+      let buyChange = 0;
+      let sellChange = 0;
+      let buyCount = 0;
+      let sellCount = 0;
+
+      dayTransactions.forEach((tx) => {
+        if (tx.change > 0) {
+          buyChange += tx.change;
+          buyCount++;
+        } else if (tx.change < 0) {
+          sellChange += Math.abs(tx.change);
+          sellCount++;
+        }
+      });
+
+      const netChange = buyChange - sellChange;
+
+      combinedData.push({
         ...price,
         date: dateObj,
-        trades: dayTransactions.map((tx) => ({
-          name: tx.name,
-          change: tx.change,
-          isBuy: tx.change > 0,
-          tradePrice: tx.transactionPrice,
-        })),
-      } as ChartPoint;
+        tradeInfo:
+          dayTransactions.length > 0
+            ? {
+                netChange,
+                buyChange,
+                sellChange,
+                buyCount,
+                sellCount,
+                transactionDate: dateObj,
+                trades: dayTransactions.map((tx) => ({
+                  name: tx.name,
+                  change: tx.change,
+                  isBuy: tx.change > 0,
+                  tradePrice: tx.transactionPrice,
+                })),
+              }
+            : undefined,
+      } as ChartPoint);
     });
+
+    transactionMap.forEach((dayTransactions, dateStr) => {
+      if (!processedDates.has(dateStr)) {
+        const txDate = parseLocalDate(dateStr);
+        let closestPrice = priceData[0];
+        let minDiff = Math.abs(new Date(closestPrice.date).getTime() - txDate.getTime());
+
+        priceData.forEach((price) => {
+          const priceDateObj = price.date instanceof Date ? price.date : new Date(price.date);
+          const diff = Math.abs(priceDateObj.getTime() - txDate.getTime());
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestPrice = price;
+          }
+        });
+
+        // Aggregate trades for the day
+        let buyChange = 0;
+        let sellChange = 0;
+        let buyCount = 0;
+        let sellCount = 0;
+
+        dayTransactions.forEach((tx) => {
+          if (tx.change > 0) {
+            buyChange += tx.change;
+            buyCount++;
+          } else if (tx.change < 0) {
+            sellChange += Math.abs(tx.change);
+            sellCount++;
+          }
+        });
+
+        const netChange = buyChange - sellChange;
+
+        combinedData.push({
+          ...closestPrice,
+          date: txDate,
+          tradeInfo: {
+            netChange,
+            buyChange,
+            sellChange,
+            buyCount,
+            sellCount,
+            transactionDate: txDate,
+            trades: dayTransactions.map((tx) => ({
+              name: tx.name,
+              change: tx.change,
+              isBuy: tx.change > 0,
+              tradePrice: tx.transactionPrice,
+            })),
+          },
+        } as ChartPoint);
+      }
+    });
+
+    combinedData.sort((a, b) => {
+      const dateA = a.date instanceof Date ? a.date : new Date(a.date);
+      const dateB = b.date instanceof Date ? b.date : new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
+
+    return combinedData;
   }, [priceData, transactions]);
 
   if (priceData.length === 0) {
     return (
-      <Box w="full" px={4} py={2} mt={6}>
+      <Box w="full" px={4} py={2}>
         <Heading size="sm" mb={2}>
           Stock Price & Insider Trades
         </Heading>
@@ -156,28 +212,23 @@ const InsiderStockPriceChart = ({
     );
   }
 
-  const closes = chartData.map((p) => p.close);
-  const dataMin = Math.min(...closes);
-  const dataMax = Math.max(...closes);
-  const range = dataMax - dataMin || 1;
-  const domainMin = dataMin - range * 0.15;
-  const domainMax = dataMax + range * 0.05;
+  const axisColor = "var(--chakra-colors-fg)";
+  const monthTicks = useMemo(() => getMonthStartTicks(chartData), [chartData]);
+  const priceTicks = useMemo(() => getPriceTicks(chartData, 4), [chartData]);
 
-  const priceTicks = [
-    domainMin + (range * 0.15 + range * 0.05) * 0.25,
-    domainMin + (range * 0.15 + range * 0.05) * 0.5,
-    domainMin + (range * 0.15 + range * 0.05) * 0.75,
-    domainMax,
-  ];
+  const maxNetChange = useMemo(() => {
+    return Math.max(
+      ...chartData
+        .filter((d) => d.tradeInfo)
+        .map((d) => Math.abs(d.tradeInfo!.netChange))
+    );
+  }, [chartData]);
 
   return (
-    <Box w="full" px={4} py={2} mt={6}>
-      <Heading size="sm" mb={1}>
+    <Box w="full" px={4} py={2}>
+      <Heading size="sm" mb={4}>
         Stock Price & Insider Trades
       </Heading>
-      <Text fontSize="sm" color="fg.muted" mb={4}>
-        Gray line: stock price. Green circles: insider buys, Red circles: insider sells.
-      </Text>
       <Box h="320px">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ left: 10, right: 20, top: 10, bottom: 16 }}>
@@ -189,24 +240,22 @@ const InsiderStockPriceChart = ({
             </defs>
             <XAxis
               dataKey="date"
-              tickFormatter={(date: Date) => {
-                const d = new Date(date);
-                return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
-              }}
+              tickFormatter={monthLabel}
+              ticks={monthTicks}
+              interval={0}
               stroke={axisColor}
               tickLine={false}
               tick={{ fill: axisColor, fontSize: 10 }}
-              interval="preserveStartEnd"
             />
             <YAxis
-              domain={[domainMin, domainMax]}
-              ticks={priceTicks}
+              domain={[priceTicks.domainMin, priceTicks.domainMax]}
+              ticks={priceTicks.ticks}
               stroke={axisColor}
               tickLine={false}
               tick={{ fill: axisColor, fontSize: 10 }}
-              tickFormatter={(value: number) => `$${value.toFixed(0)}`}
+              tickFormatter={(value: number) => value.toFixed(2)}
             />
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={<InsiderStockPriceChartTooltip />} />
             <Area
               type="linear"
               dataKey="close"
@@ -214,7 +263,7 @@ const InsiderStockPriceChart = ({
               fill="url(#stockPriceFill)"
               strokeWidth={2}
               dot={(props) => (
-                <CustomDot {...props} maxTradeSize={maxTradeSize} />
+                <InsiderStockPriceChartDot {...props} maxNetChange={maxNetChange} />
               )}
               isAnimationActive={false}
             />

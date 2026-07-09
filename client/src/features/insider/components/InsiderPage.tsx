@@ -44,7 +44,7 @@ const InsiderPage = () => {
       .then(setTransactions)
       .catch(() => setTransactions([]));
 
-    fetchEodData(symbol, fromDate)
+    fetchEodData(symbol, new Date(fromDate))
       .then(setPriceData)
       .catch(() => setPriceData([]));
   }, [symbol, fromDate, toDate]);

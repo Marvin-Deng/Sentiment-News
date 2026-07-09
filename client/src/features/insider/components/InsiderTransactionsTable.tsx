@@ -5,12 +5,15 @@ import { Box, Center, Flex, Heading, Icon, Link, Table, Text } from "@chakra-ui/
 import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
-import { InsiderTransaction, TRANSACTION_CODE_LABELS } from "@/src/features/insider/types";
+import { ChangeSort, InsiderTransaction, TRANSACTION_CODE_LABELS } from "@/src/features/insider/types";
 import { formatDate } from "@/src/utils/dateUtils";
 
-const PAGE_SIZE = 10;
+interface InsiderTransactionsTableProps {
+  transactions: InsiderTransaction[];
+  symbol: string;
+}
 
-type ChangeSort = "default" | "asc" | "desc";
+const PAGE_SIZE = 10;
 
 const cycleChangeSort = (current: ChangeSort): ChangeSort => {
   if (current === "default") return "asc";
@@ -34,11 +37,6 @@ const compareInsiderTransactions = (a: InsiderTransaction, b: InsiderTransaction
 
   return new Date(a.filingDate).getTime() - new Date(b.filingDate).getTime();
 };
-
-interface InsiderTransactionsTableProps {
-  transactions: InsiderTransaction[];
-  symbol: string;
-}
 
 const TransactionsHeading = ({ symbol, mb }: { symbol: string; mb: number }) => (
   <Heading size="sm" mb={mb}>
@@ -85,12 +83,12 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
   }
 
   return (
-    <Box mt={8}>
+    <Box mt={8} px={4}>
       <TransactionsHeading symbol={symbol} mb={4} />
       <Table.Root variant="outline" size="sm">
         <Table.Header>
           <Table.Row>
-            <Table.ColumnHeader>Insider</Table.ColumnHeader>
+            <Table.ColumnHeader minW="140px">Insider</Table.ColumnHeader>
             <Table.ColumnHeader>Transaction Date</Table.ColumnHeader>
             <Table.ColumnHeader>Filing Date</Table.ColumnHeader>
             <Table.ColumnHeader>Type</Table.ColumnHeader>
@@ -136,7 +134,17 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
                 <Table.Cell>{formatDate(tx.filingDate)}</Table.Cell>
                 <Table.Cell>
                   {typeLabel}
-                  {isBuy ? " (Buy)" : tx.change < 0 ? " (Sell)" : ""}
+                  {isBuy ? (
+                    <Box as="span" color="#22c55e">
+                      {" (Buy)"}
+                    </Box>
+                  ) : tx.change < 0 ? (
+                    <Box as="span" color="#ef4444">
+                      {" (Sell)"}
+                    </Box>
+                  ) : (
+                    ""
+                  )}
                 </Table.Cell>
                 <Table.Cell textAlign="right" color={changeColor}>
                   {tx.change > 0 ? "+" : ""}

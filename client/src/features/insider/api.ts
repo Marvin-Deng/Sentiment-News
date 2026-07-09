@@ -1,7 +1,7 @@
 import { InsiderSentiment, InsiderTransaction } from "@/src/features/insider/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
-const INSIDER_TTL_SECONDS = 3600;
+const INSIDER_TTL_SECONDS = 86400;
 
 export const fetchInsiderSentiment = async (
   symbol: string,

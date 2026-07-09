@@ -8,8 +8,8 @@ import TickerTape from "./TickerTape";
 const NAV_LINKS = [
   { label: "News", href: "/" },
   { label: "Stocks", href: "/stocks" },
-  { label: "Calendar", href: "/calendar" },
   { label: "Insider", href: "/insider" },
+  { label: "Calendar", href: "/calendar" },
 ];
 
 const Navbar = () => {
