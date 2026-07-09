@@ -1,7 +1,10 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Box, Flex, Tabs, Text, IconButton, Link } from "@chakra-ui/react";
+import { Box, Flex, Tabs, Text, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
+import { LuX } from "react-icons/lu";
+
+import CircularIconButton from "@/src/components/ui/CircularIconButton";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
@@ -173,7 +176,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
-          <Text fontSize="xl" fontWeight="semibold">
+          <Text fontSize="xl" fontWeight="semibold" lineHeight="1" my={0}>
             {companyWebUrl ? (
               <Link
                 href={companyWebUrl}
@@ -187,9 +190,9 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
               `${companyName} (${ticker})`
             )}
           </Text>
-          <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={onClose}>
-            ✕
-          </IconButton>
+          <CircularIconButton aria-label="Close modal" size="sm" flexShrink={0} onClick={onClose}>
+            <LuX />
+          </CircularIconButton>
         </Flex>
 
         <Flex justify="space-around" p={4} wrap="wrap" gap={2}>

@@ -16,7 +16,7 @@ const EpsSurprisesTable = ({ epsSurprises }: EpsSurprisesTableProps) => {
 
   return (
     <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
-      <Heading size="sm" mb={2} textAlign="left">
+      <Heading textStyle="sectionTitle" mb={2} textAlign="left">
         EPS Surprises History
       </Heading>
       <Table.Root variant="outline" size="sm">

@@ -60,7 +60,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
 
   return (
     <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
-      <Heading size="sm" mb={2} textAlign="left">
+      <Heading textStyle="sectionTitle" mb={2} textAlign="left">
         Historical EPS Surprises
       </Heading>
       <Box h="380px">

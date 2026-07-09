@@ -1,10 +1,12 @@
 "use client";
 
-import { IconButton, Skeleton, type IconButtonProps } from "@chakra-ui/react";
+import { Skeleton, type IconButtonProps } from "@chakra-ui/react";
 import { ThemeProvider, useTheme } from "next-themes";
 import type { ThemeProviderProps } from "next-themes";
 import { forwardRef, useEffect, useState } from "react";
 import { LuMoon, LuSun } from "react-icons/lu";
+
+import CircularIconButton from "@/src/components/ui/CircularIconButton";
 
 export function ColorModeProvider(props: ThemeProviderProps) {
   return (
@@ -59,22 +61,15 @@ export const ColorModeButton = forwardRef<HTMLButtonElement, ColorModeButtonProp
     }
 
     return (
-      <IconButton
+      <CircularIconButton
         onClick={toggleColorMode}
-        variant="outline"
-        bg="transparent"
-        color="fg"
-        border="1px solid"
-        borderColor="border.control"
-        transition="background-color 0.3s ease, color 0.3s ease"
-        _hover={{ bg: "fg", color: "bg" }}
         size="sm"
         aria-label="Toggle color mode"
         ref={ref}
         {...props}
       >
         <ColorModeIcon />
-      </IconButton>
+      </CircularIconButton>
     );
   },
 );

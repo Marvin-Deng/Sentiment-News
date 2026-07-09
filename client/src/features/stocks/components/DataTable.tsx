@@ -13,7 +13,7 @@ type TableSection = {
 
 const SectionTable = ({ section }: { section: TableSection }) => (
   <Box>
-    <Heading size="sm" mb={2}>
+    <Heading textStyle="sectionTitle" mb={2}>
       {section.title}
     </Heading>
     <Table.Root variant="outline" size="sm">

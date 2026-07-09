@@ -19,6 +19,15 @@ const buttonRecipe = defineRecipe({
         borderColor: "border.control",
         _hover: { bg: "bg.muted" },
       },
+      outlineCircular: {
+        bg: "transparent",
+        color: "fg",
+        border: "1px solid",
+        borderColor: "border.control",
+        borderRadius: "md",
+        transition: "background-color 0.3s ease, color 0.3s ease",
+        _hover: { bg: "fg", color: "bg" },
+      },
     },
   },
 });

@@ -11,6 +11,9 @@ export const rankStockMatch = (stock: StockInfo, query: string): number | null =
   if (symbol.startsWith(q)) return 100 + (symbol.length - q.length);
   if (display.startsWith(q)) return 110 + (display.length - q.length);
 
+  if (q.length > symbol.length && q.startsWith(symbol)) return 120 + (q.length - symbol.length);
+  if (q.length > display.length && q.startsWith(display)) return 130 + (q.length - display.length);
+
   if (symbol.includes(q)) return 200 + symbol.indexOf(q);
   if (display.includes(q)) return 210 + display.indexOf(q);
 
