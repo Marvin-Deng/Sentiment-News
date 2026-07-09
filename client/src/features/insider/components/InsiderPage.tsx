@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Box, Center, Text } from "@chakra-ui/react";
 
 import PageLayout from "@/src/components/layout/PageLayout";
@@ -17,8 +18,13 @@ import { getDateDaysBefore } from "@/src/utils/dateUtils";
 const DEFAULT_SYMBOL = "TSLA";
 const LOOKBACK_DAYS = 183;
 
-const InsiderPage = () => {
-  const [symbol, setSymbol] = useState(DEFAULT_SYMBOL);
+interface InsiderPageProps {
+  initialSymbol?: string;
+}
+
+const InsiderPage = ({ initialSymbol }: InsiderPageProps = {}) => {
+  const router = useRouter();
+  const [symbol, setSymbol] = useState(initialSymbol ?? DEFAULT_SYMBOL);
   const [sentiment, setSentiment] = useState<InsiderSentiment[] | null>(null);
   const [transactions, setTransactions] = useState<InsiderTransaction[] | null>(null);
   const [priceData, setPriceData] = useState<PriceData[] | null>(null);
@@ -57,11 +63,16 @@ const InsiderPage = () => {
 
   const isLoading = sentiment === null || transactions === null || priceData === null;
 
+  const handleSymbolSelect = (newSymbol: string) => {
+    setSymbol(newSymbol);
+    router.replace(`/insider/${newSymbol}`);
+  };
+
   return (
     <PageLayout
       title="Insider Trading"
       subtitle="Insider sentiment and transactions for the past 6 months"
-      searchBar={<StockSearchBar selectOnly value={symbol} onSymbolSelect={setSymbol} />}
+      searchBar={<StockSearchBar selectOnly value={symbol} onSymbolSelect={handleSymbolSelect} />}
     >
       {isLoading && (
         <Center mt={10}>

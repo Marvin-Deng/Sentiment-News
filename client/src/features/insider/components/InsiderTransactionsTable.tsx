@@ -11,6 +11,7 @@ interface InsiderTransactionsTableProps {
   transactions: InsiderTransaction[];
   symbol: string;
   mt?: number;
+  headerExtra?: React.ReactNode;
 }
 
 const PAGE_SIZE = 10;
@@ -49,7 +50,7 @@ const formatTransactionPrice = (price?: number) => {
   return `$${price.toFixed(2)}`;
 };
 
-const InsiderTransactionsTable = ({ transactions, symbol, mt = 8 }: InsiderTransactionsTableProps) => {
+const InsiderTransactionsTable = ({ transactions, symbol, mt = 8, headerExtra }: InsiderTransactionsTableProps) => {
   const [page, setPage] = useState(1);
   const [changeSort, setChangeSort] = useState<ChangeSort>("default");
 
@@ -74,6 +75,7 @@ const InsiderTransactionsTable = ({ transactions, symbol, mt = 8 }: InsiderTrans
     return (
       <Box mt={mt}>
         <TransactionsHeading mb={2} />
+        {headerExtra}
         <Text color="fg.muted">No transactions found for {symbol} in this period.</Text>
       </Box>
     );
@@ -81,8 +83,9 @@ const InsiderTransactionsTable = ({ transactions, symbol, mt = 8 }: InsiderTrans
 
   return (
     <Box mt={mt}>
-      <TransactionsHeading mb={4} />
-      <Table.Root variant="outline" size="sm">
+      <TransactionsHeading mb={2} />
+      {headerExtra}
+      <Table.Root variant="outline" size="sm" mt={4}>
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader minW="140px" fontSize="md">Insider</Table.ColumnHeader>

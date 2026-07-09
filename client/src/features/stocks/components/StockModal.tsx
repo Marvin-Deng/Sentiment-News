@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import { Box, Flex, Tabs, Text, IconButton, Link } from "@chakra-ui/react";
+import NextLink from "next/link";
 
 import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
@@ -260,7 +261,16 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
           </Tabs.Content>
           <Tabs.Content value="insider">
             <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
-              <InsiderTransactionsTable transactions={insiderTransactions} symbol={ticker} mt={0} />
+              <InsiderTransactionsTable
+                transactions={insiderTransactions}
+                symbol={ticker}
+                mt={0}
+                headerExtra={
+                  <Link asChild fontSize="sm" color="fg.muted" display="inline-block" _hover={{ textDecoration: "underline" }}>
+                    <NextLink href={`/insider/${ticker}`}>View details</NextLink>
+                  </Link>
+                }
+              />
             </Box>
           </Tabs.Content>
         </Tabs.Root>
