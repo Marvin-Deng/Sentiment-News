@@ -131,11 +131,11 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
                 <Table.Cell>
                   {typeLabel}
                   {isBuy ? (
-                    <Box as="span" color="#22c55e">
+                    <Box as="span" color="positive">
                       {" (Buy)"}
                     </Box>
                   ) : tx.change < 0 ? (
-                    <Box as="span" color="#ef4444">
+                    <Box as="span" color="negative">
                       {" (Sell)"}
                     </Box>
                   ) : (
@@ -154,7 +154,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
         </Table.Body>
       </Table.Root>
 
-      <Text mt={3} fontSize="sm" color="fg.muted">
+      <Text mt={3} textStyle="caption">
         Shares Held After reflects holdings following that filing line only, not total current ownership.
         Showing {visible.length} of {sorted.length} transaction{sorted.length === 1 ? "" : "s"}.
       </Text>

@@ -57,21 +57,21 @@ const CalendarListView = ({ daysEvents }: CalendarListViewProps) => {
                 <Table.Root variant="outline" size="sm">
                   <Table.Header>
                     <Table.Row>
-                      <Table.ColumnHeader>Symbol</Table.ColumnHeader>
-                      <Table.ColumnHeader>Timing</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="right">EPS Estimate</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="right">Revenue Estimate</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="100px">Symbol</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="200px">Timing</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="right" minW="180px">EPS Estimate</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="right" minW="220px">Revenue Estimate</Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
                     {visibleEarnings.map((event: EarningsEvent, index: number) => (
                       <Table.Row key={`${event.symbol}-${event.date}-${event.quarter}-${index}`}>
-                        <Table.Cell>
+                        <Table.Cell minW="100px">
                           <TickerLink ticker={event.symbol} />
                         </Table.Cell>
-                        <Table.Cell>{HOUR_LABELS[event.hour] ?? "—"}</Table.Cell>
-                        <Table.Cell textAlign="right">{event.epsEstimate ?? "—"}</Table.Cell>
-                        <Table.Cell textAlign="right">
+                        <Table.Cell minW="200px">{HOUR_LABELS[event.hour] ?? "—"}</Table.Cell>
+                        <Table.Cell textAlign="right" minW="180px">{event.epsEstimate ?? "—"}</Table.Cell>
+                        <Table.Cell textAlign="right" minW="220px">
                           {event.revenueEstimate?.toLocaleString() ?? "—"}
                         </Table.Cell>
                       </Table.Row>
@@ -99,23 +99,23 @@ const CalendarListView = ({ daysEvents }: CalendarListViewProps) => {
                 <Table.Root variant="outline" size="sm">
                   <Table.Header>
                     <Table.Row>
-                      <Table.ColumnHeader>Symbol</Table.ColumnHeader>
-                      <Table.ColumnHeader>Name</Table.ColumnHeader>
-                      <Table.ColumnHeader>Exchange</Table.ColumnHeader>
-                      <Table.ColumnHeader>Status</Table.ColumnHeader>
-                      <Table.ColumnHeader textAlign="right">Price</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="100px">Symbol</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="200px">Name</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="180px">Exchange</Table.ColumnHeader>
+                      <Table.ColumnHeader minW="120px">Status</Table.ColumnHeader>
+                      <Table.ColumnHeader textAlign="right" minW="100px">Price</Table.ColumnHeader>
                     </Table.Row>
                   </Table.Header>
                   <Table.Body>
                     {visibleIpos.map((event: IpoEvent, index: number) => (
                       <Table.Row key={`${event.symbol}-${event.date}-${index}`}>
-                        <Table.Cell>
+                        <Table.Cell minW="100px">
                           <Text fontWeight="semibold">{event.symbol}</Text>
                         </Table.Cell>
-                        <Table.Cell>{event.name}</Table.Cell>
-                        <Table.Cell>{event.exchange}</Table.Cell>
-                        <Table.Cell textTransform="capitalize">{event.status}</Table.Cell>
-                        <Table.Cell textAlign="right">{event.price}</Table.Cell>
+                        <Table.Cell minW="200px">{event.name}</Table.Cell>
+                        <Table.Cell minW="180px">{event.exchange}</Table.Cell>
+                        <Table.Cell minW="120px" textTransform="capitalize">{event.status}</Table.Cell>
+                        <Table.Cell textAlign="right" minW="100px">{event.price}</Table.Cell>
                       </Table.Row>
                     ))}
                   </Table.Body>

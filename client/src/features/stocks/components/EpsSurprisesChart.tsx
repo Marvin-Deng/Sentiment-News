@@ -92,7 +92,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
                 const data = payload[0].payload as EpsSurprise;
                 return (
                   <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm">
-                    <Box fontWeight="semibold" mb={1}>{formatPeriodLabel(data.period)}</Box>
+                    <Box textStyle="tooltipLabel" mb={1}>{formatPeriodLabel(data.period)}</Box>
                     <Box>Actual: {data.actual}</Box>
                     <Box>Estimate: {data.estimate}</Box>
                     <Box color={data.surprise >= 0 ? "positive" : "negative"}>

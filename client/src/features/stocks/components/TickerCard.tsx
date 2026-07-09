@@ -97,7 +97,7 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
               <Text fontWeight="semibold" truncate mb={1}>
                 {companyProfile.name}
               </Text>
-              <Text fontSize="sm" color="fg.muted" truncate>
+              <Text textStyle="caption" truncate>
                 {companyProfile.ticker} · {companyProfile.exchange}
               </Text>
             </Box>

@@ -34,7 +34,7 @@ const NewsCard = ({
     <Card.Root borderWidth="1px" borderColor="border.control">
       <Card.Body>
         <Image src={image_url} alt={title} w="full" h="56" objectFit="cover" mb={3} borderRadius="lg" />
-        <Text fontStyle="italic" fontSize="sm" color="fg.muted" mb={2}>
+        <Text textStyle="caption" fontStyle="italic" mb={2}>
           {utcStringToLocal(publication_datetime)}
         </Text>
         <Flex align="center" justify="space-between" mb={2}>
@@ -53,7 +53,7 @@ const NewsCard = ({
           {truncateSummary(summary, 300)}
         </Text>
         <Box mt={4}>
-          <Text fontStyle="italic" fontSize="sm" color="fg.muted" mb={2}>
+          <Text textStyle="caption" fontStyle="italic" mb={2}>
             Price Action On: {market_date ? formatDate(market_date) : "Pending"}
           </Text>
           {open_price ? (

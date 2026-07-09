@@ -45,7 +45,7 @@ const ChartTooltip = ({
 
   return (
     <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm">
-      <Box fontWeight="semibold" mb={1}>
+      <Box textStyle="tooltipLabel" mb={1}>
         {data.label}
       </Box>
       <Box>MSPR: {data.mspr.toFixed(2)}</Box>
@@ -83,7 +83,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
       <Heading textStyle="sectionTitle" mb={1}>
         Insider Sentiment (MSPR)
       </Heading>
-      <Text fontSize="sm" color="fg.muted" mb={4}>
+      <Text textStyle="caption" mb={4}>
         Monthly share purchase ratio from -100 (most negative) to 100 (most positive).
       </Text>
       <Box h="320px">

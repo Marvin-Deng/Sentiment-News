@@ -150,7 +150,7 @@ const ChartTooltip = ({
 
   return (
     <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm">
-      <Box fontWeight="semibold" mb={1}>
+      <Box textStyle="tooltipLabel" mb={1}>
         {formatTooltipDateLabel(label ?? data.date)}
       </Box>
       <Box>Open: {data.open?.toFixed(2) ?? "N/A"}</Box>

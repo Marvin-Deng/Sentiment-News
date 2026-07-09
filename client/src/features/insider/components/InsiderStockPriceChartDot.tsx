@@ -27,9 +27,9 @@ const InsiderStockPriceChartDot = ({ cx, cy, payload, maxNetChange }: InsiderSto
       cx={cx}
       cy={cy}
       r={radius}
-      fill={isBuy ? "#22c55e" : "#ef4444"}
+      fill={isBuy ? "var(--chakra-colors-positive)" : "var(--chakra-colors-negative)"}
       fillOpacity={0.6}
-      stroke={isBuy ? "#16a34a" : "#dc2626"}
+      stroke={isBuy ? "var(--chakra-colors-positive-emphasized)" : "var(--chakra-colors-negative-emphasized)"}
       strokeWidth={1.5}
     />
   );

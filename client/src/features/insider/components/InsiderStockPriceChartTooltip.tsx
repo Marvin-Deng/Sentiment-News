@@ -36,14 +36,14 @@ const InsiderStockPriceChartTooltip = ({
 
   return (
     <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm" minW="280px">
-      <Box fontWeight="semibold" mb={2}>
+      <Box textStyle="tooltipLabel" mb={2}>
         {new Date(data.tradeInfo?.transactionDate ?? label ?? data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
       </Box>
       <Box mb={2}>${data.close.toFixed(2)}</Box>
       {data.tradeInfo && data.tradeInfo.trades.length > 0 && (
         <>
           {aggregateTradesByPersonAndDirection(data.tradeInfo.trades).map((trade, idx) => (
-            <Box key={idx} color={trade.isBuy ? "#22c55e" : "#ef4444"} mb={1}>
+            <Box key={idx} color={trade.isBuy ? "positive" : "negative"} mb={1}>
               {trade.name}: {(Math.abs(trade.change) / 1000).toFixed(2)}K
             </Box>
           ))}

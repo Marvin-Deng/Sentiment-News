@@ -42,6 +42,17 @@ const textStyles = defineTextStyles({
       fontWeight: "semibold",
     },
   },
+  caption: {
+    value: {
+      fontSize: "sm",
+      color: "fg.muted",
+    },
+  },
+  tooltipLabel: {
+    value: {
+      fontWeight: "semibold",
+    },
+  },
 });
 
 export const CHART_AXIS_FONT_SIZE = 13;
@@ -57,10 +68,20 @@ const config = defineConfig({
           },
         },
         positive: {
-          value: { _light: "{colors.green.600}", _dark: "{colors.green.600}" },
+          DEFAULT: {
+            value: { _light: "{colors.green.600}", _dark: "{colors.green.600}" },
+          },
+          emphasized: {
+            value: { _light: "{colors.green.700}", _dark: "{colors.green.700}" },
+          },
         },
         negative: {
-          value: { _light: "{colors.red.500}", _dark: "{colors.red.500}" },
+          DEFAULT: {
+            value: { _light: "{colors.red.500}", _dark: "{colors.red.500}" },
+          },
+          emphasized: {
+            value: { _light: "{colors.red.600}", _dark: "{colors.red.600}" },
+          },
         },
       },
     },
