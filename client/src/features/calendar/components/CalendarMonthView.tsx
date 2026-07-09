@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import NextLink from "next/link";
-import { Box, Flex, Grid, IconButton, Link, Portal, Text, Tooltip } from "@chakra-ui/react";
+import { Box, Flex, Grid, IconButton, Link, Text } from "@chakra-ui/react";
 
 import CalendarListView from "@/src/features/calendar/components/CalendarListView";
 import { DayEvents } from "@/src/features/calendar/types";
@@ -9,6 +9,71 @@ import { DayEvents } from "@/src/features/calendar/types";
 interface CalendarMonthViewProps {
   daysEvents: DayEvents[];
 }
+
+interface CalendarDayButtonProps {
+  dateKey: string;
+  dayNumber: number;
+  dayEvents?: DayEvents;
+  isSelected: boolean;
+  isToday: boolean;
+  isOutsideMonth: boolean;
+  onSelect: (dateKey: string) => void;
+  onHoverStart?: () => void;
+}
+
+const CalendarDayButton = ({
+  dateKey,
+  dayNumber,
+  dayEvents,
+  isSelected,
+  isToday,
+  isOutsideMonth,
+  onSelect,
+  onHoverStart,
+}: CalendarDayButtonProps) => {
+  return (
+    <Box
+      as="button"
+      onClick={() => onSelect(dateKey)}
+      onMouseEnter={onHoverStart}
+      cursor="pointer"
+      minH="64px"
+      p={2}
+      borderWidth="1px"
+      borderColor={isSelected ? "green.500" : "border"}
+      borderRadius="md"
+      bg={isSelected ? "green.subtle" : "transparent"}
+      opacity={isOutsideMonth ? 0.4 : 1}
+      textAlign="left"
+      w="full"
+      transition="background 0.15s ease, border-color 0.15s ease"
+      _hover={
+        isSelected
+          ? { bg: "green.muted", borderColor: "green.500" }
+          : { bg: "bg.muted", borderColor: "border.emphasized" }
+      }
+      _focusVisible={{
+        outline: "2px solid",
+        outlineColor: "green.500",
+        outlineOffset: "2px",
+      }}
+    >
+      <Text fontSize="sm" fontWeight={isToday ? "bold" : "normal"}>
+        {dayNumber}
+      </Text>
+      {dayEvents && (
+        <Flex gap={1} mt={1}>
+          {dayEvents.earnings.length > 0 && (
+            <Box w="6px" h="6px" borderRadius="full" bg="blue.400" />
+          )}
+          {dayEvents.ipos.length > 0 && (
+            <Box w="6px" h="6px" borderRadius="full" bg="purple.400" />
+          )}
+        </Flex>
+      )}
+    </Box>
+  );
+};
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TOOLTIP_ITEM_LIMIT = 5;
@@ -81,6 +146,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
   const today = useMemo(() => new Date(), []);
   const [monthCursor, setMonthCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<string | null>(() => toDateKey(new Date()));
+  const [hoveredDate, setHoveredDate] = useState<string | null>(null);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, DayEvents>();
@@ -163,7 +229,7 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
       </Grid>
 
       {weeks.map((week, weekIndex) => (
-        <Grid key={weekIndex} templateColumns="repeat(7, 1fr)" gap={1} mb={1}>
+        <Grid key={weekIndex} templateColumns="repeat(7, 1fr)" gap={1} mb={1} overflow="visible">
           {week.map((day) => {
             const dateKey = toDateKey(day);
             const dayEvents = eventsByDate.get(dateKey);
@@ -176,77 +242,55 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
               return <Box key={dateKey} minH="64px" />;
             }
 
-            const dayCell = (
-              <Box
-                as="button"
-                onClick={() => setSelectedDate(dateKey)}
-                cursor="pointer"
-                minH="64px"
-                p={2}
-                borderWidth="1px"
-                borderColor={isSelected ? "green.500" : "border"}
-                borderRadius="md"
-                bg={isSelected ? "green.subtle" : "transparent"}
-                opacity={isOutsideMonth ? 0.4 : 1}
-                textAlign="left"
-                w="full"
-                transition="background 0.15s ease, border-color 0.15s ease"
-                _hover={
-                  isSelected
-                    ? { bg: "green.muted", borderColor: "green.500" }
-                    : { bg: "bg.muted", borderColor: "border.emphasized" }
-                }
-                _focusVisible={{
-                  outline: "2px solid",
-                  outlineColor: "green.500",
-                  outlineOffset: "2px",
-                }}
-              >
-                <Text fontSize="sm" fontWeight={isToday ? "bold" : "normal"}>
-                  {day.getDate()}
-                </Text>
-                {dayEvents && (
-                  <Flex gap={1} mt={1}>
-                    {dayEvents.earnings.length > 0 && (
-                      <Box w="6px" h="6px" borderRadius="full" bg="blue.400" />
-                    )}
-                    {dayEvents.ipos.length > 0 && (
-                      <Box w="6px" h="6px" borderRadius="full" bg="purple.400" />
-                    )}
-                  </Flex>
-                )}
-              </Box>
-            );
+            const dayButtonProps = {
+              dateKey,
+              dayNumber: day.getDate(),
+              dayEvents,
+              isSelected,
+              isToday,
+              isOutsideMonth,
+              onSelect: setSelectedDate,
+            };
 
             return (
-              <Box key={dateKey}>
-                {dayEvents ? (
-                  <Tooltip.Root openDelay={200} positioning={{ placement: "bottom" }}>
-                    <Tooltip.Trigger asChild>{dayCell}</Tooltip.Trigger>
-                    <Portal>
-                      <Tooltip.Positioner>
-                        <Tooltip.Content
-                          px={3}
-                          py={2}
-                          bg="white"
-                          color="gray.800"
-                          borderWidth="1px"
-                          borderColor="gray.200"
-                          borderRadius="md"
-                          boxShadow="lg"
-                          _dark={{
-                            bg: "gray.700",
-                            color: "white",
-                            borderColor: "gray.600",
-                          }}
-                        >
-                          <DayEventsTooltipContent dayEvents={dayEvents} />
-                        </Tooltip.Content>
-                      </Tooltip.Positioner>
-                    </Portal>
-                  </Tooltip.Root>
-                ) : (
-                  dayCell
+              <Box
+                key={dateKey}
+                position="relative"
+                onMouseLeave={() => setHoveredDate(null)}
+              >
+                <CalendarDayButton
+                  {...dayButtonProps}
+                  onHoverStart={dayEvents ? () => setHoveredDate(dateKey) : undefined}
+                />
+                {dayEvents && hoveredDate === dateKey && (
+                  <Box
+                    position="absolute"
+                    top="100%"
+                    left="50%"
+                    transform="translateX(-50%)"
+                    pt={1}
+                    zIndex={20}
+                    minW="max-content"
+                    onMouseEnter={() => setHoveredDate(dateKey)}
+                  >
+                    <Box
+                      px={3}
+                      py={2}
+                      bg="white"
+                      color="gray.800"
+                      borderWidth="1px"
+                      borderColor="gray.200"
+                      borderRadius="md"
+                      boxShadow="lg"
+                      _dark={{
+                        bg: "gray.700",
+                        color: "white",
+                        borderColor: "gray.600",
+                      }}
+                    >
+                      <DayEventsTooltipContent dayEvents={dayEvents} />
+                    </Box>
+                  </Box>
                 )}
               </Box>
             );
