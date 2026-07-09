@@ -1,4 +1,4 @@
-name: Deploy FE
+name: GCP Deploy FE (inactive)
 
 on:
   push:

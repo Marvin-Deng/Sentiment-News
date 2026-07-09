@@ -1,4 +1,4 @@
-name: News Ingest Deploy
+name: GCP News Ingest Deploy (inactive)
 
 on:
   push:

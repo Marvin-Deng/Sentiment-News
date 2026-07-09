@@ -1,6 +1,9 @@
 name: Stock Price Run
 
 on:
+  schedule:
+    # 14:00 America/Los_Angeles (PST, UTC-8), weekdays
+    - cron: "0 22 * * 1-5"
   workflow_dispatch:
     inputs:
       market_date:

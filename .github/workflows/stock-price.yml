@@ -1,4 +1,4 @@
-name: Stock Price Deploy
+name: GCP Stock Price Deploy (inactive)
 
 on:
   push:

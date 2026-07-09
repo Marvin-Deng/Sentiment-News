@@ -1,4 +1,4 @@
-name: Firestore Infra
+name: GCP Firestore Infra
 
 on:
   push:

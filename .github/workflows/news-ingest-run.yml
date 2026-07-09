@@ -1,6 +1,9 @@
 name: News Ingest Run
 
 on:
+  schedule:
+    # 10:00 America/Los_Angeles (PST, UTC-8), weekdays
+    - cron: "0 18 * * 1-5"
   workflow_dispatch:
     inputs:
       date:
