@@ -3,15 +3,17 @@ import { useEffect, useMemo, useState } from "react";
 import { Box, Center, Flex, Text } from "@chakra-ui/react";
 
 import PageLayout from "@/src/components/layout/PageLayout";
+import SearchBar from "@/src/components/navbar/SearchBar";
 import Loader from "@/src/components/ui/Loader";
 import CalendarListView from "@/src/features/calendar/components/CalendarListView";
 import CalendarMonthView from "@/src/features/calendar/components/CalendarMonthView";
 
 import { fetchEarningsCalendar, fetchIpoCalendar } from "@/src/features/calendar/api";
 import { DayEvents, EarningsEvent, IpoEvent } from "@/src/features/calendar/types";
-import { getDateDaysAfter, getDateDaysBefore } from "@/src/utils/dateUtils";
+import { useSearch } from "@/src/providers/SearchProvider";
+import { getDateDaysBefore, getDateYearsAfter } from "@/src/utils/dateUtils";
 
-const LOOKAHEAD_DAYS = 30;
+const RANGE_YEARS = 1;
 const VIEWS = ["Calendar", "List"] as const;
 const EVENT_FILTERS = ["All", "Earnings", "IPOs"] as const;
 type View = (typeof VIEWS)[number];
@@ -22,10 +24,11 @@ const CalendarPage = () => {
   const [earningsEvents, setEarningsEvents] = useState<EarningsEvent[] | null>(null);
   const [view, setView] = useState<View>("Calendar");
   const [eventFilter, setEventFilter] = useState<EventFilter>("All");
+  const { searchQuery } = useSearch();
 
   useEffect(() => {
     const today = getDateDaysBefore(0);
-    const end = getDateDaysAfter(LOOKAHEAD_DAYS);
+    const end = getDateYearsAfter(RANGE_YEARS);
 
     fetchIpoCalendar(today, end)
       .then(setIpoEvents)
@@ -35,6 +38,8 @@ const CalendarPage = () => {
       .then(setEarningsEvents)
       .catch(() => setEarningsEvents([]));
   }, []);
+
+  const rangeEndDate = useMemo(() => getDateYearsAfter(RANGE_YEARS), []);
 
   const daysEvents: DayEvents[] = useMemo(() => {
     if (!ipoEvents || !earningsEvents) return [];
@@ -67,14 +72,38 @@ const CalendarPage = () => {
       );
   }, [daysEvents, eventFilter]);
 
+  const visibleDaysEvents = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return filteredDaysEvents;
+
+    const terms = query.split(" ").filter(Boolean);
+
+    return filteredDaysEvents
+      .map((day) => ({
+        date: day.date,
+        earnings: day.earnings.filter((event) =>
+          terms.some((term) => event.symbol.toLowerCase().includes(term)),
+        ),
+        ipos: day.ipos.filter((event) =>
+          terms.some(
+            (term) =>
+              event.symbol.toLowerCase().includes(term) ||
+              event.name.toLowerCase().includes(term),
+          ),
+        ),
+      }))
+      .filter((day) => day.earnings.length > 0 || day.ipos.length > 0);
+  }, [filteredDaysEvents, searchQuery]);
+
   const isLoading = ipoEvents === null || earningsEvents === null;
 
-  const emptyMessage =
-    eventFilter === "Earnings"
-      ? `No upcoming earnings in the next ${LOOKAHEAD_DAYS} days.`
+  const emptyMessage = searchQuery.trim()
+    ? `No events matching "${searchQuery.trim()}".`
+    : eventFilter === "Earnings"
+      ? "No upcoming earnings in the next year."
       : eventFilter === "IPOs"
-        ? `No upcoming IPOs in the next ${LOOKAHEAD_DAYS} days.`
-        : `No upcoming events in the next ${LOOKAHEAD_DAYS} days.`;
+        ? "No upcoming IPOs in the next year."
+        : "No upcoming events in the next year.";
 
   const viewButtonStyles = (isActive: boolean) => ({
     py: 2,
@@ -133,25 +162,30 @@ const CalendarPage = () => {
   );
 
   return (
-    <PageLayout title="Calendar" subtitle="Upcoming IPOs and earnings releases" filters={filters}>
+    <PageLayout
+      title="Calendar"
+      subtitle="Upcoming IPOs and earnings releases"
+      searchBar={<SearchBar />}
+      filters={filters}
+    >
       {isLoading && (
         <Center mt={10}>
           <Loader />
         </Center>
       )}
 
-      {!isLoading && filteredDaysEvents.length === 0 && (
+      {!isLoading && visibleDaysEvents.length === 0 && (
         <Text mt={8} fontSize="lg">
           {emptyMessage}
         </Text>
       )}
 
-      {!isLoading && filteredDaysEvents.length > 0 && (
+      {!isLoading && visibleDaysEvents.length > 0 && (
         <Box mt={8}>
           {view === "List" ? (
-            <CalendarListView daysEvents={filteredDaysEvents} />
+            <CalendarListView daysEvents={visibleDaysEvents} />
           ) : (
-            <CalendarMonthView daysEvents={filteredDaysEvents} />
+            <CalendarMonthView daysEvents={visibleDaysEvents} rangeEndDate={rangeEndDate} />
           )}
         </Box>
       )}

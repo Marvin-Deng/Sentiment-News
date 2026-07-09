@@ -4,6 +4,7 @@ import { Box, Card, IconButton, Input, Text } from "@chakra-ui/react";
 import { LuSearch } from "react-icons/lu";
 
 import { StockInfo } from "@/src/features/stocks/types";
+import { rankStockSuggestions } from "@/src/features/stocks/stockSearchRank";
 
 const MAX_SUGGESTIONS = 8;
 
@@ -26,15 +27,6 @@ interface StockSearchBarFilterProps extends StockSearchBarBaseProps {
 }
 
 type StockSearchBarProps = StockSearchBarSelectProps | StockSearchBarFilterProps;
-
-const matchesStock = (stock: StockInfo, query: string) => {
-  const normalized = query.toLowerCase();
-  return (
-    stock.symbol.toLowerCase().includes(normalized) ||
-    stock.displaySymbol.toLowerCase().includes(normalized) ||
-    stock.description.toLowerCase().includes(normalized)
-  );
-};
 
 const StockSearchBar = (props: StockSearchBarProps) => {
   const {
@@ -79,7 +71,7 @@ const StockSearchBar = (props: StockSearchBarProps) => {
 
   const suggestions = useMemo(() => {
     if (!stocks || !inputValue.trim()) return [];
-    return stocks.filter((stock) => matchesStock(stock, inputValue.trim())).slice(0, MAX_SUGGESTIONS);
+    return rankStockSuggestions(stocks, inputValue, MAX_SUGGESTIONS);
   }, [stocks, inputValue]);
 
   const selectSymbol = (symbol: string) => {

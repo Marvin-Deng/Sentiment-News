@@ -44,7 +44,7 @@ const InsiderPage = () => {
 
   return (
     <PageLayout
-      title="Insider"
+      title="Insider Trading"
       subtitle="Insider sentiment and transactions for the past 6 months"
       searchBar={<StockSearchBar selectOnly value={symbol} onSymbolSelect={setSymbol} />}
     >

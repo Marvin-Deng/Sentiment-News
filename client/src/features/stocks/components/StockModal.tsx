@@ -157,12 +157,11 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
                 rel="noopener noreferrer"
                 _hover={{ textDecoration: "underline" }}
               >
-                {companyName}
+                {companyName} ({ticker})
               </Link>
             ) : (
-              companyName
-            )}{" "}
-            ({ticker})
+              `${companyName} (${ticker})`
+            )}
           </Text>
           <IconButton aria-label="Close modal" variant="ghost" size="sm" onClick={onClose}>
             ✕

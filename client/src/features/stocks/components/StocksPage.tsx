@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Box, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
-import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
@@ -12,8 +11,8 @@ import PageLayout from "@/src/components/layout/PageLayout";
 import StockSearchBar from "@/src/components/navbar/StockSearchBar";
 
 import { StockInfo } from "@/src/features/stocks/types";
+import { sortStocksBySearch } from "@/src/features/stocks/stockSearchRank";
 import { useSearch } from "@/src/providers/SearchProvider";
-import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 import { compareExchangeMics, formatExchangeLabel } from "@/src/constants/exchanges";
 
 const PAGE_SIZE = 10;
@@ -22,7 +21,6 @@ const StocksPage = () => {
   const router = useRouter();
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
-  const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
 
   const { searchQuery, updateSearchQuery } = useSearch();
@@ -53,26 +51,19 @@ const StocksPage = () => {
   const filteredStockInfo = useMemo(() => {
     if (!stockInfo) return null;
 
-    const searchTerms = searchQuery.split(" ");
     const selectedMic = selectedExchange != null ? exchangeMics[selectedExchange] : null;
 
-    return stockInfo.filter((stock) => {
-      const matchesSearch =
-        searchTerms.length === 0 ||
-        searchTerms.some(
-          (term) =>
-            stock.displaySymbol.toLowerCase().includes(term) ||
-            stock.description
-              .toLowerCase()
-              .split(" ")
-              .some((descWord) => descWord.includes(term))
-        );
-      const matchesTickers = selectedTickers.length === 0 || selectedTickers.includes(stock.symbol);
+    let results = stockInfo.filter((stock) => {
       const matchesExchange = !selectedMic || stock.mic === selectedMic;
-
-      return matchesSearch && matchesTickers && matchesExchange;
+      return matchesExchange;
     });
-  }, [stockInfo, searchQuery, selectedTickers, selectedExchange, exchangeMics]);
+
+    if (searchQuery.trim()) {
+      results = sortStocksBySearch(results, searchQuery);
+    }
+
+    return results;
+  }, [stockInfo, searchQuery, selectedExchange, exchangeMics]);
 
   const loadNextPageStocks = () => {
     setPage((prev) => prev + 1);
@@ -83,20 +74,12 @@ const StocksPage = () => {
   };
 
   const filters = (
-    <>
-      <MultiSelectDropdown
-        selectName="Stocks"
-        originalOptions={DEFAULT_TICKERS}
-        selectedOptions={selectedTickers}
-        setSelectedOptions={setSelectedTickers}
-      />
-      <SingleSelectDropdown
-        placeholder="Exchange"
-        originalOptions={exchangeOptions}
-        selectedOption={selectedExchange}
-        setSelectedOption={setSelectedExchange}
-      />
-    </>
+    <SingleSelectDropdown
+      placeholder="Exchange"
+      originalOptions={exchangeOptions}
+      selectedOption={selectedExchange}
+      setSelectedOption={setSelectedExchange}
+    />
   );
 
   return (

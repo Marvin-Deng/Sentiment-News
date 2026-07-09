@@ -18,6 +18,11 @@ interface InsiderSentimentChartProps {
 
 type ChartPoint = InsiderSentiment & { label: string };
 
+const MSPR_MIN = -100;
+const MSPR_MAX = 100;
+const MSPR_TICKS = [-100, -50, 0, 50, 100];
+const MSPR_DOMAIN_MIN = MSPR_MIN - 15;
+
 const formatMonthYear = (year: number, month: number) =>
   new Date(year, month - 1).toLocaleDateString("en-US", { month: "short", year: "numeric" });
 
@@ -84,7 +89,7 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
       </Text>
       <Box h="320px">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ left: 10, right: 20, top: 10, bottom: 10 }}>
+          <AreaChart data={chartData} margin={{ left: 10, right: 20, top: 10, bottom: 16 }}>
             <defs>
               <linearGradient id="msprFill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor={fillColor} stopOpacity={0.8} />
@@ -99,7 +104,8 @@ const InsiderSentimentChart = ({ sentiment }: InsiderSentimentChartProps) => {
               interval="preserveStartEnd"
             />
             <YAxis
-              domain={[-100, 100]}
+              domain={[MSPR_DOMAIN_MIN, MSPR_MAX]}
+              ticks={MSPR_TICKS}
               stroke={axisColor}
               tickLine={false}
               tick={{ fill: axisColor, fontSize: 10 }}

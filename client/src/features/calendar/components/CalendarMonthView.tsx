@@ -8,6 +8,7 @@ import { DayEvents } from "@/src/features/calendar/types";
 
 interface CalendarMonthViewProps {
   daysEvents: DayEvents[];
+  rangeEndDate: string;
 }
 
 interface CalendarDayButtonProps {
@@ -20,6 +21,28 @@ interface CalendarDayButtonProps {
   onSelect: (dateKey: string) => void;
   onHoverStart?: () => void;
 }
+
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const TOOLTIP_ITEM_LIMIT = 5;
+
+const toDateKey = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+const isPastDate = (day: Date, today: Date) => startOfDay(day) < startOfDay(today);
+
+const isAfterRangeEnd = (day: Date, rangeEnd: Date) => startOfDay(day) > startOfDay(rangeEnd);
+
+const isSameMonth = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
+
+type TooltipItem =
+  | { type: "earnings"; key: string; symbol: string }
+  | { type: "ipo"; key: string; name: string };
 
 const CalendarDayButton = ({
   dateKey,
@@ -75,26 +98,6 @@ const CalendarDayButton = ({
   );
 };
 
-const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const TOOLTIP_ITEM_LIMIT = 5;
-
-const toDateKey = (date: Date) =>
-  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-
-const isSameDay = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-
-const startOfDay = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
-
-const isPastDate = (day: Date, today: Date) => startOfDay(day) < startOfDay(today);
-
-const isSameMonth = (a: Date, b: Date) =>
-  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
-
-type TooltipItem =
-  | { type: "earnings"; key: string; symbol: string }
-  | { type: "ipo"; key: string; name: string };
-
 const DayEventsTooltipContent = ({ dayEvents }: { dayEvents: DayEvents }) => {
   const items: TooltipItem[] = [
     ...dayEvents.earnings.map((event, index) => ({
@@ -142,8 +145,9 @@ const DayEventsTooltipContent = ({ dayEvents }: { dayEvents: DayEvents }) => {
   );
 };
 
-const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
+const CalendarMonthView = ({ daysEvents, rangeEndDate }: CalendarMonthViewProps) => {
   const today = useMemo(() => new Date(), []);
+  const rangeEnd = useMemo(() => new Date(`${rangeEndDate}T00:00:00`), [rangeEndDate]);
   const [monthCursor, setMonthCursor] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState<string | null>(() => toDateKey(new Date()));
   const [hoveredDate, setHoveredDate] = useState<string | null>(null);
@@ -187,6 +191,8 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
   const monthLabel = monthCursor.toLocaleDateString("en-US", { month: "long", year: "numeric" });
   const selectedDayEvents = selectedDate ? eventsByDate.get(selectedDate) : undefined;
   const canGoToPreviousMonth = !isCurrentMonthView;
+  const nextMonthStart = new Date(monthCursor.getFullYear(), monthCursor.getMonth() + 1, 1);
+  const canGoToNextMonth = startOfDay(nextMonthStart) <= startOfDay(rangeEnd);
 
   return (
     <Box>
@@ -214,6 +220,9 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
           size="lg"
           fontSize="2xl"
           lineHeight={1}
+          disabled={!canGoToNextMonth}
+          opacity={canGoToNextMonth ? 1 : 0}
+          pointerEvents={canGoToNextMonth ? "auto" : "none"}
           onClick={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
         >
           ›
@@ -236,9 +245,10 @@ const CalendarMonthView = ({ daysEvents }: CalendarMonthViewProps) => {
             const isToday = isSameDay(day, today);
             const isSelected = dateKey === selectedDate;
             const isPast = isPastDate(day, today);
+            const isBeyondRange = isAfterRangeEnd(day, rangeEnd);
             const isOutsideMonth = day.getMonth() !== monthCursor.getMonth();
 
-            if (isPast) {
+            if (isPast || isBeyondRange) {
               return <Box key={dateKey} minH="64px" />;
             }
 

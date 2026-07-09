@@ -1,7 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import NextLink from "next/link";
-import { Box, Center, Heading, Link, Table, Text } from "@chakra-ui/react";
+import { Box, Center, Flex, Heading, Icon, Link, Table, Text } from "@chakra-ui/react";
+import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import { InsiderTransaction, TRANSACTION_CODE_LABELS } from "@/src/features/insider/types";
@@ -9,21 +10,67 @@ import { formatDate } from "@/src/utils/dateUtils";
 
 const PAGE_SIZE = 10;
 
+type ChangeSort = "default" | "asc" | "desc";
+
+const cycleChangeSort = (current: ChangeSort): ChangeSort => {
+  if (current === "default") return "asc";
+  if (current === "asc") return "desc";
+  return "default";
+};
+
+const compareInsiderTransactions = (a: InsiderTransaction, b: InsiderTransaction) => {
+  const dateDiff = new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime();
+  if (dateDiff !== 0) return dateDiff;
+
+  const nameDiff = a.name.localeCompare(b.name);
+  if (nameDiff !== 0) return nameDiff;
+
+  const changeRank = (change: number) => (change > 0 ? 0 : change < 0 ? 1 : 2);
+  const changeDiff = changeRank(a.change) - changeRank(b.change);
+  if (changeDiff !== 0) return changeDiff;
+
+  const shareDiff = b.share - a.share;
+  if (shareDiff !== 0) return shareDiff;
+
+  return new Date(a.filingDate).getTime() - new Date(b.filingDate).getTime();
+};
+
 interface InsiderTransactionsTableProps {
   transactions: InsiderTransaction[];
   symbol: string;
 }
 
+const TransactionsHeading = ({ symbol, mb }: { symbol: string; mb: number }) => (
+  <Heading size="sm" mb={mb}>
+    <Link asChild fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
+      <NextLink href={`/stocks/${symbol}`}>{symbol}</NextLink>
+    </Link>{" "}
+    Insider Transactions
+  </Heading>
+);
+
+const formatTransactionPrice = (price?: number) => {
+  if (price == null || price === 0) return "—";
+  return `$${price.toFixed(2)}`;
+};
+
 const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsTableProps) => {
   const [page, setPage] = useState(1);
+  const [changeSort, setChangeSort] = useState<ChangeSort>("default");
 
-  const sorted = useMemo(
-    () =>
-      [...transactions].sort(
-        (a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime(),
-      ),
-    [transactions],
-  );
+  const sorted = useMemo(() => {
+    const rows = [...transactions];
+
+    if (changeSort === "default") {
+      return rows.sort(compareInsiderTransactions);
+    }
+
+    return rows.sort((a, b) => {
+      const changeDiff = changeSort === "asc" ? a.change - b.change : b.change - a.change;
+      if (changeDiff !== 0) return changeDiff;
+      return compareInsiderTransactions(a, b);
+    });
+  }, [transactions, changeSort]);
 
   const visible = sorted.slice(0, page * PAGE_SIZE);
   const hasMore = visible.length < sorted.length;
@@ -31,9 +78,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
   if (sorted.length === 0) {
     return (
       <Box mt={8}>
-        <Heading size="sm" mb={2}>
-          Insider Transactions
-        </Heading>
+        <TransactionsHeading symbol={symbol} mb={2} />
         <Text color="fg.muted">No transactions found for {symbol} in this period.</Text>
       </Box>
     );
@@ -41,9 +86,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
 
   return (
     <Box mt={8}>
-      <Heading size="sm" mb={4}>
-        Insider Transactions
-      </Heading>
+      <TransactionsHeading symbol={symbol} mb={4} />
       <Table.Root variant="outline" size="sm">
         <Table.Header>
           <Table.Row>
@@ -51,8 +94,32 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
             <Table.ColumnHeader>Transaction Date</Table.ColumnHeader>
             <Table.ColumnHeader>Filing Date</Table.ColumnHeader>
             <Table.ColumnHeader>Type</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">Change</Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="right">Shares Held</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right">
+              <Flex
+                as="button"
+                align="center"
+                justify="flex-end"
+                gap={1}
+                w="full"
+                cursor="pointer"
+                onClick={() => {
+                  setChangeSort((current) => cycleChangeSort(current));
+                  setPage(1);
+                }}
+              >
+                Change
+                <Icon boxSize={3.5} color={changeSort === "default" ? "fg.muted" : "fg"}>
+                  {changeSort === "asc" ? (
+                    <LuArrowUp />
+                  ) : changeSort === "desc" ? (
+                    <LuArrowDown />
+                  ) : (
+                    <LuArrowUpDown />
+                  )}
+                </Icon>
+              </Flex>
+            </Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="right">Shares Held After</Table.ColumnHeader>
             <Table.ColumnHeader textAlign="right">Price</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
@@ -76,9 +143,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
                   {tx.change.toLocaleString()}
                 </Table.Cell>
                 <Table.Cell textAlign="right">{tx.share.toLocaleString()}</Table.Cell>
-                <Table.Cell textAlign="right">
-                  {tx.transactionPrice != null ? `$${tx.transactionPrice.toFixed(2)}` : "—"}
-                </Table.Cell>
+                <Table.Cell textAlign="right">{formatTransactionPrice(tx.transactionPrice)}</Table.Cell>
               </Table.Row>
             );
           })}
@@ -86,6 +151,7 @@ const InsiderTransactionsTable = ({ transactions, symbol }: InsiderTransactionsT
       </Table.Root>
 
       <Text mt={3} fontSize="sm" color="fg.muted">
+        Shares Held After reflects holdings following that filing line only, not total current ownership.
         Showing {visible.length} of {sorted.length} transaction{sorted.length === 1 ? "" : "s"}. View{" "}
         <Link asChild fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
           <NextLink href={`/stocks/${symbol}`}>{symbol}</NextLink>
