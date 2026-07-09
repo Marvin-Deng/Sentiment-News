@@ -1,4 +1,5 @@
 import { InsiderSentiment, InsiderTransaction } from "@/src/features/insider/types";
+import { fetchJson } from "@/src/utils/fetchJson";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
 const INSIDER_TTL_SECONDS = 86400;
@@ -12,13 +13,13 @@ export const fetchInsiderSentiment = async (
   const cached = getCached<InsiderSentiment[]>(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(
+  const { insider_sentiment } = await fetchJson<{ insider_sentiment: InsiderSentiment[] }>(
     `/api/stock/insider_sentiment?symbol=${symbol}&from=${from}&to=${to}`,
+    undefined,
+    "fetchInsiderSentiment",
   );
-  if (!res.ok) throw new Error(`fetchInsiderSentiment failed: ${res.status}`);
-  const { insider_sentiment } = await res.json();
   setCached(cacheKey, insider_sentiment, INSIDER_TTL_SECONDS);
-  return insider_sentiment as InsiderSentiment[];
+  return insider_sentiment;
 };
 
 export const fetchInsiderTransactions = async (
@@ -34,9 +35,11 @@ export const fetchInsiderTransactions = async (
   if (from) params.set("from", from);
   if (to) params.set("to", to);
 
-  const res = await fetch(`/api/stock/insider_transactions?${params.toString()}`);
-  if (!res.ok) throw new Error(`fetchInsiderTransactions failed: ${res.status}`);
-  const { insider_transactions } = await res.json();
+  const { insider_transactions } = await fetchJson<{ insider_transactions: InsiderTransaction[] }>(
+    `/api/stock/insider_transactions?${params.toString()}`,
+    undefined,
+    "fetchInsiderTransactions",
+  );
   setCached(cacheKey, insider_transactions, INSIDER_TTL_SECONDS);
-  return insider_transactions as InsiderTransaction[];
+  return insider_transactions;
 };

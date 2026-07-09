@@ -1,3 +1,4 @@
+import { fetchJson } from "@/src/utils/fetchJson";
 import { Article } from "./types";
 
 export const fetchArticles = async (
@@ -16,8 +17,10 @@ export const fetchArticles = async (
   if (publicationDate) {
     params.set("publication_date", publicationDate);
   }
-  const res = await fetch(`/api/article/news?${params}`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`fetchArticles failed: ${res.status}`);
-  const { articles } = await res.json();
-  return articles as Article[];
+  const { articles } = await fetchJson<{ articles: Article[] }>(
+    `/api/article/news?${params}`,
+    { cache: "no-store" },
+    "fetchArticles",
+  );
+  return articles;
 };
