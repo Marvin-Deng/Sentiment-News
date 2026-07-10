@@ -1,0 +1,41 @@
+name: Cleanup Articles
+
+on:
+  workflow_dispatch:
+    inputs:
+      ticker:
+        description: "Only delete articles for this ticker (optional; combined with domain via AND)"
+        required: false
+        type: string
+      domain:
+        description: "Only delete articles from this source domain, e.g. chartmill.com (optional; combined with ticker via AND)"
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Run cleanup-articles utility
+        working-directory: jobs
+        env:
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+          TICKER: ${{ inputs.ticker }}
+          DOMAIN: ${{ inputs.domain }}
+        run: go run ./utility/cleanup-articles
