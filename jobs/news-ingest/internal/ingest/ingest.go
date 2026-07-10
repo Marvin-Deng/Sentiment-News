@@ -35,7 +35,9 @@ func NewService(cfg config.Config, store *repository.Store) *Service {
 }
 
 type Result struct {
-	ProcessedTitles []string
+	ArticlesPushed     int64
+	RateLimitHits      int64
+	UnrecognizedErrors int64
 }
 
 func (s *Service) Run(ctx context.Context) (Result, error) {
@@ -45,9 +47,8 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 	}
 
 	var (
-		mu          sync.Mutex
-		processed   = make(map[int]struct{})
-		titles      []string
+		mu           sync.Mutex
+		processed    = make(map[int]struct{})
 		articleCount int64
 	)
 
@@ -57,7 +58,7 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 	for _, ticker := range s.cfg.Tickers {
 		ticker := ticker
 		group.Go(func() error {
-			return s.processTicker(ctx, ticker, dateToday, processed, &mu, &titles, &articleCount)
+			return s.processTicker(ctx, ticker, dateToday, processed, &mu, &articleCount)
 		})
 	}
 
@@ -65,7 +66,12 @@ func (s *Service) Run(ctx context.Context) (Result, error) {
 		return Result{}, err
 	}
 
-	return Result{ProcessedTitles: titles}, nil
+	stats := s.sentiment.Stats()
+	return Result{
+		ArticlesPushed:     articleCount,
+		RateLimitHits:      stats.RateLimitHits,
+		UnrecognizedErrors: stats.UnrecognizedErrors,
+	}, nil
 }
 
 func (s *Service) processTicker(
@@ -73,7 +79,6 @@ func (s *Service) processTicker(
 	ticker, dateToday string,
 	processed map[int]struct{},
 	mu *sync.Mutex,
-	titles *[]string,
 	articleCount *int64,
 ) error {
 	articles, err := s.finnhub.CompanyNews(ctx, ticker, dateToday, dateToday)
@@ -97,6 +102,7 @@ func (s *Service) processTicker(
 	tickerDocID := repository.TickerDocID(ticker, marketDate)
 
 	articleGroup, articleCtx := errgroup.WithContext(ctx)
+	articleGroup.SetLimit(1)
 	for _, article := range validArticles {
 		// Check if we've hit the daily limit
 		if atomic.LoadInt64(articleCount) >= maxArticlesPerDay {
@@ -106,7 +112,7 @@ func (s *Service) processTicker(
 		
 		article := article
 		articleGroup.Go(func() error {
-			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, titles, articleCount)
+			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, articleCount)
 		})
 	}
 
@@ -119,7 +125,6 @@ func (s *Service) addArticle(
 	tickerDocID, ticker, marketDate string,
 	processed map[int]struct{},
 	mu *sync.Mutex,
-	titles *[]string,
 	articleCount *int64,
 ) error {
 	mu.Lock()
@@ -165,10 +170,6 @@ func (s *Service) addArticle(
 	}
 
 	atomic.AddInt64(articleCount, 1)
-
-	mu.Lock()
-	*titles = append(*titles, article.Headline)
-	mu.Unlock()
 
 	log.Printf("created article: %s on %s", ticker, marketDate)
 	return nil

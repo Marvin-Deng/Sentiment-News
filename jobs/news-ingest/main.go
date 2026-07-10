@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"os"
 	"os/signal"
@@ -41,20 +40,11 @@ func main() {
 		log.Fatalf("ingest failed: %v", err)
 	}
 
-	response := map[string]any{
-		"status": map[string]any{
-			"message": "SUCCESS",
-			"rcode":   200,
-		},
-		"num_returned": len(result.ProcessedTitles),
-		"processed":    result.ProcessedTitles,
-		"duration_ms":  time.Since(start).Milliseconds(),
-	}
-
-	payload, err := json.Marshal(response)
-	if err != nil {
-		log.Fatalf("marshal response: %v", err)
-	}
-
-	log.Printf("job complete: %s", string(payload))
+	log.Printf(
+		"job complete: articles=%d rate_limit_hits=%d unrecognized_sentiment=%d duration_ms=%d",
+		result.ArticlesPushed,
+		result.RateLimitHits,
+		result.UnrecognizedErrors,
+		time.Since(start).Milliseconds(),
+	)
 }
