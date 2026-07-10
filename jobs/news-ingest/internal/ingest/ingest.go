@@ -170,7 +170,7 @@ func (s *Service) processTicker(
 			log.Printf("reached daily article limit of %d", maxArticlesPerDay)
 			break
 		}
-		
+
 		article := article
 		articleGroup.Go(func() error {
 			return s.addArticle(articleCtx, article, tickerDocID, ticker, marketDate, processed, mu, articleCount)
