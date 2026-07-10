@@ -33,7 +33,14 @@ const buttonRecipe = defineRecipe({
 });
 
 const datePickerRecipe = defineSlotRecipe({
-  slots: ["trigger", "tableCellTrigger", "prevTrigger", "nextTrigger", "viewTrigger", "clearTrigger"],
+  slots: [
+    "trigger",
+    "tableCellTrigger",
+    "prevTrigger",
+    "nextTrigger",
+    "viewTrigger",
+    "clearTrigger",
+  ],
   base: {
     trigger: { cursor: "pointer" },
     tableCellTrigger: { cursor: "pointer" },
@@ -67,21 +74,36 @@ const textStyles = defineTextStyles({
 export const CHART_AXIS_FONT_SIZE = 13;
 
 const config = defineConfig({
+  globalCss: {
+    "svg:focus, svg:focus-visible, svg:focus-within": { outline: "none !important" },
+    ".recharts-wrapper:focus, .recharts-wrapper *:focus, .recharts-surface:focus, .recharts-surface *:focus":
+      { outline: "none !important" },
+    "table:focus, th:focus, td:focus, tr:focus": { outline: "none" },
+  },
   theme: {
     textStyles,
     semanticTokens: {
       colors: {
         border: {
           control: {
-            value: { _light: "{colors.gray.400}", _dark: "{colors.whiteAlpha.400}" },
+            value: {
+              _light: "{colors.gray.400}",
+              _dark: "{colors.whiteAlpha.400}",
+            },
           },
         },
         positive: {
           DEFAULT: {
-            value: { _light: "{colors.green.600}", _dark: "{colors.green.600}" },
+            value: {
+              _light: "{colors.green.600}",
+              _dark: "{colors.green.600}",
+            },
           },
           emphasized: {
-            value: { _light: "{colors.green.700}", _dark: "{colors.green.700}" },
+            value: {
+              _light: "{colors.green.700}",
+              _dark: "{colors.green.700}",
+            },
           },
         },
         negative: {

@@ -16,6 +16,7 @@ import InsiderStockPriceChartTooltip from "@/src/features/insider/components/Ins
 import { InsiderTransaction, ChartPoint } from "@/src/features/insider/types";
 import { PriceData } from "@/src/features/stocks/types";
 import { formatNumber } from "@/src/utils/numberUtils";
+import { toMarketDateISO, parseMarketDate } from "@/src/utils/dateUtils";
 import { CHART_AXIS_FONT_SIZE } from "@/src/theme/system";
 
 interface InsiderStockPriceChartProps {
@@ -25,29 +26,16 @@ interface InsiderStockPriceChartProps {
   companyName?: string;
 }
 
-const monthLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { month: "short" });
+const monthLabel = (date: string) => parseMarketDate(date).format("MMM");
 
-const parseLocalDate = (dateStr: string): Date => {
-  const [year, month, day] = dateStr.split('-').map(Number);
-  return new Date(year, month - 1, day);
-};
-
-const getLocalDateString = (date: Date | string): string => {
-  const dateObj = date instanceof Date ? date : new Date(date);
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
-const getMonthStartTicks = (data: PriceData[] | ChartPoint[]): any[] => {
-  const ticks: any[] = [];
+const getMonthStartTicks = (data: PriceData[] | ChartPoint[]): string[] => {
+  const ticks: string[] = [];
   let lastMonthKey = "";
   for (const point of data) {
-    const d = point.date instanceof Date ? point.date : new Date(point.date);
-    const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+    const d = parseMarketDate(point.date);
+    const monthKey = `${d.year()}-${d.month()}`;
     if (monthKey !== lastMonthKey) {
-      ticks.push(point.date as unknown as string);
+      ticks.push(point.date);
       lastMonthKey = monthKey;
     }
   }
@@ -99,30 +87,15 @@ const InsiderStockPriceChart = ({
     const transactionMap = new Map<string, InsiderTransaction[]>();
 
     transactions.forEach((tx) => {
-      const date = getLocalDateString(tx.transactionDate);
+      const date = toMarketDateISO(tx.transactionDate);
+      if (!date) return;
       if (!transactionMap.has(date)) {
         transactionMap.set(date, []);
       }
       transactionMap.get(date)!.push(tx);
     });
 
-    const priceMap = new Map<string, PriceData>();
-    priceData.forEach((price) => {
-      const dateObj = price.date instanceof Date ? price.date : new Date(price.date);
-      const dateStr = getLocalDateString(dateObj);
-      priceMap.set(dateStr, { ...price, date: dateObj });
-    });
-
-    const combinedData: ChartPoint[] = [];
-    const processedDates = new Set<string>();
-
-    priceData.forEach((price) => {
-      const dateObj = price.date instanceof Date ? price.date : new Date(price.date);
-      const dateStr = getLocalDateString(dateObj);
-      processedDates.add(dateStr);
-
-      const dayTransactions = transactionMap.get(dateStr) || [];
-
+    const aggregateTrades = (dayTransactions: InsiderTransaction[]) => {
       let buyChange = 0;
       let sellChange = 0;
       let buyCount = 0;
@@ -138,90 +111,60 @@ const InsiderStockPriceChart = ({
         }
       });
 
-      const netChange = buyChange - sellChange;
+      return { netChange: buyChange - sellChange, buyChange, sellChange, buyCount, sellCount };
+    };
+
+    const tradeInfoFor = (dateStr: string, dayTransactions: InsiderTransaction[]) => ({
+      ...aggregateTrades(dayTransactions),
+      transactionDate: dateStr,
+      trades: dayTransactions.map((tx) => ({
+        name: tx.name,
+        change: tx.change,
+        isBuy: tx.change > 0,
+        tradePrice: tx.transactionPrice,
+      })),
+    });
+
+    const combinedData: ChartPoint[] = [];
+    const processedDates = new Set<string>();
+
+    priceData.forEach((price) => {
+      const dateStr = toMarketDateISO(price.date);
+      if (!dateStr) return;
+      processedDates.add(dateStr);
+
+      const dayTransactions = transactionMap.get(dateStr) || [];
 
       combinedData.push({
         ...price,
-        date: dateObj,
-        tradeInfo:
-          dayTransactions.length > 0
-            ? {
-                netChange,
-                buyChange,
-                sellChange,
-                buyCount,
-                sellCount,
-                transactionDate: dateObj,
-                trades: dayTransactions.map((tx) => ({
-                  name: tx.name,
-                  change: tx.change,
-                  isBuy: tx.change > 0,
-                  tradePrice: tx.transactionPrice,
-                })),
-              }
-            : undefined,
-      } as ChartPoint);
+        date: dateStr,
+        tradeInfo: dayTransactions.length > 0 ? tradeInfoFor(dateStr, dayTransactions) : undefined,
+      });
     });
 
     transactionMap.forEach((dayTransactions, dateStr) => {
-      if (!processedDates.has(dateStr) && priceData.length > 0) {
-        const txDate = parseLocalDate(dateStr);
-        let closestPrice = priceData[0];
-        let minDiff = Math.abs(new Date(closestPrice.date).getTime() - txDate.getTime());
+      if (processedDates.has(dateStr) || priceData.length === 0) return;
 
-        priceData.forEach((price) => {
-          const priceDateObj = price.date instanceof Date ? price.date : new Date(price.date);
-          const diff = Math.abs(priceDateObj.getTime() - txDate.getTime());
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestPrice = price;
-          }
-        });
+      const txDate = parseMarketDate(dateStr);
+      let closestPrice = priceData[0];
+      let minDiff = Math.abs(parseMarketDate(closestPrice.date).diff(txDate));
 
-        // Aggregate trades for the day
-        let buyChange = 0;
-        let sellChange = 0;
-        let buyCount = 0;
-        let sellCount = 0;
+      priceData.forEach((price) => {
+        const diff = Math.abs(parseMarketDate(price.date).diff(txDate));
+        if (diff < minDiff) {
+          minDiff = diff;
+          closestPrice = price;
+        }
+      });
 
-        dayTransactions.forEach((tx) => {
-          if (tx.change > 0) {
-            buyChange += tx.change;
-            buyCount++;
-          } else if (tx.change < 0) {
-            sellChange += Math.abs(tx.change);
-            sellCount++;
-          }
-        });
-
-        const netChange = buyChange - sellChange;
-
-        combinedData.push({
-          ...closestPrice,
-          date: txDate,
-          tradeInfo: {
-            netChange,
-            buyChange,
-            sellChange,
-            buyCount,
-            sellCount,
-            transactionDate: txDate,
-            trades: dayTransactions.map((tx) => ({
-              name: tx.name,
-              change: tx.change,
-              isBuy: tx.change > 0,
-              tradePrice: tx.transactionPrice,
-            })),
-          },
-        } as ChartPoint);
-      }
+      combinedData.push({
+        ...closestPrice,
+        date: dateStr,
+        tradeInfo: tradeInfoFor(dateStr, dayTransactions),
+      });
     });
 
-    combinedData.sort((a, b) => {
-      const dateA = a.date instanceof Date ? a.date : new Date(a.date);
-      const dateB = b.date instanceof Date ? b.date : new Date(b.date);
-      return dateA.getTime() - dateB.getTime();
-    });
+    combinedData.sort((a, b) => parseMarketDate(a.date).diff(parseMarketDate(b.date)));
 
     return combinedData;
   }, [priceData, transactions]);

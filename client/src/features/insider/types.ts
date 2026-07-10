@@ -20,7 +20,7 @@ export type InsiderTransaction = {
 export type SentimentChartPoint = InsiderSentiment & { label: string };
 
 export type ChartPoint = {
-  date: Date | string;
+  date: string;
   close: number;
   open?: number;
   low?: number;
@@ -39,7 +39,7 @@ export type ChartPoint = {
     sellChange: number;
     buyCount: number;
     sellCount: number;
-    transactionDate: Date;
+    transactionDate: string;
     trades: Array<{
       name: string;
       change: number;

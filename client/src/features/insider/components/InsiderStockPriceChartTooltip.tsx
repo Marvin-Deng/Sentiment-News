@@ -1,6 +1,7 @@
 import { Box } from "@chakra-ui/react";
 
 import { formatCurrency, formatNumber } from "@/src/utils/numberUtils";
+import { parseMarketDate } from "@/src/utils/dateUtils";
 import { ChartPoint } from "@/src/features/insider/types";
 
 interface InsiderStockPriceChartTooltipProps {
@@ -38,7 +39,7 @@ const InsiderStockPriceChartTooltip = ({
   return (
     <Box bg="bg" borderWidth="1px" borderColor="border" borderRadius="md" p={3} boxShadow="md" fontSize="sm" minW="280px">
       <Box textStyle="tooltipLabel" mb={2}>
-        {new Date(data.tradeInfo?.transactionDate ?? label ?? data.date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+        {parseMarketDate(data.tradeInfo?.transactionDate ?? label ?? data.date).format("MMM D, YYYY")}
       </Box>
       <Box mb={2}>{formatCurrency(data.close)}</Box>
       {data.tradeInfo && data.tradeInfo.trades.length > 0 && (
