@@ -11,19 +11,19 @@ export const rankStockMatch = (stock: StockInfo, query: string): number | null =
   if (symbol.startsWith(q)) return 100 + (symbol.length - q.length);
   if (display.startsWith(q)) return 110 + (display.length - q.length);
 
-  if (q.length > symbol.length && q.startsWith(symbol)) return 120 + (q.length - symbol.length);
-  if (q.length > display.length && q.startsWith(display)) return 130 + (q.length - display.length);
-
-  if (symbol.includes(q)) return 200 + symbol.indexOf(q);
-  if (display.includes(q)) return 210 + display.indexOf(q);
-
-  if (name.startsWith(q)) return 300 + name.length;
+  if (name.startsWith(q)) return 200 + name.length;
 
   const wordPrefixIndex = name.split(/\s+/).findIndex((word) => word.startsWith(q));
-  if (wordPrefixIndex >= 0) return 320 + wordPrefixIndex * 10 + name.length;
+  if (wordPrefixIndex >= 0) return 220 + wordPrefixIndex * 10 + name.length;
+
+  if (q.length > symbol.length && q.startsWith(symbol)) return 300 + (q.length - symbol.length);
+  if (q.length > display.length && q.startsWith(display)) return 310 + (q.length - display.length);
+
+  if (symbol.includes(q)) return 400 + symbol.indexOf(q);
+  if (display.includes(q)) return 410 + display.indexOf(q);
 
   const nameIndex = name.indexOf(q);
-  if (nameIndex >= 0) return 400 + nameIndex * 10 + name.length;
+  if (nameIndex >= 0) return 500 + nameIndex * 10 + name.length;
 
   return null;
 };
