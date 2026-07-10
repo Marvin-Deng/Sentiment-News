@@ -32,10 +32,10 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Run stock-price job
-        working-directory: jobs/stock-price
+        working-directory: jobs
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           MARKET_DATE: ${{ inputs.market_date }}
-        run: go run .
+        run: go run ./stock-price

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Formats and tests the Go jobs before allowing a commit that touches them.
+# Formats and tests the Go jobs module before allowing a commit that touches it.
 # Installed via `git config core.hooksPath jobs`.
 set -eu
 
@@ -8,27 +8,18 @@ cd "$repo_root"
 
 staged_files=$(git diff --cached --name-only --diff-filter=ACM)
 
-go_modules=""
-for mod_dir in jobs/news-ingest jobs/stock-price; do
-  if echo "$staged_files" | grep -q "^$mod_dir/"; then
-    go_modules="$go_modules $mod_dir"
-  fi
-done
-
-if [ -z "$go_modules" ]; then
+if ! echo "$staged_files" | grep -q "^jobs/"; then
   exit 0
 fi
 
-for mod_dir in $go_modules; do
-  echo "==> gofmt: $mod_dir"
-  unformatted=$(gofmt -l "$mod_dir")
-  if [ -n "$unformatted" ]; then
-    echo "gofmt found unformatted files in $mod_dir:"
-    echo "$unformatted"
-    echo "Run: gofmt -w $mod_dir"
-    exit 1
-  fi
+echo "==> gofmt: jobs"
+unformatted=$(gofmt -l jobs)
+if [ -n "$unformatted" ]; then
+  echo "gofmt found unformatted files:"
+  echo "$unformatted"
+  echo "Run: gofmt -w jobs"
+  exit 1
+fi
 
-  echo "==> go test: $mod_dir"
-  (cd "$mod_dir" && go test ./...)
-done
+echo "==> go test: jobs"
+(cd jobs && go test ./...)

@@ -9,7 +9,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
 	"github.com/sentiment-news/jobs/stock-price/internal/config"
 	"github.com/sentiment-news/jobs/stock-price/internal/fetch"
 	"github.com/sentiment-news/jobs/stock-price/internal/repository"
@@ -18,8 +17,6 @@ import (
 func main() {
 	log.SetOutput(os.Stdout)
 	log.SetFlags(log.LstdFlags | log.LUTC)
-
-	_ = godotenv.Load("../.env", ".env")
 
 	cfg, err := config.Load()
 	if err != nil {

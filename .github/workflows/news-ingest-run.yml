@@ -32,10 +32,10 @@ jobs:
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
 
       - name: Run news-ingest job
-        working-directory: jobs/news-ingest
+        working-directory: jobs
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
           NEWS_DATE: ${{ inputs.date }}
-        run: go run .
+        run: go run ./news-ingest
