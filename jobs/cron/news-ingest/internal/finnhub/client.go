@@ -8,7 +8,11 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"golang.org/x/time/rate"
 )
+
+const finnhubRequestsPerMinute = 50
 
 type Article struct {
 	ID       int    `json:"id"`
@@ -29,6 +33,7 @@ type CompanyProfile struct {
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
+	limiter    *rate.Limiter
 }
 
 func NewClient(apiKey string) *Client {
@@ -37,7 +42,15 @@ func NewClient(apiKey string) *Client {
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
+		limiter: rate.NewLimiter(rate.Every(time.Minute/finnhubRequestsPerMinute), 1),
 	}
+}
+
+func (c *Client) do(ctx context.Context, req *http.Request) (*http.Response, error) {
+	if err := c.limiter.Wait(ctx); err != nil {
+		return nil, err
+	}
+	return c.httpClient.Do(req)
 }
 
 func (c *Client) CompanyNews(ctx context.Context, ticker, dateFrom, dateTo string) ([]Article, error) {
@@ -58,7 +71,7 @@ func (c *Client) CompanyNews(ctx context.Context, ticker, dateFrom, dateTo strin
 		return nil, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.do(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +108,7 @@ func (c *Client) CompanyProfile(ctx context.Context, ticker string) (CompanyProf
 		return CompanyProfile{}, err
 	}
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := c.do(ctx, req)
 	if err != nil {
 		return CompanyProfile{}, err
 	}
