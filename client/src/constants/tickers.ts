@@ -13,4 +13,5 @@ export const DEFAULT_TICKERS = [
   "PYPL",
   "QCOM",
   "AVGO",
+  "MU",
 ];

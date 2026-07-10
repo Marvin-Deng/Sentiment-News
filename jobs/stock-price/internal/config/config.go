@@ -9,7 +9,7 @@ import (
 
 var DefaultTickers = []string{
 	"AAPL", "NVDA", "MSFT", "AMZN", "GOOGL", "TSLA", "META", "NFLX",
-	"JPM", "AMD", "V", "PYPL", "QCOM", "AVGO",
+	"JPM", "AMD", "V", "PYPL", "QCOM", "AVGO", "MU",
 }
 
 type Config struct {
