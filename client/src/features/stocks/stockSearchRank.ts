@@ -1,4 +1,5 @@
 import { StockInfo } from "@/src/features/stocks/types";
+import { compareExchangeMics } from "@/src/constants/exchanges";
 
 export const rankStockMatch = (stock: StockInfo, query: string): number | null => {
   const q = query.toLowerCase();
@@ -35,7 +36,12 @@ export const sortStocksBySearch = (stocks: StockInfo[], query: string): StockInf
   return stocks
     .map((stock) => ({ stock, score: rankStockMatch(stock, trimmed) }))
     .filter((entry): entry is { stock: StockInfo; score: number } => entry.score !== null)
-    .sort((a, b) => a.score - b.score || a.stock.symbol.localeCompare(b.stock.symbol))
+    .sort(
+      (a, b) =>
+        a.score - b.score ||
+        compareExchangeMics(a.stock.mic, b.stock.mic) ||
+        a.stock.symbol.localeCompare(b.stock.symbol),
+    )
     .map(({ stock }) => stock);
 };
 

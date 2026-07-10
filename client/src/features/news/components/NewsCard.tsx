@@ -42,9 +42,14 @@ const NewsCard = ({
         <Text textStyle="caption" fontStyle="italic" mb={2}>
           {utcStringToLocal(publication_datetime)}
         </Text>
-        <Text fontSize="lg" fontWeight="semibold" mb={2}>
-          {title}
-        </Text>
+        <Link
+          href={article_url}
+          _hover={{ textDecoration: "underline" }}
+        >
+          <Text fontSize="lg" fontWeight="semibold" mb={2}>
+            {title}
+          </Text>
+        </Link>
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={ticker ? 3 : 0}>
             {ticker && (
@@ -84,22 +89,6 @@ const NewsCard = ({
           ) : (
             <Text fontSize="sm">Not available yet</Text>
           )}
-          <Flex justify="flex-start">
-            <Link
-              href={article_url}
-              mt={2}
-              px={3}
-              py={1}
-              border="1px solid"
-              borderColor="border.control"
-              borderRadius="md"
-              cursor="pointer"
-              transition="background-color 0.3s ease, color 0.3s ease"
-              _hover={{ textDecoration: "none", bg: "fg", color: "bg" }}
-            >
-              Read More
-            </Link>
-          </Flex>
         </Box>
       </Card.Body>
     </Card.Root>
