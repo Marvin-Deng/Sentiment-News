@@ -4,6 +4,7 @@ import { formatNumber } from "@/src/utils/numberUtils";
 import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
 import Badge from "@/src/components/ui/Badge";
+import Tooltip from "@/src/components/ui/Tooltip";
 import { getSentimentBadgeVariant } from "@/src/constants/sentiment";
 import {
   Box,
@@ -12,7 +13,9 @@ import {
   Image,
   Flex,
   Link,
+  Icon,
 } from "@chakra-ui/react";
+import { MdInfoOutline } from "react-icons/md";
 
 const NewsCard = ({
   title,
@@ -22,6 +25,7 @@ const NewsCard = ({
   article_url,
   ticker,
   sentiment,
+  reasoning,
   market_date,
   open_price,
   close_price,
@@ -38,6 +42,9 @@ const NewsCard = ({
         <Text textStyle="caption" fontStyle="italic" mb={2}>
           {utcStringToLocal(publication_datetime)}
         </Text>
+        <Text fontSize="lg" fontWeight="semibold" mb={2}>
+          {title}
+        </Text>
         <Flex align="center" justify="space-between" mb={2}>
           <Flex align="center" gap={ticker ? 3 : 0}>
             {ticker && (
@@ -45,9 +52,18 @@ const NewsCard = ({
                 <NextLink href={`/stocks/${ticker}`}>{ticker}</NextLink>
               </Link>
             )}
-            <Badge variant={getSentimentBadgeVariant(sentiment)}>
-              {sentiment}
-            </Badge>
+            <Flex align="center" gap={1}>
+              <Badge variant={getSentimentBadgeVariant(sentiment)}>
+                {sentiment}
+              </Badge>
+              {reasoning && (
+                <Tooltip content={reasoning} contentProps={{ maxW: "sm" }}>
+                  <Icon size="sm" color="fg.muted" cursor="pointer">
+                    <MdInfoOutline />
+                  </Icon>
+                </Tooltip>
+              )}
+            </Flex>
           </Flex>
         </Flex>
         <Text fontSize="sm" color="fg">

@@ -11,4 +11,5 @@ export type Article = {
   market_date: string;
   open_price: number;
   close_price: number;
+  reasoning?: string;
 };

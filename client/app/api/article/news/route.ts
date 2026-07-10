@@ -80,6 +80,7 @@ export async function GET(request: Request) {
       summary: data.summary,
       ticker: data.ticker ?? tickerData.ticker ?? "",
       sentiment: data.sentiment,
+      reasoning: data.reasoning,
       image_url: data.imageUrl,
       article_url: data.articleUrl,
       market_date: data.marketDate ?? tickerData.marketDate ?? "",
