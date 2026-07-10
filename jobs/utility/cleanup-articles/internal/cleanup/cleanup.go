@@ -1,4 +1,5 @@
-// Package cleanup deletes articles from Firestore matching a ticker and/or a Finnhub source name.
+// Package cleanup deletes articles from Firestore matching a ticker, a Finnhub source name,
+// and/or a publication date cutoff.
 package cleanup
 
 import (
@@ -12,14 +13,22 @@ import (
 
 const articlesCollection = "articles"
 
+// Criteria selects which articles to delete. At least one field must be non-empty; when multiple
+// are set, an article must match all of them (AND), not any.
+//
+// Before is a "YYYY-MM-DD" cutoff: articles published on or after that date are kept, everything
+// earlier is deleted.
 type Criteria struct {
 	Ticker string
 	Source string
+	Before string
 }
 
 // IsEmpty reports whether no delete condition was provided.
 func (c Criteria) IsEmpty() bool {
-	return strings.TrimSpace(c.Ticker) == "" && strings.TrimSpace(c.Source) == ""
+	return strings.TrimSpace(c.Ticker) == "" &&
+		strings.TrimSpace(c.Source) == "" &&
+		strings.TrimSpace(c.Before) == ""
 }
 
 type Result struct {
@@ -36,6 +45,9 @@ func Run(ctx context.Context, client *firestore.Client, criteria Criteria) (Resu
 	}
 	if source := strings.TrimSpace(criteria.Source); source != "" {
 		query = query.Where("source", "==", source)
+	}
+	if before := strings.TrimSpace(criteria.Before); before != "" {
+		query = query.Where("publicationDatetime", "<", before+" 00:00:00")
 	}
 
 	iter := query.Documents(ctx)

@@ -8,7 +8,11 @@ on:
         required: false
         type: string
       source:
-        description: "Only delete articles from this Finnhub source name, e.g. ChartMill (case-sensitive, optional; combined with ticker via AND)"
+        description: "Only delete articles from this Finnhub source name, e.g. ChartMill (case-sensitive, optional; combined with other filters via AND)"
+        required: false
+        type: string
+      before:
+        description: "Delete articles published before this date, YYYY-MM-DD (optional; combined with other filters via AND)"
         required: false
         type: string
 
@@ -38,4 +42,5 @@ jobs:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           TICKER: ${{ inputs.ticker }}
           SOURCE: ${{ inputs.source }}
+          BEFORE: ${{ inputs.before }}
         run: go run ./utility/cleanup-articles
