@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"net/url"
 	"regexp"
 	"strings"
 	"sync"
@@ -21,19 +20,15 @@ import (
 
 const maxArticlesPerDay = 500
 
-var excludedArticleHosts = map[string]struct{}{
-	"chartmill.com": {},
+var excludedArticleSources = map[string]struct{}{
+	"chartmill": {},
 }
 
-// isExcludedArticle reports whether the article's URL is from a source we don't want to ingest
-// (e.g. chartmill.com), matching the host with or without a "www." prefix.
-func isExcludedArticle(articleURL string) bool {
-	parsed, err := url.Parse(articleURL)
-	if err != nil {
-		return false
-	}
-	host := strings.ToLower(strings.TrimPrefix(parsed.Hostname(), "www."))
-	_, excluded := excludedArticleHosts[host]
+// isExcludedArticle reports whether the article's Finnhub source is one we don't want to ingest
+// (e.g. ChartMill). The article's own URL is a Finnhub redirect link (finnhub.io/api/news?id=...),
+// not the publisher's URL, so filtering has to key off Finnhub's "source" field instead.
+func isExcludedArticle(source string) bool {
+	_, excluded := excludedArticleSources[strings.ToLower(strings.TrimSpace(source))]
 	return excluded
 }
 
@@ -145,7 +140,7 @@ func (s *Service) processTicker(
 
 	validArticles := make([]finnhub.Article, 0, len(articles))
 	for _, article := range articles {
-		if article.Image == "" || isExcludedArticle(article.URL) {
+		if article.Image == "" || isExcludedArticle(article.Source) {
 			continue
 		}
 		if !mentionsCompany(article.Headline, article.Summary, ticker, profile.Name) {
@@ -218,6 +213,7 @@ func (s *Service) addArticle(
 		Title:               article.Headline,
 		ImageURL:            article.Image,
 		ArticleURL:          article.URL,
+		Source:              article.Source,
 		Summary:             article.Summary,
 		PublicationDatetime: publicationDatetime,
 		Sentiment:           evaluation.Sentiment,

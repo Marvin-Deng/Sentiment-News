@@ -18,11 +18,11 @@ func main() {
 
 	criteria := cleanup.Criteria{
 		Ticker: os.Getenv("TICKER"),
-		Domain: os.Getenv("DOMAIN"),
+		Source: os.Getenv("SOURCE"),
 	}
 
 	if criteria.IsEmpty() {
-		log.Println("no ticker or domain provided, nothing to clean up, exiting")
+		log.Println("no ticker or source provided, nothing to clean up, exiting")
 		return
 	}
 
@@ -47,6 +47,6 @@ func main() {
 		log.Fatalf("cleanup failed: %v", err)
 	}
 
-	log.Printf("cleanup complete: ticker=%q domain=%q scanned=%d matched=%d deleted=%d",
-		criteria.Ticker, criteria.Domain, result.Scanned, result.Matched, result.Deleted)
+	log.Printf("cleanup complete: ticker=%q source=%q matched=%d deleted=%d",
+		criteria.Ticker, criteria.Source, result.Matched, result.Deleted)
 }

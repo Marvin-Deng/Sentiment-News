@@ -18,6 +18,7 @@ type Article struct {
 	Image    string `json:"image"`
 	URL      string `json:"url"`
 	Related  string `json:"related"`
+	Source   string `json:"source"`
 }
 
 type CompanyProfile struct {

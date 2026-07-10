@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       ticker:
-        description: "Only delete articles for this ticker (optional; combined with domain via AND)"
+        description: "Only delete articles for this ticker (optional; combined with source via AND)"
         required: false
         type: string
-      domain:
-        description: "Only delete articles from this source domain, e.g. chartmill.com (optional; combined with ticker via AND)"
+      source:
+        description: "Only delete articles from this Finnhub source name, e.g. ChartMill (case-sensitive, optional; combined with ticker via AND)"
         required: false
         type: string
 
@@ -37,5 +37,5 @@ jobs:
         env:
           GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           TICKER: ${{ inputs.ticker }}
-          DOMAIN: ${{ inputs.domain }}
+          SOURCE: ${{ inputs.source }}
         run: go run ./utility/cleanup-articles

@@ -13,6 +13,7 @@ type Article struct {
 	Title               string
 	ImageURL            string
 	ArticleURL          string
+	Source              string
 	Summary             string
 	PublicationDatetime string
 	Sentiment           string
@@ -70,6 +71,7 @@ func (s *Store) UpsertArticle(ctx context.Context, docID string, article Article
 		"title":               article.Title,
 		"imageUrl":            article.ImageURL,
 		"articleUrl":          article.ArticleURL,
+		"source":              article.Source,
 		"summary":             article.Summary,
 		"publicationDatetime": article.PublicationDatetime,
 		"sentiment":           article.Sentiment,

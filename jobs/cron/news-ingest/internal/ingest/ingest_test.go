@@ -82,20 +82,21 @@ func TestCoreCompanyName(t *testing.T) {
 
 func TestIsExcludedArticle(t *testing.T) {
 	tests := []struct {
-		url  string
-		want bool
+		source string
+		want   bool
 	}{
-		{"https://www.chartmill.com/some-article", true},
-		{"https://chartmill.com/some-article", true},
-		{"https://finance.yahoo.com/news/some-article", false},
-		{"not a url", false},
+		{"ChartMill", true},
+		{"chartmill", true},
+		{"  ChartMill  ", true},
+		{"Yahoo", false},
+		{"", false},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.url, func(t *testing.T) {
-			got := isExcludedArticle(tt.url)
+		t.Run(tt.source, func(t *testing.T) {
+			got := isExcludedArticle(tt.source)
 			if got != tt.want {
-				t.Fatalf("isExcludedArticle(%q) = %v, want %v", tt.url, got, tt.want)
+				t.Fatalf("isExcludedArticle(%q) = %v, want %v", tt.source, got, tt.want)
 			}
 		})
 	}
