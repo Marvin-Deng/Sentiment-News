@@ -64,13 +64,13 @@ recurring/cron jobs are in `jobs/cron/<name>`.
    these from repo secrets, so locally you need to export them yourself, e.g. via `direnv` or
    `set -a; source jobs/.env; set +a` if you keep a local `jobs/.env`):
 
-| Variable          | Description                                                              | Used by                  |
-| ----------------- | ------------------------------------------------------------------------ | ------------------------ |
-| `GCP_PROJECT_ID`  | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore | news-ingest, stock-price |
-| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          | news-ingest              |
-| `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            | news-ingest              |
-| `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             | stock-price              |
-| `STATSIG_KEY`     | Statsig server secret, used to read `news-config.tickers` when available | news-ingest, stock-price |
+| Variable          | Description                                                              |
+| ----------------- | ------------------------------------------------------------------------ |
+| `GCP_PROJECT_ID`  | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore |
+| `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          |
+| `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            |
+| `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             |
+| `STATSIG_KEY`     | Statsig server secret, used to read `news-config.tickers` when available |
 
 3. Run the news ingest job (from the `jobs/` module root):
 
@@ -91,9 +91,7 @@ go run ./cron/stock-price
 
 ## Infra Setup (Optional, GCP)
 
-The GCP infra under `infra/` (Cloud Run, Cloud Scheduler, Firestore, Artifact Registry, etc.) is
-only needed if you want to run the jobs as Cloud Run Jobs on their own schedule instead of relying
-on the GitHub Actions cron above, or if you want the frontend deployed to Cloud Run.
+Only needed if you want the frontend or jobs deployed to Google Cloud.
 
 1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
 2. Enter your GCP project ID in `infra/setup-wif.sh` (`PROJECT_ID`), then run:
