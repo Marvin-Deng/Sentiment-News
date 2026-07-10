@@ -169,8 +169,7 @@ func (a *Analyzer) pauseForRateLimit(wait time.Duration) {
 
 func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) analyzeOutcome {
 	prompt := fmt.Sprintf(
-		"Analyze the sentiment of the following news text and reply with ONLY a JSON object, no markdown, "+
-			"no code fences, no other text. The JSON object must have exactly two fields:\n"+
+		"Analyze the sentiment of the following news text.\n"+
 			`- "sentiment": exactly one word from this list: %s`+"\n"+
 			`- "reasoning": a short blurb (200 words or fewer) explaining how impactful this article is `+
 			"and the reasoning behind the sentiment classification\n\n"+
@@ -188,8 +187,17 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) analyzeOu
 			},
 		},
 		"generationConfig": map[string]any{
-			"temperature":     0,
-			"maxOutputTokens": 512,
+			"temperature":      0,
+			"maxOutputTokens":  512,
+			"responseMimeType": "application/json",
+			"responseSchema": map[string]any{
+				"type": "object",
+				"properties": map[string]any{
+					"sentiment": map[string]any{"type": "string"},
+					"reasoning": map[string]any{"type": "string"},
+				},
+				"required": []string{"sentiment", "reasoning"},
+			},
 		},
 	}
 
