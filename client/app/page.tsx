@@ -1,6 +1,8 @@
 import NewsPage from "../src/features/news/components/NewsPage";
-import { DEFAULT_TICKERS } from "../src/constants/tickers";
+import { getDefaultTickers } from "../src/server/defaultTickers";
 
-export default function Home() {
-  return <NewsPage initialTickerList={DEFAULT_TICKERS} />;
+export default async function Home() {
+  const defaultTickers = await getDefaultTickers();
+
+  return <NewsPage initialTickerList={defaultTickers} />;
 }

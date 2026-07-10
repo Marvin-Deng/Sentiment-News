@@ -7,14 +7,17 @@ import { formatNumber } from "@/src/utils/numberUtils";
 import { fetchQuoteInfo } from "@/src/features/stocks/api";
 import { QuoteInfo } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
-import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 const QUOTE_TTL_SECONDS = 24 * 60 * 60;
 const AUTO_SCROLL_PX_PER_SEC = 20;
 
 type QuoteState = Pick<QuoteInfo, "current" | "change" | "percent">;
 
-const TickerTape = () => {
+interface TickerTapeProps {
+  defaultTickers: string[];
+}
+
+const TickerTape = ({ defaultTickers }: TickerTapeProps) => {
   const [quotes, setQuotes] = useState<Record<string, QuoteState>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const segmentRef = useRef<HTMLDivElement>(null);
@@ -74,7 +77,7 @@ const TickerTape = () => {
 
     const fetchQuotes = async () => {
       const results = await Promise.all(
-        DEFAULT_TICKERS.map(async (ticker) => {
+        defaultTickers.map(async (ticker) => {
           const cacheKey = `stock-quote:${ticker}`;
           const cached = getCached<QuoteState>(cacheKey);
           if (cached) return [ticker, cached] as const;
@@ -104,9 +107,9 @@ const TickerTape = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [defaultTickers]);
 
-  const tickers = DEFAULT_TICKERS.filter((ticker) => quotes[ticker]);
+  const tickers = defaultTickers.filter((ticker) => quotes[ticker]);
 
   useEffect(() => {
     if (tickers.length === 0) return;

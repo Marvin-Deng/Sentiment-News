@@ -12,12 +12,16 @@ const NAV_LINKS = [
   { label: "Calendar", href: "/calendar" },
 ];
 
-const Navbar = () => {
+interface NavbarProps {
+  defaultTickers: string[];
+}
+
+const Navbar = ({ defaultTickers }: NavbarProps) => {
   const pathname = usePathname();
 
   return (
     <Box>
-      <TickerTape />
+      <TickerTape defaultTickers={defaultTickers} />
       <Flex
         as="nav"
         maxW="5xl"

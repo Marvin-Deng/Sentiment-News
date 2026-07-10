@@ -14,11 +14,14 @@ import { StockInfo } from "@/src/features/stocks/types";
 import { sortStocksBySearch } from "@/src/features/stocks/stockSearchRank";
 import { useSearch } from "@/src/providers/SearchProvider";
 import { compareExchangeMics, formatExchangeLabel } from "@/src/constants/exchanges";
-import { DEFAULT_TICKERS } from "@/src/constants/tickers";
 
 const PAGE_SIZE = 10;
 
-const StocksPage = () => {
+interface StocksPageProps {
+  defaultTickers: string[];
+}
+
+const StocksPage = ({ defaultTickers }: StocksPageProps) => {
   const router = useRouter();
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
@@ -55,7 +58,7 @@ const StocksPage = () => {
     const selectedMic = selectedExchange != null ? exchangeMics[selectedExchange] : null;
 
     if (!searchQuery.trim() && selectedExchange == null) {
-      const defaultStocks = DEFAULT_TICKERS.map((ticker) =>
+      const defaultStocks = defaultTickers.map((ticker) =>
         stockInfo.find((stock) => stock.symbol === ticker),
       ).filter((stock): stock is StockInfo => stock != null);
       return defaultStocks;
@@ -71,7 +74,7 @@ const StocksPage = () => {
     }
 
     return results;
-  }, [stockInfo, searchQuery, selectedExchange, exchangeMics]);
+  }, [stockInfo, searchQuery, selectedExchange, exchangeMics, defaultTickers]);
 
   const loadNextPageStocks = () => {
     setPage((prev) => prev + 1);

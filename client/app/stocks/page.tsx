@@ -1,5 +1,8 @@
 import StocksPage from "@/src/features/stocks/components/StocksPage";
+import { getDefaultTickers } from "@/src/server/defaultTickers";
 
-export default function Stocks() {
-  return <StocksPage />;
+export default async function Stocks() {
+  const defaultTickers = await getDefaultTickers();
+
+  return <StocksPage defaultTickers={defaultTickers} />;
 }

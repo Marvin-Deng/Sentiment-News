@@ -1,6 +1,24 @@
 # Sentiment News
 
-## Infra Setup
+## Quick Deployment (Vercel)
+
+The fastest way to get the frontend running is to deploy `client/` to [Vercel](https://vercel.com):
+
+1. Import the repo into Vercel and set the root directory to `client/`.
+2. Add the environment variables from the [Frontend Setup](#frontend-setup) table to the Vercel project.
+3. Deploy.
+
+Note that this only deploys the frontend. The recurring `news-ingest` and `stock-price` jobs are
+**not** deployed to Vercel — they run on a schedule via GitHub Actions (`.github/workflows/news-ingest-run.yml`
+and `.github/workflows/stock-price-run.yml`), independent of where the frontend is hosted. Those
+jobs still need a GCP project (for Firestore and, if used, Cloud Run) and the secrets listed in
+[Jobs Setup](#jobs-setup) configured as GitHub Actions repo secrets.
+
+## Infra Setup (Optional, GCP)
+
+The GCP infra under `infra/` (Cloud Run, Cloud Scheduler, Firestore, Artifact Registry, etc.) is
+only needed if you want to run the jobs as Cloud Run Jobs on their own schedule instead of relying
+on the GitHub Actions cron above, or if you want the frontend deployed to Cloud Run.
 
 1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
 2. Enter your GCP project ID in `infra/setup-wif.sh` (`PROJECT_ID`), then run:
@@ -20,12 +38,13 @@ service account key even for local development.
 cp client/.env.example client/.env.local
 ```
 
-| Variable            | Description                                                                 |
-| ------------------- | ---------------------------------------------------------------------------- |
-| `GCP_PROJECT_ID`    | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore    |
-| `GCP_SA_KEY_BASE64` | Base64-encoded service account JSON key with Firestore access               |
+| Variable            | Description                                                                                                      |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `GCP_PROJECT_ID`    | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore                                         |
+| `GCP_SA_KEY_BASE64` | Base64-encoded service account JSON key with Firestore access                                                    |
 | `FINNHUB_KEY`       | [Finnhub](https://finnhub.io/dashboard) API key, used by the Stocks page's exchange/quote/company-profile routes |
-| `TIINGO_TOKEN`      | [Tiingo](https://www.tiingo.com/account/api/token) API token, used by the Stocks page's end-of-day price chart |
+| `TIINGO_TOKEN`      | [Tiingo](https://www.tiingo.com/account/api/token) API token, used by the Stocks page's end-of-day price chart   |
+| `STATSIG_KEY`       | Statsig server secret, used to read `news-config.tickers` for default ticker lists                               |
 
 To generate the service account key:
 
@@ -59,17 +78,12 @@ recurring/cron jobs are in `jobs/cron/<name>`.
    `set -a; source jobs/.env; set +a` if you keep a local `jobs/.env`):
 
 | Variable          | Description                                                              | Used by                  |
-| ----------------- | ------------------------------------------------------------------------ | ------------------------- |
+| ----------------- | ------------------------------------------------------------------------ | ------------------------ |
 | `GCP_PROJECT_ID`  | [GCP](https://console.cloud.google.com/welcome) project ID for Firestore | news-ingest, stock-price |
 | `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          | news-ingest              |
 | `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            | news-ingest              |
 | `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             | stock-price              |
-
-There are two independent jobs: `news-ingest` fetches news articles and scores their sentiment;
-`stock-price` fetches each ticker's end-of-day price and writes it to the same `tickers`
-collection, keyed by `ticker_marketDate` so articles can join to it. `stock-price` is scheduled to
-run after market close (2pm PST) since Tiingo's EOD price isn't available until then; running it
-earlier just means that day's price stays unpopulated until the next scheduled run.
+| `STATSIG_KEY`     | Statsig server secret, used to read `news-config.tickers` when available | news-ingest, stock-price |
 
 3. Run the news ingest job (from the `jobs/` module root):
 
@@ -80,13 +94,6 @@ go run ./cron/news-ingest
 ```
 
 Runs once and exits. On success you'll see a JSON summary in the logs.
-
-To test with a single ticker:
-
-```bash
-cd jobs
-TICKERS=AAPL go run ./cron/news-ingest
-```
 
 4. Run the stock price job:
 

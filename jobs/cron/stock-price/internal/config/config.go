@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	jobstatsig "github.com/sentiment-news/jobs/statsig"
 )
 
 var DefaultTickers = []string{
@@ -25,12 +27,8 @@ func Load() (Config, error) {
 		GCPProjectID:  os.Getenv("GCP_PROJECT_ID"),
 		TiingoToken:   os.Getenv("TIINGO_TOKEN"),
 		FinnhubAPIKey: os.Getenv("FINNHUB_API_KEY"),
-		Tickers:       DefaultTickers,
+		Tickers:       jobstatsig.GetTickers(DefaultTickers),
 		MarketDate:    strings.TrimSpace(os.Getenv("MARKET_DATE")),
-	}
-
-	if raw := strings.TrimSpace(os.Getenv("TICKERS")); raw != "" {
-		cfg.Tickers = splitCSV(raw)
 	}
 
 	if cfg.GCPProjectID == "" {
@@ -46,15 +44,4 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
-}
-
-func splitCSV(raw string) []string {
-	parts := strings.Split(raw, ",")
-	out := make([]string, 0, len(parts))
-	for _, part := range parts {
-		if trimmed := strings.TrimSpace(part); trimmed != "" {
-			out = append(out, trimmed)
-		}
-	}
-	return out
 }
