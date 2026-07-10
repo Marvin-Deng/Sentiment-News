@@ -8,12 +8,6 @@ The fastest way to get the frontend running is to deploy `client/` to [Vercel](h
 2. Add the environment variables from the [Frontend Setup](#frontend-setup) table to the Vercel project.
 3. Deploy.
 
-Note that this only deploys the frontend. The recurring `news-ingest` and `stock-price` jobs are
-**not** deployed to Vercel — they run on a schedule via GitHub Actions (`.github/workflows/news-ingest-run.yml`
-and `.github/workflows/stock-price-run.yml`), independent of where the frontend is hosted. Those
-jobs still need a GCP project (for Firestore and, if used, Cloud Run) and the secrets listed in
-[Jobs Setup](#jobs-setup) configured as GitHub Actions repo secrets.
-
 ## Frontend Setup
 
 The `/api/article/news` route reads articles from Firestore, so it needs a GCP project ID and a
@@ -31,7 +25,7 @@ cp client/.env.example client/.env.local
 | `GCP_SA_KEY_BASE64` | Base64-encoded service account JSON key with Firestore access                                                    |
 | `FINNHUB_KEY`       | [Finnhub](https://finnhub.io/dashboard) API key, used by the Stocks page's exchange/quote/company-profile routes |
 | `TIINGO_TOKEN`      | [Tiingo](https://www.tiingo.com/account/api/token) API token, used by the Stocks page's end-of-day price chart   |
-| `STATSIG_KEY`       | Statsig server secret, used to read `news-config.tickers` for default ticker lists                               |
+| `STATSIG_KEY`       | [Statsig](https://console.statsig.com/4hoMhStqn9ANMvSA3JeaC5/dynamic_configs) server secret, used to read `news-config.tickers` for default ticker lists                               |
 
 To generate the service account key:
 
@@ -70,7 +64,7 @@ recurring/cron jobs are in `jobs/cron/<name>`.
 | `FINNHUB_API_KEY` | [Finnhub](https://finnhub.io/dashboard) API key                          |
 | `GEMINI_KEY`      | [Google Gemini](https://aistudio.google.com/api-keys) API key            |
 | `TIINGO_TOKEN`    | [Tiingo](https://www.tiingo.com/account/api/token) API token             |
-| `STATSIG_KEY`     | Statsig server secret, used to read `news-config.tickers` when available |
+| `STATSIG_KEY`     | [Statsig](https://console.statsig.com/4hoMhStqn9ANMvSA3JeaC5/dynamic_configs) server secret, used to read `news-config.tickers` when available |
 
 3. Run the news ingest job (from the `jobs/` module root):
 

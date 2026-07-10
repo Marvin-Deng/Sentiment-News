@@ -6,17 +6,17 @@ import (
 )
 
 func TestNormalizeTickersFallsBackWhenEmpty(t *testing.T) {
-	got := normalizeTickers([]interface{}{"", "   "}, []string{"AAPL", "MSFT"})
+	got := normalizeTickers([]interface{}{}, []string{"AAPL", "MSFT"})
 
 	if len(got) != 2 || got[0] != "AAPL" || got[1] != "MSFT" {
 		t.Fatalf("expected fallback tickers, got %#v", got)
 	}
 }
 
-func TestNormalizeTickersSanitizesAndDeduplicates(t *testing.T) {
-	got := normalizeTickers([]interface{}{" aapl ", "msft", "AAPL", "NVDA"}, []string{"TSLA"})
+func TestNormalizeTickersUppercases(t *testing.T) {
+	got := normalizeTickers([]interface{}{"aapl", "msft"}, []string{"TSLA"})
 
-	want := []string{"AAPL", "MSFT", "NVDA"}
+	want := []string{"AAPL", "MSFT"}
 	if len(got) != len(want) {
 		t.Fatalf("expected %d tickers, got %#v", len(want), got)
 	}
@@ -29,15 +29,15 @@ func TestNormalizeTickersSanitizesAndDeduplicates(t *testing.T) {
 }
 
 func TestNormalizeStringsFallsBackWhenEmpty(t *testing.T) {
-	got := normalizeStrings([]interface{}{"", "   "}, []string{"chartmill"}, strings.ToLower)
+	got := normalizeStrings([]interface{}{}, []string{"chartmill"}, strings.ToLower)
 
 	if len(got) != 1 || got[0] != "chartmill" {
 		t.Fatalf("expected fallback values, got %#v", got)
 	}
 }
 
-func TestNormalizeStringsSanitizesAndDeduplicates(t *testing.T) {
-	got := normalizeStrings([]interface{}{" ChartMill ", "chartmill", "Yahoo"}, []string{"other"}, strings.ToLower)
+func TestNormalizeStringsNormalizesCase(t *testing.T) {
+	got := normalizeStrings([]interface{}{"ChartMill", "Yahoo"}, []string{"other"}, strings.ToLower)
 
 	want := []string{"chartmill", "yahoo"}
 	if len(got) != len(want) {

@@ -16,6 +16,8 @@ var DefaultTickers = []string{
 
 var DefaultSourceBlacklist = []string{"chartmill"}
 
+var DefaultImageWhitelist = []string{"seekingalpha"}
+
 const SentimentOptions = "Optimistic, Positive, Stable, Pessimistic, Negative, Inconsistent, Cautious, Neutral"
 
 type Config struct {
@@ -24,6 +26,7 @@ type Config struct {
 	GeminiAPIKey    string
 	Tickers         []string
 	SourceBlacklist []string
+	ImageWhitelist  []string
 	NewsDate        string // optional override, "YYYY-MM-DD"; empty means use today's date
 }
 
@@ -34,6 +37,7 @@ func Load() (Config, error) {
 		GeminiAPIKey:    os.Getenv("GEMINI_KEY"),
 		Tickers:         jobstatsig.GetTickers(DefaultTickers),
 		SourceBlacklist: jobstatsig.GetSourceBlacklist(DefaultSourceBlacklist),
+		ImageWhitelist:  jobstatsig.GetImageWhitelist(DefaultImageWhitelist),
 		NewsDate:        strings.TrimSpace(os.Getenv("NEWS_DATE")),
 	}
 

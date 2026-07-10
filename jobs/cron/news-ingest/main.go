@@ -10,6 +10,7 @@ import (
 
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/config"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/ingest"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/ogimage"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/repository"
 )
 
@@ -31,8 +32,16 @@ func main() {
 	}
 	defer store.Close()
 
+	ogImages, err := ogimage.NewResolver()
+	if err != nil {
+		log.Printf("warning: failed to start og:image resolver, falling back to finnhub images: %v", err)
+		ogImages = nil
+	} else {
+		defer ogImages.Close()
+	}
+
 	start := time.Now()
-	result, err := ingest.NewService(cfg, store).Run(ctx)
+	result, err := ingest.NewService(cfg, store, ogImages).Run(ctx)
 	if err != nil {
 		log.Fatalf("ingest failed: %v", err)
 	}

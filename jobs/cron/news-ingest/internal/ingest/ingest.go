@@ -12,6 +12,7 @@ import (
 
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/config"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/finnhub"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/ogimage"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/repository"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/sentiment"
 	"github.com/sentiment-news/jobs/cron/news-ingest/internal/stock"
@@ -23,9 +24,14 @@ const maxArticlesPerDay = 500
 // isExcludedArticle reports whether the article's Finnhub source is blacklisted. Articles' URLs
 // are Finnhub redirect links, not the publisher's URL, so we key off the "source" field instead.
 func isExcludedArticle(source string, blacklist []string) bool {
+	return containsSource(source, blacklist)
+}
+
+// containsSource reports whether source (case-insensitive) is in list.
+func containsSource(source string, list []string) bool {
 	source = strings.ToLower(strings.TrimSpace(source))
-	for _, blocked := range blacklist {
-		if source == blocked {
+	for _, item := range list {
+		if source == item {
 			return true
 		}
 	}
@@ -79,14 +85,17 @@ type Service struct {
 	finnhub   *finnhub.Client
 	sentiment *sentiment.Analyzer
 	store     *repository.Store
+	ogImages  *ogimage.Resolver
 }
 
-func NewService(cfg config.Config, store *repository.Store) *Service {
+// NewService constructs a Service. ogImages may be nil to skip image resolution.
+func NewService(cfg config.Config, store *repository.Store, ogImages *ogimage.Resolver) *Service {
 	return &Service{
 		cfg:       cfg,
 		finnhub:   finnhub.NewClient(cfg.FinnhubAPIKey),
 		sentiment: sentiment.NewAnalyzer(cfg.GeminiAPIKey),
 		store:     store,
+		ogImages:  ogImages,
 	}
 }
 
@@ -216,11 +225,12 @@ func (s *Service) addArticle(
 
 	evaluation := s.sentiment.Evaluate(ctx, article.Headline, article.Summary)
 	publicationDatetime := stock.FormatPublicationDatetime(article.Datetime)
+	imageURL := s.resolveImage(ctx, article)
 
 	err = s.store.UpsertArticle(ctx, docID, repository.Article{
 		ArticleID:           article.ID,
 		Title:               article.Headline,
-		ImageURL:            article.Image,
+		ImageURL:            imageURL,
 		ArticleURL:          article.URL,
 		Source:              article.Source,
 		Summary:             article.Summary,
@@ -240,4 +250,20 @@ func (s *Service) addArticle(
 
 	log.Printf("created article: %s on %s", ticker, marketDate)
 	return nil
+}
+
+// resolveImage tries the real og:image, falling back to Finnhub's image on failure or when the
+// article's source is whitelisted as already trustworthy.
+func (s *Service) resolveImage(ctx context.Context, article finnhub.Article) string {
+	if s.ogImages == nil || containsSource(article.Source, s.cfg.ImageWhitelist) {
+		return article.Image
+	}
+
+	image, err := s.ogImages.Resolve(ctx, article.URL)
+	if err != nil {
+		log.Printf("warning: failed to resolve og:image for article %d, using finnhub image: %v", article.ID, err)
+		return article.Image
+	}
+
+	return image
 }

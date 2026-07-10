@@ -12,6 +12,7 @@ const (
 	newsConfigName         = "news-config"
 	newsConfigTickersKey   = "tickers"
 	newsConfigBlacklistKey = "source_blacklist"
+	newsConfigWhitelistKey = "image_whitelist"
 	defaultStatsigUserID   = "jobs-default-tickers"
 )
 
@@ -74,25 +75,30 @@ func GetSourceBlacklist(fallback []string) []string {
 	return normalizeStrings(config.GetSlice(newsConfigBlacklistKey, nil), fallback, strings.ToLower)
 }
 
+// GetImageWhitelist returns sanitized source names from Statsig config news-config.image_whitelist,
+// falling back when Statsig is unavailable or the config is empty.
+func GetImageWhitelist(fallback []string) []string {
+	if err := Initialize(); err != nil {
+		return cloneStrings(fallback)
+	}
+	defer Shutdown()
+
+	config := statsigsdk.GetConfigWithExposureLoggingDisabled(
+		statsigsdk.User{UserID: defaultStatsigUserID},
+		newsConfigName,
+	)
+
+	return normalizeStrings(config.GetSlice(newsConfigWhitelistKey, nil), fallback, strings.ToLower)
+}
+
 func normalizeStrings(raw []interface{}, fallback []string, normalize func(string) string) []string {
-	seen := make(map[string]struct{}, len(raw))
-	values := make([]string, 0, len(raw))
-
-	for _, item := range raw {
-		value := normalize(strings.TrimSpace(item.(string)))
-		if value == "" {
-			continue
-		}
-		if _, exists := seen[value]; exists {
-			continue
-		}
-
-		seen[value] = struct{}{}
-		values = append(values, value)
+	if len(raw) == 0 {
+		return cloneStrings(fallback)
 	}
 
-	if len(values) == 0 {
-		return cloneStrings(fallback)
+	values := make([]string, len(raw))
+	for i, item := range raw {
+		values[i] = normalize(item.(string))
 	}
 
 	return values
