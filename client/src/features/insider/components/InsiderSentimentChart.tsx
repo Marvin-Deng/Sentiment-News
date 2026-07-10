@@ -10,6 +10,7 @@ import {
   ReferenceLine,
 } from "recharts";
 
+import { formatNumber } from "@/src/utils/numberUtils";
 import { InsiderSentiment, SentimentChartPoint } from "@/src/features/insider/types";
 import { CHART_AXIS_FONT_SIZE } from "@/src/theme/system";
 
@@ -48,8 +49,8 @@ const ChartTooltip = ({
       <Box textStyle="tooltipLabel" mb={1}>
         {data.label}
       </Box>
-      <Box>MSPR: {data.mspr.toFixed(2)}</Box>
-      <Box>Net change: {data.change.toLocaleString()} shares</Box>
+      <Box>MSPR: {formatNumber(data.mspr)}</Box>
+      <Box>Net change: {formatNumber(data.change)} shares</Box>
     </Box>
   );
 };

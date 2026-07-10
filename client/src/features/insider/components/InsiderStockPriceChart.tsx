@@ -15,6 +15,7 @@ import InsiderStockPriceChartDot from "@/src/features/insider/components/Insider
 import InsiderStockPriceChartTooltip from "@/src/features/insider/components/InsiderStockPriceChartTooltip";
 import { InsiderTransaction, ChartPoint } from "@/src/features/insider/types";
 import { PriceData } from "@/src/features/stocks/types";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { CHART_AXIS_FONT_SIZE } from "@/src/theme/system";
 
 interface InsiderStockPriceChartProps {
@@ -273,7 +274,7 @@ const InsiderStockPriceChart = ({
               stroke={axisColor}
               tickLine={false}
               tick={{ fill: axisColor, fontSize: CHART_AXIS_FONT_SIZE }}
-              tickFormatter={(value: number) => value.toFixed(2)}
+              tickFormatter={(value: number) => formatNumber(value)}
             />
             <Tooltip content={<InsiderStockPriceChartTooltip />} />
             <Area

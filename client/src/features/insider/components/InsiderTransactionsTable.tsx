@@ -5,6 +5,7 @@ import { LuArrowDown, LuArrowUp, LuArrowUpDown } from "react-icons/lu";
 
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import { ChangeSort, InsiderTransaction, TRANSACTION_CODE_LABELS } from "@/src/features/insider/types";
+import { formatCurrency, formatNumber } from "@/src/utils/numberUtils";
 import { formatDate } from "@/src/utils/dateUtils";
 
 interface InsiderTransactionsTableProps {
@@ -47,7 +48,7 @@ const TransactionsHeading = ({ mb }: { mb: number }) => (
 
 const formatTransactionPrice = (price?: number) => {
   if (price == null || price === 0) return "—";
-  return `$${price.toFixed(2)}`;
+  return formatCurrency(price);
 };
 
 const InsiderTransactionsTable = ({ transactions, symbol, mt = 8, headerExtra }: InsiderTransactionsTableProps) => {
@@ -148,9 +149,9 @@ const InsiderTransactionsTable = ({ transactions, symbol, mt = 8, headerExtra }:
                 </Table.Cell>
                 <Table.Cell textAlign="right" color={changeColor}>
                   {tx.change > 0 ? "+" : ""}
-                  {tx.change.toLocaleString()}
+                  {formatNumber(tx.change)}
                 </Table.Cell>
-                <Table.Cell textAlign="right">{tx.share.toLocaleString()}</Table.Cell>
+                <Table.Cell textAlign="right">{formatNumber(tx.share)}</Table.Cell>
                 <Table.Cell textAlign="right">{formatTransactionPrice(tx.transactionPrice)}</Table.Cell>
               </Table.Row>
             );

@@ -1,18 +1,21 @@
 "use client";
 
 import { Skeleton, type IconButtonProps } from "@chakra-ui/react";
-import { ThemeProvider, useTheme } from "next-themes";
-import type { ThemeProviderProps } from "next-themes";
-import { forwardRef, useEffect, useState } from "react";
+import {
+  createContext,
+  forwardRef,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { LuMoon, LuSun } from "react-icons/lu";
 
 import CircularIconButton from "@/src/components/ui/CircularIconButton";
+import { THEME_STORAGE_KEY } from "@/src/theme/colorModeScript";
 
-export function ColorModeProvider(props: ThemeProviderProps) {
-  return (
-    <ThemeProvider attribute="class" disableTransitionOnChange {...props} />
-  );
-}
+export { THEME_STORAGE_KEY };
 
 export type ColorMode = "light" | "dark";
 
@@ -22,17 +25,52 @@ export interface UseColorModeReturn {
   toggleColorMode: () => void;
 }
 
+interface ColorModeProviderProps {
+  children: ReactNode;
+  defaultTheme?: ColorMode;
+}
+
+const ColorModeContext = createContext<UseColorModeReturn | null>(null);
+
+const applyColorMode = (colorMode: ColorMode) => {
+  document.documentElement.classList.remove("light", "dark");
+  document.documentElement.classList.add(colorMode);
+  document.documentElement.style.colorScheme = colorMode;
+};
+
+export function ColorModeProvider({ children, defaultTheme = "dark" }: ColorModeProviderProps) {
+  const [colorMode, setColorModeState] = useState<ColorMode>(defaultTheme);
+
+  useEffect(() => {
+    // THEME_INIT_SCRIPT already applied the class/colorScheme before hydration; just sync state.
+    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const initial: ColorMode = stored === "light" || stored === "dark" ? stored : defaultTheme;
+    setColorModeState(initial);
+  }, [defaultTheme]);
+
+  const value = useMemo<UseColorModeReturn>(() => {
+    const setColorMode = (mode: ColorMode) => {
+      setColorModeState(mode);
+      localStorage.setItem(THEME_STORAGE_KEY, mode);
+      applyColorMode(mode);
+    };
+
+    return {
+      colorMode,
+      setColorMode,
+      toggleColorMode: () => setColorMode(colorMode === "dark" ? "light" : "dark"),
+    };
+  }, [colorMode]);
+
+  return <ColorModeContext.Provider value={value}>{children}</ColorModeContext.Provider>;
+}
+
 export function useColorMode(): UseColorModeReturn {
-  const { resolvedTheme, setTheme, forcedTheme } = useTheme();
-  const colorMode = (forcedTheme || resolvedTheme) as ColorMode;
-  const toggleColorMode = () => {
-    setTheme(colorMode === "dark" ? "light" : "dark");
-  };
-  return {
-    colorMode: colorMode || "dark",
-    setColorMode: setTheme as (colorMode: ColorMode) => void,
-    toggleColorMode,
-  };
+  const context = useContext(ColorModeContext);
+  if (!context) {
+    throw new Error("useColorMode must be used within ColorModeProvider");
+  }
+  return context;
 }
 
 export function useColorModeValue<T>(light: T, dark: T) {

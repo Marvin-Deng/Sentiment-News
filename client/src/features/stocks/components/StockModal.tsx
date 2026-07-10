@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
-import { Box, Flex, Tabs, Text, Link } from "@chakra-ui/react";
+import { Box, Flex, Image, Tabs, Text, Link } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { LuX } from "react-icons/lu";
 
@@ -27,8 +27,9 @@ import {
   EpsSurprise,
   CompanyProfile,
 } from "@/src/features/stocks/types";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
-import { formatDateEST, getDateDaysBefore } from "@/src/utils/dateUtils";
+import { formatDateEST, getDateDaysBefore, toMarketDateISO, todayMarketDate } from "@/src/utils/dateUtils";
 
 interface StockModalProps {
   ticker: string | null;
@@ -44,6 +45,7 @@ const TAB_OPTIONS = [
 ];
 
 const INSIDER_LOOKBACK_DAYS = 183;
+const ONE_WEEK_TRADING_DAYS = 7;
 
 const getRangeStartDate = (range: string): Date => {
   const today = new Date();
@@ -76,12 +78,23 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
 
-  const getPriceDataRange = () => {
-    return getCurrTickerData().filter((priceData) => {
-      const date = new Date(priceData.date);
-      return date >= startDate && date <= new Date();
+  const rangeData = useMemo(() => {
+    const marketToday = todayMarketDate();
+    const throughToday = (stockDataMap.get(ticker) || []).filter((priceData) => {
+      const iso = toMarketDateISO(priceData.date);
+      return iso != null && iso <= marketToday;
     });
-  };
+
+    if (selectedRange === "1W") {
+      return throughToday.slice(-ONE_WEEK_TRADING_DAYS);
+    }
+
+    const rangeStart = toMarketDateISO(startDate) ?? marketToday;
+    return throughToday.filter((priceData) => {
+      const iso = toMarketDateISO(priceData.date);
+      return iso != null && iso >= rangeStart;
+    });
+  }, [stockDataMap, ticker, selectedRange, startDate]);
 
   useEffect(() => {
     const fetchStockPrices = async () => {
@@ -94,10 +107,11 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
       if (tickerStockData.length === 0) {
         fetchStockPrices();
       } else {
-        const earliestData = new Date(tickerStockData[0].date);
-        const latestData = new Date(tickerStockData[tickerStockData.length - 1].date);
-        const isStale = Date.now() - latestData.getTime() > 24 * 60 * 60 * 1000;
-        if (startDate < earliestData || isStale) fetchStockPrices();
+        const earliestIso = toMarketDateISO(tickerStockData[0].date);
+        const latestIso = toMarketDateISO(tickerStockData[tickerStockData.length - 1].date);
+        const isStale = latestIso != null && latestIso < todayMarketDate();
+        const startIso = toMarketDateISO(startDate);
+        if ((startIso && earliestIso && startIso < earliestIso) || isStale) fetchStockPrices();
       }
     }
   }, [ticker, startDate]);
@@ -145,7 +159,6 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
 
   if (!ticker) return null;
 
-  const rangeData = getPriceDataRange();
   const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
   const rangeEndPrice = currPriceData.close;
   const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "positive" : "negative";
@@ -176,20 +189,32 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
         onClick={(e) => e.stopPropagation()}
       >
         <Flex align="center" justify="space-between" p={5} borderBottomWidth="1px" borderColor="border">
-          <Text fontSize="xl" fontWeight="semibold" lineHeight="1" my={0}>
-            {companyWebUrl ? (
-              <Link
-                href={companyWebUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                _hover={{ textDecoration: "underline" }}
-              >
-                {companyName} ({ticker})
-              </Link>
-            ) : (
-              `${companyName} (${ticker})`
+          <Flex align="center" gap={3} minW={0}>
+            {companyProfile?.logo && (
+              <Image
+                src={companyProfile.logo}
+                alt={`${companyName} logo`}
+                boxSize="36px"
+                flexShrink={0}
+                objectFit="contain"
+                borderRadius="md"
+              />
             )}
-          </Text>
+            <Text fontSize="xl" fontWeight="semibold" lineHeight="1" my={0} truncate>
+              {companyWebUrl ? (
+                <Link
+                  href={companyWebUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  _hover={{ textDecoration: "underline" }}
+                >
+                  {companyName} ({ticker})
+                </Link>
+              ) : (
+                `${companyName} (${ticker})`
+              )}
+            </Text>
+          </Flex>
           <CircularIconButton aria-label="Close modal" size="sm" flexShrink={0} onClick={onClose}>
             <LuX />
           </CircularIconButton>
@@ -228,7 +253,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
         <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
           <Flex align="baseline" gap={3}>
             <Text fontSize="xl" fontWeight="semibold">
-              {currPriceData.close}
+              {formatNumber(currPriceData.close)}
             </Text>
             <Text fontSize="lg" fontWeight="semibold" color={priceColor}>
               {getPriceDiffStr(rangeStartPrice, rangeEndPrice)} (

@@ -5,6 +5,9 @@ import timezone from "dayjs/plugin/timezone";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const MARKET_TIMEZONE = "America/New_York";
+const MARKET_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
 const dateToISOString = (date: Date) => dayjs(date).format("YYYY-MM-DD");
 
 export const getDateDaysBefore = (days_duration: number) => {
@@ -53,10 +56,33 @@ export const utcStringToLocal = (utcDatetime: string): string => {
   return `${localDate.format("MMMM D, YYYY h:mm A")} ${tzAbbreviation ?? ""}`.trim();
 };
 
-export const formatDate = (date: string): string => {
-  return dayjs(date).format("MMMM D, YYYY");
+// Tiingo encodes the trading day as UTC midnight (e.g. 2026-07-09T00:00:00.000Z).
+// Always read the YYYY-MM-DD portion — never shift a Date object into US timezones.
+export const toMarketDateISO = (date: string | Date | null | undefined): string | null => {
+  if (date == null) return null;
+
+  if (typeof date === "string") {
+    const iso = date.slice(0, 10);
+    return MARKET_DATE_PATTERN.test(iso) ? iso : null;
+  }
+
+  if (!Number.isFinite(date.getTime())) return null;
+
+  const iso = dayjs.utc(date).format("YYYY-MM-DD");
+  return MARKET_DATE_PATTERN.test(iso) ? iso : null;
 };
 
-export const formatDateEST = (date: string | Date): string => {
-  return dayjs(date).tz("America/New_York").format("MMMM D, YYYY");
+export const parseMarketDate = (date: string | Date | null | undefined) => {
+  const iso = toMarketDateISO(date);
+  if (!iso) return dayjs(null);
+  return dayjs.tz(iso, MARKET_TIMEZONE);
+};
+
+export const todayMarketDate = () => dayjs().tz(MARKET_TIMEZONE).format("YYYY-MM-DD");
+
+export const formatDate = (date: string): string => dayjs(date).format("MMMM D, YYYY");
+
+export const formatDateEST = (date: string | Date | null | undefined): string => {
+  const parsed = parseMarketDate(date);
+  return parsed.isValid() ? parsed.format("MMMM D, YYYY") : "—";
 };

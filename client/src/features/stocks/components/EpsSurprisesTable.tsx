@@ -1,5 +1,6 @@
 import { Box, Heading, Table } from "@chakra-ui/react";
 
+import { formatNumber } from "@/src/utils/numberUtils";
 import { EpsSurprise } from "@/src/features/stocks/types";
 
 interface EpsSurprisesTableProps {
@@ -38,13 +39,13 @@ const EpsSurprisesTable = ({ epsSurprises }: EpsSurprisesTableProps) => {
             return (
               <Table.Row key={`${row.period}-${row.quarter}-${row.year}`}>
                 <Table.Cell>{formatPeriodLabel(row.period)}</Table.Cell>
-                <Table.Cell textAlign="right">{row.actual}</Table.Cell>
-                <Table.Cell textAlign="right">{row.estimate}</Table.Cell>
+                <Table.Cell textAlign="right">{formatNumber(row.actual)}</Table.Cell>
+                <Table.Cell textAlign="right">{formatNumber(row.estimate)}</Table.Cell>
                 <Table.Cell textAlign="right" color={resultColor}>
-                  {row.surprise.toFixed(2)}
+                  {formatNumber(row.surprise)}
                 </Table.Cell>
                 <Table.Cell textAlign="right" color={resultColor}>
-                  {row.surprisePercent.toFixed(2)}%
+                  {formatNumber(row.surprisePercent)}%
                 </Table.Cell>
                 <Table.Cell textAlign="right" color={resultColor} fontWeight="semibold">
                   {isBeat ? "Beat" : "Missed"}

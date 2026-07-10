@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Box, Flex, Image, Text } from "@chakra-ui/react";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { CompanyProfile, QuoteInfo } from "@/src/features/stocks/types";
 import { fetchQuoteInfo, fetchCompanyProfile } from "@/src/features/stocks/api";
 import { getCached, setCached } from "@/src/utils/sessionCache";
@@ -104,7 +105,7 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
           </Flex>
           {quoteInfo && (
             <Flex direction="column" align="flex-end" gap={2} flexShrink={0} fontSize="sm" fontWeight="bold">
-              <Text>{quoteInfo.current.toFixed(2)}</Text>
+              <Text>{formatNumber(quoteInfo.current)}</Text>
               <Text
                 display="inline-block"
                 px={2}
@@ -113,8 +114,8 @@ const TickerCard = ({ ticker, onClick }: TickerCardProps) => {
                 color="white"
                 bg={quoteInfo.change >= 0 ? "positive" : "negative"}
               >
-                {quoteInfo.change >= 0 ? "▲" : "▼"} {Math.abs(quoteInfo.change).toFixed(2)} (
-                {Math.abs(quoteInfo.percent).toFixed(2)}%)
+                {quoteInfo.change >= 0 ? "▲" : "▼"} {formatNumber(Math.abs(quoteInfo.change))} (
+                {formatNumber(Math.abs(quoteInfo.percent))}%)
               </Text>
             </Flex>
           )}

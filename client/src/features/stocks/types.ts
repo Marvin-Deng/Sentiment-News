@@ -9,7 +9,7 @@ export type StockInfo = {
 };
 
 export type PriceData = {
-  date: Date;
+  date: string;
   open: number;
   high: number;
   low: number;
@@ -73,7 +73,7 @@ export type QuoteInfo = {
 };
 
 export const DEFAULT_PRICE_DATA: PriceData = {
-  date: new Date(),
+  date: "",
   open: 0,
   high: 0,
   low: 0,

@@ -1,9 +1,14 @@
+import { formatNumber } from "@/src/utils/numberUtils";
+
+const formatSigned = (value: number): string =>
+  value >= 0 ? `+${formatNumber(value)}` : formatNumber(value);
+
 export const getPriceDiff = (
   firstPrice: number,
   secondPrice: number,
 ): number => {
   const priceDiff = secondPrice - firstPrice;
-  return parseFloat(priceDiff.toFixed(2));
+  return Math.round(priceDiff * 100) / 100;
 };
 
 export const getPercentChange = (
@@ -11,7 +16,7 @@ export const getPercentChange = (
   secondPrice: number,
 ): number => {
   const percentChange = ((secondPrice - firstPrice) / firstPrice) * 100;
-  return parseFloat(percentChange.toFixed(2));
+  return Math.round(percentChange * 100) / 100;
 };
 
 export const isPricePositive = (firstPrice: number, secondPrice: number): boolean =>
@@ -20,18 +25,12 @@ export const isPricePositive = (firstPrice: number, secondPrice: number): boolea
 export const getPriceDiffStr = (
   firstPrice: number,
   secondPrice: number,
-): string => {
-  const difference = getPriceDiff(firstPrice, secondPrice);
-  return difference >= 0 ? `+${difference}` : `${difference}`;
-};
+): string => formatSigned(getPriceDiff(firstPrice, secondPrice));
 
 export const getPercentChangeStr = (
   firstPrice: number,
   secondPrice: number,
-): string => {
-  const percentChange = getPercentChange(firstPrice, secondPrice);
-  return percentChange >= 0 ? `+${percentChange}%` : `${percentChange}%`;
-};
+): string => `${formatSigned(getPercentChange(firstPrice, secondPrice))}%`;
 
 export const getPriceStrArrow = (
   firstPrice: number,
@@ -39,11 +38,7 @@ export const getPriceStrArrow = (
 ): string => {
   const priceDiff = getPriceDiff(firstPrice, secondPrice);
   const percentChange = getPercentChange(firstPrice, secondPrice);
-
   const arrow = priceDiff >= 0 ? "▲" : "▼";
-  const formattedPriceDiff = priceDiff >= 0 ? `+${priceDiff}` : `${priceDiff}`;
-  const formattedPercentChange =
-    percentChange >= 0 ? `+${percentChange}%` : `${percentChange}%`;
 
-  return `${arrow}${formattedPriceDiff} (${formattedPercentChange})`;
+  return `${arrow}${formatSigned(priceDiff)} (${formatSigned(percentChange)}%)`;
 };

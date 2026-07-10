@@ -1,4 +1,5 @@
 import { BasicFinancials, CompanyProfile, EpsSurprise, PriceData, QuoteInfo } from "@/src/features/stocks/types";
+import { toMarketDateISO } from "@/src/utils/dateUtils";
 import { fetchJson } from "@/src/utils/fetchJson";
 import { getCached, setCached } from "@/src/utils/sessionCache";
 
@@ -50,13 +51,20 @@ export const fetchEpsSurprises = async (ticker: string): Promise<EpsSurprise[]> 
   return eps_surprises;
 };
 
-const filterFromDate = (eodData: PriceData[], startDate: Date): PriceData[] =>
-  eodData.filter((point) => new Date(point.date) >= startDate);
+const filterFromDate = (eodData: PriceData[], rangeStart: string): PriceData[] =>
+  eodData.filter((point) => {
+    const iso = toMarketDateISO(point.date);
+    return iso != null && iso >= rangeStart;
+  });
 
 export const fetchEodData = async (ticker: string, startDate: Date): Promise<PriceData[]> => {
   const cacheKey = `stock-eod:${ticker}`;
   const cached = getCached<PriceData[]>(cacheKey);
-  if (cached && new Date(cached[0]?.date ?? 0) <= startDate) return filterFromDate(cached, startDate);
+  const rangeStart = toMarketDateISO(startDate) ?? "";
+  const cachedEarliest = cached ? toMarketDateISO(cached[0]?.date) : null;
+  if (cached && cachedEarliest && cachedEarliest <= rangeStart) {
+    return filterFromDate(cached, rangeStart);
+  }
 
   const fetchFromDate = new Date();
   fetchFromDate.setFullYear(fetchFromDate.getFullYear() - EOD_MAX_LOOKBACK_YEARS);
@@ -67,7 +75,7 @@ export const fetchEodData = async (ticker: string, startDate: Date): Promise<Pri
     "fetchEodData",
   );
   setCached(cacheKey, eod_data, EOD_TTL_SECONDS);
-  return filterFromDate(eod_data, startDate);
+  return filterFromDate(eod_data, rangeStart);
 };
 
 export const fetchQuoteInfo = async (ticker: string): Promise<QuoteInfo> => {

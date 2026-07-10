@@ -11,7 +11,9 @@ import {
 } from "recharts";
 
 import Loader from "@/src/components/ui/Loader";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { PriceData } from "@/src/features/stocks/types";
+import { parseMarketDate } from "@/src/utils/dateUtils";
 
 interface LineChartProps {
   ticker: string;
@@ -20,11 +22,10 @@ interface LineChartProps {
   isPositive: boolean;
 }
 
-const dayLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { day: "numeric" });
-const monthLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { month: "short" });
-const monthYearLabel = (date: string) =>
-  new Date(date).toLocaleDateString("en-US", { month: "short", year: "numeric" });
-const yearLabel = (date: string) => new Date(date).toLocaleDateString("en-US", { year: "numeric" });
+const dayLabel = (date: string) => parseMarketDate(date).format("D");
+const monthLabel = (date: string) => parseMarketDate(date).format("MMM");
+const monthYearLabel = (date: string) => parseMarketDate(date).format("MMM YYYY");
+const yearLabel = (date: string) => parseMarketDate(date).format("YYYY");
 
 // Ticks are computed explicitly (rather than left to recharts' auto interval) because auto
 // selection picks points that don't line up with month/year boundaries, leaving most labels blank.
@@ -32,8 +33,8 @@ const getMonthStartTicks = (priceData: PriceData[]) => {
   const ticks: string[] = [];
   let lastMonthKey = "";
   for (const point of priceData) {
-    const d = new Date(point.date);
-    const monthKey = `${d.getFullYear()}-${d.getMonth()}`;
+    const d = parseMarketDate(point.date);
+    const monthKey = `${d.year()}-${d.month()}`;
     if (monthKey !== lastMonthKey) {
       ticks.push(point.date as unknown as string);
       lastMonthKey = monthKey;
@@ -60,12 +61,12 @@ const getEvenlySpacedTicks = (priceData: PriceData[], count: number) => {
 const getJulyTicks = (priceData: PriceData[]) => {
   const closestByYear = new Map<number, { date: string; distance: number }>();
   for (const point of priceData) {
-    const d = new Date(point.date);
-    const july1 = new Date(d.getFullYear(), 6, 1);
-    const distance = Math.abs(d.getTime() - july1.getTime());
-    const existing = closestByYear.get(d.getFullYear());
+    const d = parseMarketDate(point.date);
+    const july1 = parseMarketDate(`${d.year()}-07-01`);
+    const distance = Math.abs(d.diff(july1, "day"));
+    const existing = closestByYear.get(d.year());
     if (!existing || distance < existing.distance) {
-      closestByYear.set(d.getFullYear(), { date: point.date as unknown as string, distance });
+      closestByYear.set(d.year(), { date: point.date as unknown as string, distance });
     }
   }
   return Array.from(closestByYear.values()).map((v) => v.date);
@@ -80,7 +81,7 @@ const getYearStartTicks = (priceData: PriceData[]) => {
   const ticks: string[] = [];
   let lastYear: number | null = null;
   for (const point of priceData) {
-    const year = new Date(point.date).getFullYear();
+    const year = parseMarketDate(point.date).year();
     if (year !== lastYear) {
       ticks.push(point.date as unknown as string);
       lastYear = year;
@@ -88,8 +89,7 @@ const getYearStartTicks = (priceData: PriceData[]) => {
   }
 
   if (ticks.length > 1) {
-    const firstTickDate = new Date(ticks[0]);
-    const isPartialYear = firstTickDate.getMonth() > 0; // after January
+    const isPartialYear = parseMarketDate(ticks[0]).month() > 0;
     if (isPartialYear) ticks.shift();
   }
 
@@ -99,7 +99,7 @@ const getYearStartTicks = (priceData: PriceData[]) => {
 const getAxisConfig = (priceData: PriceData[], range: string) => {
   switch (range) {
     case "1W":
-      return { ticks: undefined, interval: 0 as const, formatter: dayLabel };
+      return { ticks: getEvenlySpacedTicks(priceData, 4), interval: 0 as const, formatter: dayLabel };
     case "1M":
       return { ticks: undefined, interval: undefined, formatter: dayLabel };
     case "1Y":
@@ -134,7 +134,7 @@ const getPriceTicks = (priceData: PriceData[], count: number) => {
 };
 
 const formatTooltipDateLabel = (date: Date | string) =>
-  new Date(date).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+  parseMarketDate(date).format("MMM D, YYYY");
 
 const ChartTooltip = ({
   active,
@@ -153,11 +153,11 @@ const ChartTooltip = ({
       <Box textStyle="tooltipLabel" mb={1}>
         {formatTooltipDateLabel(label ?? data.date)}
       </Box>
-      <Box>Open: {data.open?.toFixed(2) ?? "N/A"}</Box>
-      <Box>Close: {data.close?.toFixed(2) ?? "N/A"}</Box>
-      <Box>Low: {data.low?.toFixed(2) ?? "N/A"}</Box>
-      <Box>High: {data.high?.toFixed(2) ?? "N/A"}</Box>
-      <Box>Volume: {data.volume?.toLocaleString() ?? "N/A"}</Box>
+      <Box>Open: {data.open != null ? formatNumber(data.open) : "N/A"}</Box>
+      <Box>Close: {data.close != null ? formatNumber(data.close) : "N/A"}</Box>
+      <Box>Low: {data.low != null ? formatNumber(data.low) : "N/A"}</Box>
+      <Box>High: {data.high != null ? formatNumber(data.high) : "N/A"}</Box>
+      <Box>Volume: {data.volume != null ? formatNumber(data.volume) : "N/A"}</Box>
     </Box>
   );
 };
@@ -211,7 +211,7 @@ const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range, isPosit
             stroke={axisColor}
             tickLine={false}
             tick={{ fill: axisColor, fontSize: 10 }}
-            tickFormatter={(value: number) => value.toFixed(2)}
+            tickFormatter={(value: number) => formatNumber(value)}
           />
           <Tooltip content={<ChartTooltip />} />
           <Area

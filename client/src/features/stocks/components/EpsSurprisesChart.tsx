@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import { formatNumber } from "@/src/utils/numberUtils";
 import Loader from "@/src/components/ui/Loader";
 import { EpsSurprise } from "@/src/features/stocks/types";
 
@@ -52,7 +53,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
           {formatPeriodLabel(d.period)}
         </text>
         <text dy={42} textAnchor="middle" fill={surpriseColor} fontSize={14} fontWeight={600}>
-          {d.surprise >= 0 ? "Beat" : "Missed"}: {Math.abs(d.surprise).toFixed(2)}
+          {d.surprise >= 0 ? "Beat" : "Missed"}: {formatNumber(Math.abs(d.surprise))}
         </text>
       </g>
     );
@@ -96,7 +97,7 @@ const EpsSurprisesChart: React.FC<EpsSurprisesChartProps> = ({ epsSurprises }) =
                     <Box>Actual: {data.actual}</Box>
                     <Box>Estimate: {data.estimate}</Box>
                     <Box color={data.surprise >= 0 ? "positive" : "negative"}>
-                      {data.surprise >= 0 ? "Beat" : "Missed"}: {Math.abs(data.surprise).toFixed(2)}
+                      {data.surprise >= 0 ? "Beat" : "Missed"}: {formatNumber(Math.abs(data.surprise))}
                     </Box>
                   </Box>
                 );

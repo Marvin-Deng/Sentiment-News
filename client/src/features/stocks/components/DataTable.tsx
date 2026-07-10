@@ -1,4 +1,5 @@
 import { Box, Table, Heading } from "@chakra-ui/react";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { BasicFinancials, PriceData } from "@/src/features/stocks/types";
 
 interface DataTableProps {
@@ -21,7 +22,7 @@ const SectionTable = ({ section }: { section: TableSection }) => (
         {section.rows.map((row) => (
           <Table.Row key={row.label}>
             <Table.Cell>{row.label}</Table.Cell>
-            <Table.Cell textAlign="right">{row.value}</Table.Cell>
+            <Table.Cell textAlign="right">{formatNumber(row.value)}</Table.Cell>
           </Table.Row>
         ))}
       </Table.Body>

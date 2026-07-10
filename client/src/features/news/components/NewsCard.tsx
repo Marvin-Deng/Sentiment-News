@@ -1,5 +1,6 @@
 import NextLink from "next/link";
 import { Article } from "../types";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { isPricePositive, getPriceStrArrow } from "@/src/utils/priceUtils";
 import { utcStringToLocal, formatDate } from "@/src/utils/dateUtils";
 import Badge from "@/src/components/ui/Badge";
@@ -58,8 +59,8 @@ const NewsCard = ({
           </Text>
           {open_price ? (
             <Flex align="center" gap={4} mb={3}>
-              <Text>O: {open_price}</Text>
-              <Text>C: {close_price}</Text>
+              <Text>O: {formatNumber(open_price)}</Text>
+              <Text>C: {formatNumber(close_price)}</Text>
               <Text color={isPositive ? "positive" : "negative"}>
                 {getPriceStrArrow(open_price, close_price)}
               </Text>

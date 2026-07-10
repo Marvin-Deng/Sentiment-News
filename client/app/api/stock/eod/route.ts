@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PriceData } from "@/src/features/stocks/types";
+import { toMarketDateISO } from "@/src/utils/dateUtils";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 
     const records = await res.json();
     const eod_data: PriceData[] = records.map((record: Record<string, unknown>) => ({
-      date: record.date,
+      date: toMarketDateISO(record.date as string),
       open: record.open,
       close: record.close,
       low: record.low,

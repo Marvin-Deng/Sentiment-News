@@ -4,6 +4,7 @@ import NextLink from "next/link";
 import { Box, Button, Heading, Link, Table, Text } from "@chakra-ui/react";
 
 import { DayEvents, EarningsEvent, HOUR_LABELS, IpoEvent } from "@/src/features/calendar/types";
+import { formatNumber } from "@/src/utils/numberUtils";
 import { formatDate } from "@/src/utils/dateUtils";
 
 const ROW_LIMIT = 5;
@@ -70,9 +71,11 @@ const CalendarListView = ({ daysEvents }: CalendarListViewProps) => {
                           <TickerLink ticker={event.symbol} />
                         </Table.Cell>
                         <Table.Cell minW="200px">{HOUR_LABELS[event.hour] ?? "—"}</Table.Cell>
-                        <Table.Cell textAlign="right" minW="180px">{event.epsEstimate ?? "—"}</Table.Cell>
+                        <Table.Cell textAlign="right" minW="180px">
+                          {event.epsEstimate != null ? formatNumber(event.epsEstimate) : "—"}
+                        </Table.Cell>
                         <Table.Cell textAlign="right" minW="220px">
-                          {event.revenueEstimate?.toLocaleString() ?? "—"}
+                          {event.revenueEstimate != null ? formatNumber(event.revenueEstimate) : "—"}
                         </Table.Cell>
                       </Table.Row>
                     ))}

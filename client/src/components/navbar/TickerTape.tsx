@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import NextLink from "next/link";
 import { Box, Flex, Text, Link } from "@chakra-ui/react";
 
+import { formatNumber } from "@/src/utils/numberUtils";
 import { fetchQuoteInfo } from "@/src/features/stocks/api";
 import { QuoteInfo } from "@/src/features/stocks/types";
 import { getCached, setCached } from "@/src/utils/sessionCache";
@@ -165,9 +166,9 @@ const TickerTape = () => {
           <Link asChild fontWeight="semibold" _hover={{ textDecoration: "underline" }}>
             <NextLink href={`/stocks/${ticker}`}>{ticker}</NextLink>
           </Link>
-          <Text>{quote.current.toFixed(2)}</Text>
+          <Text>{formatNumber(quote.current)}</Text>
           <Text color={isPositive ? "positive" : "negative"}>
-            {isPositive ? "▲" : "▼"} {Math.abs(quote.percent).toFixed(2)}%
+            {isPositive ? "▲" : "▼"} {formatNumber(Math.abs(quote.percent))}%
           </Text>
         </Flex>
       );
