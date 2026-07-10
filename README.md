@@ -14,19 +14,6 @@ and `.github/workflows/stock-price-run.yml`), independent of where the frontend 
 jobs still need a GCP project (for Firestore and, if used, Cloud Run) and the secrets listed in
 [Jobs Setup](#jobs-setup) configured as GitHub Actions repo secrets.
 
-## Infra Setup (Optional, GCP)
-
-The GCP infra under `infra/` (Cloud Run, Cloud Scheduler, Firestore, Artifact Registry, etc.) is
-only needed if you want to run the jobs as Cloud Run Jobs on their own schedule instead of relying
-on the GitHub Actions cron above, or if you want the frontend deployed to Cloud Run.
-
-1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
-2. Enter your GCP project ID in `infra/setup-wif.sh` (`PROJECT_ID`), then run:
-
-```bash
-./infra/setup-wif.sh
-```
-
 ## Frontend Setup
 
 The `/api/article/news` route reads articles from Firestore, so it needs a GCP project ID and a
@@ -100,4 +87,17 @@ Runs once and exits. On success you'll see a JSON summary in the logs.
 ```bash
 cd jobs
 go run ./cron/stock-price
+```
+
+## Infra Setup (Optional, GCP)
+
+The GCP infra under `infra/` (Cloud Run, Cloud Scheduler, Firestore, Artifact Registry, etc.) is
+only needed if you want to run the jobs as Cloud Run Jobs on their own schedule instead of relying
+on the GitHub Actions cron above, or if you want the frontend deployed to Cloud Run.
+
+1. Install the [gcloud CLI](https://cloud.google.com/sdk/docs/install).
+2. Enter your GCP project ID in `infra/setup-wif.sh` (`PROJECT_ID`), then run:
+
+```bash
+./infra/setup-wif.sh
 ```

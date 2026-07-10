@@ -1,4 +1,4 @@
-JOBS := stock-price news-ingest
+JOBS := cron/stock-price cron/news-ingest utility/cleanup-articles
 
 .PHONY: test build fmt
 

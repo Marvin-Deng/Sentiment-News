@@ -26,6 +26,7 @@ func (c Criteria) IsEmpty() bool {
 }
 
 type Result struct {
+	Scanned int
 	Matched int
 	Deleted int
 }
@@ -52,6 +53,7 @@ func Run(ctx context.Context, client *firestore.Client, criteria Criteria) (Resu
 		if err != nil {
 			return result, fmt.Errorf("list articles: %w", err)
 		}
+		result.Scanned++
 
 		if domain != "" && !matchesDomain(doc.Data()["articleUrl"], domain) {
 			continue

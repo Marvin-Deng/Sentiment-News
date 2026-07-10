@@ -40,11 +40,13 @@ func main() {
 	}
 	defer client.Close()
 
+	log.Printf("using project=%q database=%q", projectID, "(default)")
+
 	result, err := cleanup.Run(ctx, client, criteria)
 	if err != nil {
 		log.Fatalf("cleanup failed: %v", err)
 	}
 
-	log.Printf("cleanup complete: ticker=%q domain=%q matched=%d deleted=%d",
-		criteria.Ticker, criteria.Domain, result.Matched, result.Deleted)
+	log.Printf("cleanup complete: ticker=%q domain=%q scanned=%d matched=%d deleted=%d",
+		criteria.Ticker, criteria.Domain, result.Scanned, result.Matched, result.Deleted)
 }
