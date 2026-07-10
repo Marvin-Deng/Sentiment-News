@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sentiment-news/jobs/news-ingest/internal/config"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/config"
 	"golang.org/x/time/rate"
 )
 

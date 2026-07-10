@@ -38,4 +38,4 @@ jobs:
           TIINGO_TOKEN: ${{ secrets.TIINGO_TOKEN }}
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           MARKET_DATE: ${{ inputs.market_date }}
-        run: go run ./stock-price
+        run: go run ./cron/stock-price

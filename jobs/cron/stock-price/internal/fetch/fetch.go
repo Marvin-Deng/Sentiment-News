@@ -6,9 +6,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/sentiment-news/jobs/stock-price/internal/config"
-	"github.com/sentiment-news/jobs/stock-price/internal/repository"
-	"github.com/sentiment-news/jobs/stock-price/internal/stock"
+	"github.com/sentiment-news/jobs/cron/stock-price/internal/config"
+	"github.com/sentiment-news/jobs/cron/stock-price/internal/repository"
+	"github.com/sentiment-news/jobs/cron/stock-price/internal/stock"
 	"golang.org/x/sync/errgroup"
 )
 

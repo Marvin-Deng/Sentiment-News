@@ -50,14 +50,13 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Jobs Setup
 
+All jobs live under one Go module rooted at `jobs/` (`github.com/sentiment-news/jobs`); the
+recurring/cron jobs are in `jobs/cron/<name>`.
+
 1. Install [Go 1.22+](https://go.dev/dl/).
-2. Copy the env template and fill in your API keys:
-
-```bash
-cp jobs/.env.example jobs/.env
-```
-
-Required variables in `jobs/.env`:
+2. Export the required environment variables (no `.env` file is read automatically — GHA sets
+   these from repo secrets, so locally you need to export them yourself, e.g. via `direnv` or
+   `set -a; source jobs/.env; set +a` if you keep a local `jobs/.env`):
 
 | Variable          | Description                                                              | Used by                  |
 | ----------------- | ------------------------------------------------------------------------ | ------------------------- |
@@ -72,27 +71,26 @@ collection, keyed by `ticker_marketDate` so articles can join to it. `stock-pric
 run after market close (2pm PST) since Tiingo's EOD price isn't available until then; running it
 earlier just means that day's price stays unpopulated until the next scheduled run.
 
-3. Run the news ingest job:
+3. Run the news ingest job (from the `jobs/` module root):
 
 ```bash
-cd jobs/news-ingest
+cd jobs
 go mod download
-go run .
+go run ./cron/news-ingest
 ```
 
-The job loads `jobs/.env` automatically, runs once, and exits. On success you'll see a JSON summary in the logs.
+Runs once and exits. On success you'll see a JSON summary in the logs.
 
 To test with a single ticker:
 
 ```bash
-cd jobs/news-ingest
-TICKERS=AAPL go run .
+cd jobs
+TICKERS=AAPL go run ./cron/news-ingest
 ```
 
 4. Run the stock price job:
 
 ```bash
-cd jobs/stock-price
-go mod download
-go run .
+cd jobs
+go run ./cron/stock-price
 ```

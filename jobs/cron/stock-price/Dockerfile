@@ -7,10 +7,10 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /news-ingest ./news-ingest
+RUN CGO_ENABLED=0 GOOS=linux go build -trimpath -ldflags="-s -w" -o /stock-price ./cron/stock-price
 
 FROM gcr.io/distroless/static-debian12:nonroot
 
-COPY --from=builder /news-ingest /news-ingest
+COPY --from=builder /stock-price /stock-price
 
-ENTRYPOINT ["/news-ingest"]
+ENTRYPOINT ["/stock-price"]

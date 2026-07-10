@@ -38,4 +38,4 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           GEMINI_KEY: ${{ secrets.GEMINI_KEY }}
           NEWS_DATE: ${{ inputs.date }}
-        run: go run ./news-ingest
+        run: go run ./cron/news-ingest

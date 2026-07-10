@@ -11,11 +11,11 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/sentiment-news/jobs/news-ingest/internal/config"
-	"github.com/sentiment-news/jobs/news-ingest/internal/finnhub"
-	"github.com/sentiment-news/jobs/news-ingest/internal/repository"
-	"github.com/sentiment-news/jobs/news-ingest/internal/sentiment"
-	"github.com/sentiment-news/jobs/news-ingest/internal/stock"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/config"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/finnhub"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/repository"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/sentiment"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/stock"
 	"golang.org/x/sync/errgroup"
 )
 

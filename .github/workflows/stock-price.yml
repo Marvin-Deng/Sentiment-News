@@ -25,7 +25,7 @@ jobs:
 
       - name: Run tests
         working-directory: jobs
-        run: go test ./stock-price/...
+        run: go test ./cron/stock-price/...
 
   terraform-check:
     runs-on: ubuntu-latest
@@ -96,7 +96,7 @@ jobs:
         working-directory: jobs
         run: |
           IMAGE="${{ env.REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.JOB }}:${{ github.sha }}"
-          docker build -f stock-price/Dockerfile -t "$IMAGE" .
+          docker build -f cron/stock-price/Dockerfile -t "$IMAGE" .
           docker push "$IMAGE"
           echo "IMAGE=$IMAGE" >> "$GITHUB_ENV"
 

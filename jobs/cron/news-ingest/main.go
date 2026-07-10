@@ -8,9 +8,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sentiment-news/jobs/news-ingest/internal/config"
-	"github.com/sentiment-news/jobs/news-ingest/internal/ingest"
-	"github.com/sentiment-news/jobs/news-ingest/internal/repository"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/config"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/ingest"
+	"github.com/sentiment-news/jobs/cron/news-ingest/internal/repository"
 )
 
 func main() {
