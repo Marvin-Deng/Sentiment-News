@@ -5,64 +5,59 @@ import (
 	"time"
 )
 
-func TestParseSentiment(t *testing.T) {
+func TestParseEvaluation(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
-		want  string
+		name          string
+		input         string
+		wantSentiment string
+		wantReasoning string
 	}{
 		{
-			name:  "exact label",
-			input: "Negative",
-			want:  "Negative",
+			name:          "bare json",
+			input:         `{"sentiment": "Negative", "reasoning": "Reports a significant decline in stock value."}`,
+			wantSentiment: "Negative",
+			wantReasoning: "Reports a significant decline in stock value.",
 		},
 		{
-			name:  "markdown bold only",
-			input: "**Optimistic**",
-			want:  "Optimistic",
+			name:          "json wrapped in markdown fence",
+			input:         "```json\n{\"sentiment\": \"Optimistic\", \"reasoning\": \"Strong earnings beat.\"}\n```",
+			wantSentiment: "Optimistic",
+			wantReasoning: "Strong earnings beat.",
 		},
 		{
-			name:  "markdown bold with explanation",
-			input: "**Cautious**\n\n**Why:** The text advises against chasing high-yield strategies.",
-			want:  "Cautious",
+			name:          "case insensitive sentiment",
+			input:         `{"sentiment": "optimistic", "reasoning": "Positive outlook."}`,
+			wantSentiment: "Optimistic",
+			wantReasoning: "Positive outlook.",
 		},
 		{
-			name:  "markdown bold negative with reasoning",
-			input: "**Negative**\n\n**Reasoning:** The text describes a significant decline in stock value.",
-			want:  "Negative",
+			name:          "json with surrounding prose",
+			input:         "Here is the result:\n{\"sentiment\": \"Stable\", \"reasoning\": \"No major impact expected.\"}\nThanks.",
+			wantSentiment: "Stable",
+			wantReasoning: "No major impact expected.",
 		},
 		{
-			name:  "markdown bold inconsistent with reasoning",
-			input: "**Inconsistent**\n\n**Reasoning:** The text highlights a clear contradiction.",
-			want:  "Inconsistent",
+			name:          "unrecognized sentiment value",
+			input:         `{"sentiment": "Somewhat bullish", "reasoning": "Mixed signals."}`,
+			wantSentiment: "",
+			wantReasoning: "",
 		},
 		{
-			name:  "case insensitive",
-			input: "optimistic",
-			want:  "Optimistic",
-		},
-		{
-			name:  "label embedded in sentence",
-			input: "Sentiment: Stable",
-			want:  "Stable",
-		},
-		{
-			name:  "sentiment prefix with markdown",
-			input: "Sentiment: **Positive**\n\n**Reasoning:** The text uses the word \"cheered.\"",
-			want:  "Positive",
-		},
-		{
-			name:  "unrecognized response",
-			input: "Somewhat bullish overall",
-			want:  "",
+			name:          "not json",
+			input:         "Somewhat bullish overall",
+			wantSentiment: "",
+			wantReasoning: "",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := parseSentiment(tt.input)
-			if got != tt.want {
-				t.Fatalf("parseSentiment(%q) = %q, want %q", tt.input, got, tt.want)
+			got := parseEvaluation(tt.input)
+			if got.Sentiment != tt.wantSentiment {
+				t.Fatalf("parseEvaluation(%q).Sentiment = %q, want %q", tt.input, got.Sentiment, tt.wantSentiment)
+			}
+			if got.Reasoning != tt.wantReasoning {
+				t.Fatalf("parseEvaluation(%q).Reasoning = %q, want %q", tt.input, got.Reasoning, tt.wantReasoning)
 			}
 		})
 	}

@@ -16,6 +16,7 @@ type Article struct {
 	Summary             string
 	PublicationDatetime string
 	Sentiment           string
+	Reasoning           string
 	Ticker              string
 	TickerDocID         string
 	MarketDate          string
@@ -72,6 +73,7 @@ func (s *Store) UpsertArticle(ctx context.Context, docID string, article Article
 		"summary":             article.Summary,
 		"publicationDatetime": article.PublicationDatetime,
 		"sentiment":           article.Sentiment,
+		"reasoning":           article.Reasoning,
 		"ticker":              article.Ticker,
 		"tickerDocId":         article.TickerDocID,
 		"marketDate":          article.MarketDate,

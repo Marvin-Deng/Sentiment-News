@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
+	"regexp"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -17,6 +20,55 @@ import (
 )
 
 const maxArticlesPerDay = 500
+
+var excludedArticleHosts = map[string]struct{}{
+	"chartmill.com": {},
+}
+
+// isExcludedArticle reports whether the article's URL is from a source we don't want to ingest
+// (e.g. chartmill.com), matching the host with or without a "www." prefix.
+func isExcludedArticle(articleURL string) bool {
+	parsed, err := url.Parse(articleURL)
+	if err != nil {
+		return false
+	}
+	host := strings.ToLower(strings.TrimPrefix(parsed.Hostname(), "www."))
+	_, excluded := excludedArticleHosts[host]
+	return excluded
+}
+
+// mentionsCompany reports whether the article's headline or summary references the ticker symbol
+// or the company name, so we can drop articles that only matched the Finnhub query loosely (e.g.
+// via a related ticker) but never actually discuss the company itself.
+func mentionsCompany(headline, summary, ticker, companyName string) bool {
+	text := strings.ToLower(headline + " " + summary)
+	if ticker != "" && strings.Contains(text, strings.ToLower(ticker)) {
+		return true
+	}
+	if core := coreCompanyName(companyName); core != "" && strings.Contains(text, core) {
+		return true
+	}
+	return false
+}
+
+var companySuffixPattern = regexp.MustCompile(
+	`(?i)\s+(inc\.?|incorporated|corp\.?|corporation|co\.?|company|ltd\.?|limited|plc|llc|group|holdings?|s\.?a\.?)$`,
+)
+
+// coreCompanyName strips a trailing corporate suffix (Inc, Corp, Co, ...) from a Finnhub profile
+// name, since news headlines almost always drop it (e.g. "Apple" rather than "Apple Inc").
+func coreCompanyName(name string) string {
+	name = strings.TrimSpace(name)
+	for {
+		stripped := companySuffixPattern.ReplaceAllString(name, "")
+		stripped = strings.TrimRight(stripped, ", ")
+		if stripped == name {
+			break
+		}
+		name = stripped
+	}
+	return strings.ToLower(name)
+}
 
 type Service struct {
 	cfg       config.Config
@@ -86,11 +138,20 @@ func (s *Service) processTicker(
 		return fmt.Errorf("fetch finnhub news for %s: %w", ticker, err)
 	}
 
+	profile, err := s.finnhub.CompanyProfile(ctx, ticker)
+	if err != nil {
+		log.Printf("warning: failed to fetch company profile for %s: %v", ticker, err)
+	}
+
 	validArticles := make([]finnhub.Article, 0, len(articles))
 	for _, article := range articles {
-		if article.Image != "" {
-			validArticles = append(validArticles, article)
+		if article.Image == "" || isExcludedArticle(article.URL) {
+			continue
 		}
+		if !mentionsCompany(article.Headline, article.Summary, ticker, profile.Name) {
+			continue
+		}
+		validArticles = append(validArticles, article)
 	}
 	if len(validArticles) == 0 {
 		return nil
@@ -149,7 +210,7 @@ func (s *Service) addArticle(
 		docID = existingDoc.Ref.ID
 	}
 
-	sentimentValue := s.sentiment.Evaluate(ctx, article.Headline, article.Summary)
+	evaluation := s.sentiment.Evaluate(ctx, article.Headline, article.Summary)
 	publicationDatetime := stock.FormatPublicationDatetime(article.Datetime)
 
 	err = s.store.UpsertArticle(ctx, docID, repository.Article{
@@ -159,7 +220,8 @@ func (s *Service) addArticle(
 		ArticleURL:          article.URL,
 		Summary:             article.Summary,
 		PublicationDatetime: publicationDatetime,
-		Sentiment:           sentimentValue,
+		Sentiment:           evaluation.Sentiment,
+		Reasoning:           evaluation.Reasoning,
 		Ticker:              ticker,
 		TickerDocID:         tickerDocID,
 		MarketDate:          marketDate,

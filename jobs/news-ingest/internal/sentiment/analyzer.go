@@ -33,6 +33,7 @@ const (
 var (
 	retryInMessagePattern = regexp.MustCompile(`(?i)retry in ([0-9]+(?:\.[0-9]+)?)s`)
 	sentimentPattern      = buildSentimentPattern()
+	jsonObjectPattern     = regexp.MustCompile(`(?s)\{.*\}`)
 )
 
 type Stats struct {
@@ -50,8 +51,13 @@ type Analyzer struct {
 	unrecognizedErrors atomic.Int64
 }
 
+type Evaluation struct {
+	Sentiment string
+	Reasoning string
+}
+
 type analyzeOutcome struct {
-	sentiment   string
+	evaluation  Evaluation
 	rateLimited bool
 	retryAfter  time.Duration
 	retryable   bool
@@ -79,25 +85,26 @@ func (a *Analyzer) Stats() Stats {
 	}
 }
 
-func (a *Analyzer) Evaluate(ctx context.Context, title, summary string) string {
+func (a *Analyzer) Evaluate(ctx context.Context, title, summary string) Evaluation {
 	text := fmt.Sprintf("%s: %s", title, summary)
-	sentiment := a.analyzeWithGeminiRetry(ctx, text)
-	if sentiment != "" {
-		return titleCase(sentiment)
+	evaluation := a.analyzeWithGeminiRetry(ctx, text)
+	if evaluation.Sentiment != "" {
+		evaluation.Sentiment = titleCase(evaluation.Sentiment)
+		return evaluation
 	}
-	return "Neutral"
+	return Evaluation{Sentiment: "Neutral"}
 }
 
-func (a *Analyzer) analyzeWithGeminiRetry(ctx context.Context, text string) string {
+func (a *Analyzer) analyzeWithGeminiRetry(ctx context.Context, text string) Evaluation {
 	for attempt := 0; attempt < maxRetries; attempt++ {
 		if err := a.waitForQuota(ctx); err != nil {
 			log.Printf("rate limiter error: %v", err)
-			return ""
+			return Evaluation{}
 		}
 
 		outcome := a.analyzeWithGemini(ctx, text)
-		if outcome.sentiment != "" {
-			return outcome.sentiment
+		if outcome.evaluation.Sentiment != "" {
+			return outcome.evaluation
 		}
 
 		if outcome.rateLimited {
@@ -121,16 +128,16 @@ func (a *Analyzer) analyzeWithGeminiRetry(ctx context.Context, text string) stri
 			select {
 			case <-time.After(backoff):
 			case <-ctx.Done():
-				return ""
+				return Evaluation{}
 			}
 			continue
 		}
 
-		return ""
+		return Evaluation{}
 	}
 
 	log.Printf("sentiment analysis failed after %d attempts", maxRetries)
-	return ""
+	return Evaluation{}
 }
 
 func (a *Analyzer) waitForQuota(ctx context.Context) error {
@@ -162,7 +169,12 @@ func (a *Analyzer) pauseForRateLimit(wait time.Duration) {
 
 func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) analyzeOutcome {
 	prompt := fmt.Sprintf(
-		"Classify the sentiment of the following text. Reply with exactly one word from this list, with no punctuation, markdown, or explanation: %s\n\nText: %s",
+		"Analyze the sentiment of the following news text and reply with ONLY a JSON object, no markdown, "+
+			"no code fences, no other text. The JSON object must have exactly two fields:\n"+
+			`- "sentiment": exactly one word from this list: %s`+"\n"+
+			`- "reasoning": a short blurb (200 words or fewer) explaining how impactful this article is `+
+			"and the reasoning behind the sentiment classification\n\n"+
+			"Text: %s",
 		config.SentimentOptions,
 		text,
 	)
@@ -177,7 +189,7 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) analyzeOu
 		},
 		"generationConfig": map[string]any{
 			"temperature":     0,
-			"maxOutputTokens": 16,
+			"maxOutputTokens": 512,
 		},
 	}
 
@@ -240,14 +252,14 @@ func (a *Analyzer) analyzeWithGemini(ctx context.Context, text string) analyzeOu
 	}
 
 	raw := strings.TrimSpace(parsed.Candidates[0].Content.Parts[0].Text)
-	sentiment := parseSentiment(raw)
-	if sentiment == "" {
+	evaluation := parseEvaluation(raw)
+	if evaluation.Sentiment == "" {
 		a.unrecognizedErrors.Add(1)
 		log.Printf("warning: gemini returned unrecognized sentiment %q", raw)
 		return analyzeOutcome{}
 	}
 
-	return analyzeOutcome{sentiment: sentiment}
+	return analyzeOutcome{evaluation: evaluation}
 }
 
 func parseRateLimitRetryAfter(body []byte) time.Duration {
@@ -327,18 +339,34 @@ func buildSentimentPattern() *regexp.Regexp {
 	return regexp.MustCompile(`(?i)\b(` + strings.Join(quoted, "|") + `)\b`)
 }
 
-func parseSentiment(raw string) string {
-	match := sentimentPattern.FindStringSubmatch(raw)
-	if len(match) < 2 {
-		return ""
+// parseEvaluation extracts {sentiment, reasoning} from the model's reply. Gemini sometimes wraps
+// the JSON in markdown code fences despite being told not to, so the object is located with a
+// regex before unmarshaling rather than assuming raw is a bare JSON document.
+func parseEvaluation(raw string) Evaluation {
+	jsonMatch := jsonObjectPattern.FindString(raw)
+	if jsonMatch == "" {
+		return Evaluation{}
+	}
+
+	var parsed struct {
+		Sentiment string `json:"sentiment"`
+		Reasoning string `json:"reasoning"`
+	}
+	if err := json.Unmarshal([]byte(jsonMatch), &parsed); err != nil {
+		return Evaluation{}
+	}
+
+	sentimentMatch := sentimentPattern.FindStringSubmatch(parsed.Sentiment)
+	if len(sentimentMatch) < 2 {
+		return Evaluation{}
 	}
 
 	for _, option := range sentimentOptions() {
-		if strings.EqualFold(match[1], option) {
-			return option
+		if strings.EqualFold(sentimentMatch[1], option) {
+			return Evaluation{Sentiment: option, Reasoning: strings.TrimSpace(parsed.Reasoning)}
 		}
 	}
-	return ""
+	return Evaluation{}
 }
 
 func titleCase(value string) string {

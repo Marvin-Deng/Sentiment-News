@@ -20,6 +20,11 @@ type Article struct {
 	Related  string `json:"related"`
 }
 
+type CompanyProfile struct {
+	Ticker string `json:"ticker"`
+	Name   string `json:"name"`
+}
+
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
@@ -71,4 +76,41 @@ func (c *Client) CompanyNews(ctx context.Context, ticker, dateFrom, dateTo strin
 		return nil, err
 	}
 	return articles, nil
+}
+
+func (c *Client) CompanyProfile(ctx context.Context, ticker string) (CompanyProfile, error) {
+	endpoint, err := url.Parse("https://finnhub.io/api/v1/stock/profile2")
+	if err != nil {
+		return CompanyProfile{}, err
+	}
+
+	query := endpoint.Query()
+	query.Set("symbol", ticker)
+	query.Set("token", c.apiKey)
+	endpoint.RawQuery = query.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+	if err != nil {
+		return CompanyProfile{}, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return CompanyProfile{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return CompanyProfile{}, err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return CompanyProfile{}, fmt.Errorf("finnhub company profile: status %d: %s", resp.StatusCode, string(body))
+	}
+
+	var profile CompanyProfile
+	if err := json.Unmarshal(body, &profile); err != nil {
+		return CompanyProfile{}, err
+	}
+	return profile, nil
 }
