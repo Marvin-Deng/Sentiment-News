@@ -12,4 +12,5 @@ export type Article = {
   open_price: number;
   close_price: number;
   reasoning?: string;
+  source: string;
 };

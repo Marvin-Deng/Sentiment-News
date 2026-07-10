@@ -72,3 +72,20 @@ resource "google_firestore_index" "articles_sentiment_publication_datetime" {
 
   depends_on = [google_firestore_database.default]
 }
+
+resource "google_firestore_index" "articles_source_publication_datetime" {
+  project    = var.project_id
+  database   = google_firestore_database.default.name
+  collection = "articles"
+
+  fields {
+    field_path = "source"
+    order      = "ASCENDING"
+  }
+  fields {
+    field_path = "publicationDatetime"
+    order      = "DESCENDING"
+  }
+
+  depends_on = [google_firestore_database.default]
+}

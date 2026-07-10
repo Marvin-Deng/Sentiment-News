@@ -11,7 +11,7 @@ import MultiSelectDropdown from "@/src/features/stocks/components/Multiselect";
 import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import PageLayout from "@/src/components/layout/PageLayout";
 
-import { fetchArticles } from "../api";
+import { fetchArticles, fetchArticleSources } from "../api";
 import { Article } from "../types";
 import { useSearch } from "@/src/providers/SearchProvider";
 import { SENTIMENT_CATEGORIES } from "@/src/constants/sentiment";
@@ -29,21 +29,31 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [sources, setSources] = useState<string[]>([]);
 
   const { searchQuery } = useSearch();
   const [selectedTickers, setSelectedTickers] = useState<string[]>([]);
   const [selectedSentiment, setSelectedSentiment] = useState<number | null>(null);
   const [selectedPublicationDate, setSelectedPublicationDate] = useState<string | null>(null);
+  const [selectedSource, setSelectedSource] = useState<number | null>(null);
+
+  const sourceOptions = new Map(sources.map((source, index) => [index, source]));
+
+  useEffect(() => {
+    fetchArticleSources().then(setSources).catch(() => setSources([]));
+  }, []);
 
   const getPageArticles = async (currPage: number) => {
     const sentiment =
       selectedSentiment != null ? SENTIMENT_OPTIONS.get(selectedSentiment) || "" : "";
+    const source = selectedSource != null ? sourceOptions.get(selectedSource) ?? "" : "";
     return fetchArticles(
       currPage,
       searchQuery,
       selectedTickers,
       sentiment,
       selectedPublicationDate ?? "",
+      source,
     );
   };
 
@@ -65,7 +75,7 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
 
   useEffect(() => {
     getNewlyFilteredArticles();
-  }, [selectedTickers, selectedSentiment, searchQuery, selectedPublicationDate]);
+  }, [selectedTickers, selectedSentiment, searchQuery, selectedPublicationDate, selectedSource]);
 
   const filters = (
     <>
@@ -84,6 +94,12 @@ const NewsPage = ({ initialTickerList }: NewsPageProps) => {
       <PublicationDateFilter
         selectedDate={selectedPublicationDate}
         onDateChange={setSelectedPublicationDate}
+      />
+      <SingleSelectDropdown
+        placeholder="Source"
+        originalOptions={sourceOptions}
+        selectedOption={selectedSource}
+        setSelectedOption={setSelectedSource}
       />
     </>
   );

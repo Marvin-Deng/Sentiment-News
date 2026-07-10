@@ -16,6 +16,7 @@ export async function GET(request: Request) {
   const tickersParam = searchParams.get("tickers") ?? "";
   const sentiment = searchParams.get("sentiment")?.trim() ?? "";
   const publicationDate = searchParams.get("publication_date")?.trim() ?? "";
+  const source = searchParams.get("source")?.trim() ?? "";
 
   const tickers = tickersParam
     .split(",")
@@ -40,6 +41,9 @@ export async function GET(request: Request) {
     query = sentimentMembers
       ? query.where("sentiment", "in", sentimentMembers)
       : query.where("sentiment", "==", sentiment);
+  }
+  if (source) {
+    query = query.where("source", "==", source);
   }
   if (publicationDate) {
     query = query
@@ -86,6 +90,7 @@ export async function GET(request: Request) {
       market_date: data.marketDate ?? tickerData.marketDate ?? "",
       open_price: tickerData.openPrice ?? null,
       close_price: tickerData.closePrice ?? null,
+      source: data.source ?? "",
     };
   });
 
