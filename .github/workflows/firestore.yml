@@ -45,6 +45,12 @@ jobs:
         env:
           TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Terraform fmt check
+        run: terraform fmt -check -diff -recursive
+
+      - name: Terraform validate
+        run: terraform validate
+
       - name: Import pre-existing resources into state
         run: |
           terraform import google_project_service.firestore \

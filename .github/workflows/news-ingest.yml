@@ -27,8 +27,30 @@ jobs:
         working-directory: jobs/news-ingest
         run: go test ./...
 
+  terraform-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.6"
+
+      - name: Terraform fmt check
+        working-directory: infra/news_ingest
+        run: terraform fmt -check -diff -recursive
+
+      - name: Terraform init (no backend, validate only)
+        working-directory: infra/news_ingest
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: infra/news_ingest
+        run: terraform validate
+
   deploy:
-    needs: test
+    needs: [test, terraform-check]
     runs-on: ubuntu-latest
 
     steps:
