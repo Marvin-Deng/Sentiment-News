@@ -43,6 +43,22 @@ func TestMentionsCompany(t *testing.T) {
 			companyName: "",
 			want:        true,
 		},
+		{
+			name:        "single-letter ticker must not match as a substring of unrelated words",
+			headline:    "Exploring the top movers within the dow jones index during today's session.",
+			summary:     "Discover which dow jones stocks are making waves on Friday.",
+			ticker:      "V",
+			companyName: "Visa Inc",
+			want:        false,
+		},
+		{
+			name:        "single-letter ticker matches as its own word",
+			headline:    "V shares rally after earnings",
+			summary:     "",
+			ticker:      "V",
+			companyName: "Visa Inc",
+			want:        true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -81,6 +97,8 @@ func TestCoreCompanyName(t *testing.T) {
 }
 
 func TestIsExcludedArticle(t *testing.T) {
+	blacklist := []string{"chartmill"}
+
 	tests := []struct {
 		source string
 		want   bool
@@ -94,7 +112,7 @@ func TestIsExcludedArticle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.source, func(t *testing.T) {
-			got := isExcludedArticle(tt.source)
+			got := isExcludedArticle(tt.source, blacklist)
 			if got != tt.want {
 				t.Fatalf("isExcludedArticle(%q) = %v, want %v", tt.source, got, tt.want)
 			}

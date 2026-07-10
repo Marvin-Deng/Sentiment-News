@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	newsConfigName       = "news-config"
-	newsConfigTickersKey = "tickers"
-	defaultStatsigUserID = "jobs-default-tickers"
+	newsConfigName         = "news-config"
+	newsConfigTickersKey   = "tickers"
+	newsConfigBlacklistKey = "source_blacklist"
+	defaultStatsigUserID   = "jobs-default-tickers"
 )
 
 // Initialize starts the Statsig server SDK using the STATSIG_KEY environment variable.
@@ -41,7 +42,7 @@ func Shutdown() {
 // falling back when Statsig is unavailable or the config is empty.
 func GetTickers(fallback []string) []string {
 	if err := Initialize(); err != nil {
-		return cloneTickers(fallback)
+		return cloneStrings(fallback)
 	}
 	defer Shutdown()
 
@@ -54,29 +55,49 @@ func GetTickers(fallback []string) []string {
 }
 
 func normalizeTickers(raw []interface{}, fallback []string) []string {
-	seen := make(map[string]struct{}, len(raw))
-	tickers := make([]string, 0, len(raw))
-
-	for _, item := range raw {
-		ticker := strings.ToUpper(strings.TrimSpace(item.(string)))
-		if ticker == "" {
-			continue
-		}
-		if _, exists := seen[ticker]; exists {
-			continue
-		}
-
-		seen[ticker] = struct{}{}
-		tickers = append(tickers, ticker)
-	}
-
-	if len(tickers) == 0 {
-		return cloneTickers(fallback)
-	}
-
-	return tickers
+	return normalizeStrings(raw, fallback, strings.ToUpper)
 }
 
-func cloneTickers(tickers []string) []string {
-	return append([]string(nil), tickers...)
+// GetSourceBlacklist returns sanitized source names from Statsig config news-config.source_blacklist,
+// falling back when Statsig is unavailable or the config is empty.
+func GetSourceBlacklist(fallback []string) []string {
+	if err := Initialize(); err != nil {
+		return cloneStrings(fallback)
+	}
+	defer Shutdown()
+
+	config := statsigsdk.GetConfigWithExposureLoggingDisabled(
+		statsigsdk.User{UserID: defaultStatsigUserID},
+		newsConfigName,
+	)
+
+	return normalizeStrings(config.GetSlice(newsConfigBlacklistKey, nil), fallback, strings.ToLower)
+}
+
+func normalizeStrings(raw []interface{}, fallback []string, normalize func(string) string) []string {
+	seen := make(map[string]struct{}, len(raw))
+	values := make([]string, 0, len(raw))
+
+	for _, item := range raw {
+		value := normalize(strings.TrimSpace(item.(string)))
+		if value == "" {
+			continue
+		}
+		if _, exists := seen[value]; exists {
+			continue
+		}
+
+		seen[value] = struct{}{}
+		values = append(values, value)
+	}
+
+	if len(values) == 0 {
+		return cloneStrings(fallback)
+	}
+
+	return values
+}
+
+func cloneStrings(values []string) []string {
+	return append([]string(nil), values...)
 }

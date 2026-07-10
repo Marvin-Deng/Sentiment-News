@@ -14,23 +14,27 @@ var DefaultTickers = []string{
 	"JPM", "AMD", "V", "PYPL", "QCOM", "AVGO", "MU",
 }
 
+var DefaultSourceBlacklist = []string{"chartmill"}
+
 const SentimentOptions = "Optimistic, Positive, Stable, Pessimistic, Negative, Inconsistent, Cautious, Neutral"
 
 type Config struct {
-	GCPProjectID  string
-	FinnhubAPIKey string
-	GeminiAPIKey  string
-	Tickers       []string
-	NewsDate      string // optional override, "YYYY-MM-DD"; empty means use today's date
+	GCPProjectID    string
+	FinnhubAPIKey   string
+	GeminiAPIKey    string
+	Tickers         []string
+	SourceBlacklist []string
+	NewsDate        string // optional override, "YYYY-MM-DD"; empty means use today's date
 }
 
 func Load() (Config, error) {
 	cfg := Config{
-		GCPProjectID:  os.Getenv("GCP_PROJECT_ID"),
-		FinnhubAPIKey: os.Getenv("FINNHUB_API_KEY"),
-		GeminiAPIKey:  os.Getenv("GEMINI_KEY"),
-		Tickers:       jobstatsig.GetTickers(DefaultTickers),
-		NewsDate:      strings.TrimSpace(os.Getenv("NEWS_DATE")),
+		GCPProjectID:    os.Getenv("GCP_PROJECT_ID"),
+		FinnhubAPIKey:   os.Getenv("FINNHUB_API_KEY"),
+		GeminiAPIKey:    os.Getenv("GEMINI_KEY"),
+		Tickers:         jobstatsig.GetTickers(DefaultTickers),
+		SourceBlacklist: jobstatsig.GetSourceBlacklist(DefaultSourceBlacklist),
+		NewsDate:        strings.TrimSpace(os.Getenv("NEWS_DATE")),
 	}
 
 	if cfg.GCPProjectID == "" {

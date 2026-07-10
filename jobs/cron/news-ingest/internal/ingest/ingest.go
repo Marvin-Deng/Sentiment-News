@@ -20,30 +20,39 @@ import (
 
 const maxArticlesPerDay = 500
 
-var excludedArticleSources = map[string]struct{}{
-	"chartmill": {},
+// isExcludedArticle reports whether the article's Finnhub source is blacklisted. Articles' URLs
+// are Finnhub redirect links, not the publisher's URL, so we key off the "source" field instead.
+func isExcludedArticle(source string, blacklist []string) bool {
+	source = strings.ToLower(strings.TrimSpace(source))
+	for _, blocked := range blacklist {
+		if source == blocked {
+			return true
+		}
+	}
+	return false
 }
 
-// isExcludedArticle reports whether the article's Finnhub source is one we don't want to ingest
-// (e.g. ChartMill). The article's own URL is a Finnhub redirect link (finnhub.io/api/news?id=...),
-// not the publisher's URL, so filtering has to key off Finnhub's "source" field instead.
-func isExcludedArticle(source string) bool {
-	_, excluded := excludedArticleSources[strings.ToLower(strings.TrimSpace(source))]
-	return excluded
-}
-
-// mentionsCompany reports whether the article's headline or summary references the ticker symbol
-// or the company name, so we can drop articles that only matched the Finnhub query loosely (e.g.
-// via a related ticker) but never actually discuss the company itself.
+// mentionsCompany reports whether the headline or summary mentions the ticker or company name,
+// as whole words, so short tickers like "V" don't match inside unrelated words (e.g. "movers").
 func mentionsCompany(headline, summary, ticker, companyName string) bool {
 	text := strings.ToLower(headline + " " + summary)
-	if ticker != "" && strings.Contains(text, strings.ToLower(ticker)) {
+	if ticker != "" && containsWord(text, strings.ToLower(ticker)) {
 		return true
 	}
-	if core := coreCompanyName(companyName); core != "" && strings.Contains(text, core) {
+	if core := coreCompanyName(companyName); core != "" && containsWord(text, core) {
 		return true
 	}
 	return false
+}
+
+// containsWord reports whether word appears in text as a standalone word (or phrase, for
+// multi-word company names), not merely as a substring of a larger word.
+func containsWord(text, word string) bool {
+	pattern, err := regexp.Compile(`\b` + regexp.QuoteMeta(word) + `\b`)
+	if err != nil {
+		return false
+	}
+	return pattern.MatchString(text)
 }
 
 var companySuffixPattern = regexp.MustCompile(
@@ -140,7 +149,7 @@ func (s *Service) processTicker(
 
 	validArticles := make([]finnhub.Article, 0, len(articles))
 	for _, article := range articles {
-		if article.Image == "" || isExcludedArticle(article.Source) {
+		if article.Image == "" || isExcludedArticle(article.Source, s.cfg.SourceBlacklist) {
 			continue
 		}
 		if !mentionsCompany(article.Headline, article.Summary, ticker, profile.Name) {
