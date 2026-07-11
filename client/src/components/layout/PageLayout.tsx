@@ -22,12 +22,18 @@ const PageLayout = ({ title, subtitle, searchBar, filters, children }: PageLayou
             </Text>
             <Separator my={6} borderColor="border.control" />
             {searchBar && (
-              <Box w="60%" mb={4}>
+              <Box w={{ base: "full", md: "60%" }} mb={4}>
                 {searchBar}
               </Box>
             )}
             {filters && (
-              <Box display="flex" flexDir="row" alignItems="center" gap={3} mb={4}>
+              <Box
+                display="flex"
+                flexDir={{ base: "column", md: "row" }}
+                alignItems={{ base: "stretch", md: "center" }}
+                gap={3}
+                mb={4}
+              >
                 {filters}
               </Box>
             )}

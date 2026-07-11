@@ -51,7 +51,7 @@ const MultiSelectDropdown = ({
   }, [open]);
 
   return (
-    <Box position="relative" w="25%" ref={containerRef}>
+    <Box position="relative" w={{ base: "full", md: "auto" }} flex={{ md: "1" }} minW={{ md: 0 }} ref={containerRef}>
       <FilterControlButton
         onClick={() => setOpen((prev) => !prev)}
         w="full"
@@ -79,13 +79,14 @@ const MultiSelectDropdown = ({
             borderColor="gray.400"
             _dark={{ borderColor: "whiteAlpha.600" }}
           />
-          <SimpleGrid columns={2} gap={2} maxH="240px" overflowY="auto">
+          <SimpleGrid columns={{ base: 1, sm: 2 }} gap={2} maxH="240px" overflowY="auto">
             {filtered.map((value) => (
               <Checkbox.Root
                 key={value}
                 checked={selectedOptions.includes(value)}
                 onCheckedChange={() => toggleOption(value)}
                 cursor="pointer"
+                py={1}
               >
                 <Checkbox.HiddenInput />
                 <Checkbox.Control cursor="pointer" />

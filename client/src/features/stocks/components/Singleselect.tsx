@@ -36,7 +36,7 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
   }, [open]);
 
   return (
-    <Box position="relative" w="25%" ref={containerRef}>
+    <Box position="relative" w={{ base: "full", md: "auto" }} flex={{ md: "1" }} minW={{ md: 0 }} ref={containerRef}>
       <FilterControlButton
         onClick={() => setOpen(!open)}
         w="full"
