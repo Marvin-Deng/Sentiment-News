@@ -1,5 +1,3 @@
-// Command installplaywright downloads the Playwright driver and Chromium, run once at image
-// build time. playwright.Run() requires this to have already happened.
 package main
 
 import (
@@ -9,10 +7,13 @@ import (
 )
 
 func main() {
-	if err := playwright.Install(&playwright.RunOptions{
+	driver, err := playwright.NewDriver(&playwright.RunOptions{
 		Browsers: []string{"chromium"},
-		WithDeps: true,
-	}); err != nil {
-		log.Fatalf("install playwright: %v", err)
+	})
+	if err != nil {
+		log.Fatalf("get playwright driver: %v", err)
+	}
+	if err := driver.Install(); err != nil {
+		log.Fatalf("install playwright browsers: %v", err)
 	}
 }

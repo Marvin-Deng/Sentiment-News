@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	cloud.google.com/go/firestore v1.23.0
-	github.com/playwright-community/playwright-go v0.6000.0
+	github.com/playwright-community/playwright-go v0.5700.1
 	github.com/statsig-io/go-sdk v1.40.1
 	golang.org/x/sync v0.22.0
 	golang.org/x/time v0.15.0
