@@ -21,7 +21,7 @@ type Resolver struct {
 func NewResolver() (*Resolver, error) {
 	pw, err := playwright.Run()
 	if err != nil {
-		return nil, fmt.Errorf("start playwright: %w", err)
+		return nil, fmt.Errorf("start playwright (install the driver with `go run github.com/playwright-community/playwright-go/cmd/playwright install --with-deps chromium`): %w", err)
 	}
 
 	browser, err := pw.Chromium.Launch(playwright.BrowserTypeLaunchOptions{

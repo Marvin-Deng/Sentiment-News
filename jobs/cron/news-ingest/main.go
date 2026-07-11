@@ -34,11 +34,9 @@ func main() {
 
 	ogImages, err := ogimage.NewResolver()
 	if err != nil {
-		log.Printf("warning: failed to start og:image resolver, falling back to finnhub images: %v", err)
-		ogImages = nil
-	} else {
-		defer ogImages.Close()
+		log.Fatalf("og:image resolver error: %v", err)
 	}
+	defer ogImages.Close()
 
 	start := time.Now()
 	result, err := ingest.NewService(cfg, store, ogImages).Run(ctx)
