@@ -24,12 +24,43 @@ jobs:
 
       - uses: actions/setup-go@v5
         with:
-          go-version: "1.22"
+          go-version: "1.25"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      # The playwright-go driver zip is no longer served by any upstream CDN mirror, so the driver
+      # must come from the equivalent npm package instead. Keep this version in sync with
+      # playwrightCliVersion in the pinned playwright-go release (see jobs/go.mod).
+      - name: Install Playwright browser system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libglib2.0-0 libnspr4 libnss3 libdbus-1-3 libatk1.0-0 libatk-bridge2.0-0 \
+            libcups2 libxcb1 libxkbcommon0 libatspi2.0-0 libx11-6 libxcomposite1 \
+            libxdamage1 libxext6 libxfixes3 libxrandr2 libgbm1 libcairo2 \
+            libpango-1.0-0 libasound2t64
+
+      - name: Vendor Playwright driver
+        env:
+          PLAYWRIGHT_DRIVER_VERSION: "1.57.0"
+        run: |
+          mkdir -p /tmp/playwright-driver/package
+          npm install --prefix /tmp/playwright-vendor "playwright@${PLAYWRIGHT_DRIVER_VERSION}"
+          cp -R /tmp/playwright-vendor/node_modules/playwright/. /tmp/playwright-driver/package/
+          cp -R /tmp/playwright-vendor/node_modules /tmp/playwright-driver/package/node_modules
+          echo "PLAYWRIGHT_DRIVER_PATH=/tmp/playwright-driver" >> "$GITHUB_ENV"
+          echo "PLAYWRIGHT_NODEJS_PATH=$(which node)" >> "$GITHUB_ENV"
+
+      - name: Install Playwright browsers
+        working-directory: jobs
+        run: go run ./cron/news-ingest/playwright
 
       - name: Run news-ingest job
         working-directory: jobs
