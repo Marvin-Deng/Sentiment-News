@@ -52,7 +52,7 @@ const PublicationDateFilter = ({ selectedDate, onDateChange }: PublicationDateFi
           </DatePicker.Trigger>
         </DatePicker.Control>
         <Portal>
-          <DatePicker.Positioner>
+          <DatePicker.Positioner zIndex={50}>
             <DatePicker.Content bg="bg" borderWidth="1px" borderRadius="md" borderColor="border.control">
               <DatePicker.View view="day">
                 <DatePicker.Header />

@@ -62,10 +62,27 @@ const NewsCard = ({
                 {sentiment}
               </Badge>
               {reasoning && (
-                <Tooltip content={reasoning} contentProps={{ maxW: "sm" }}>
-                  <Icon size="sm" color="fg.muted" cursor="pointer">
-                    <MdInfoOutline />
-                  </Icon>
+                <Tooltip
+                  content={reasoning}
+                  closeOnScroll={false}
+                  contentProps={{
+                    maxW: "sm",
+                    px: 3,
+                    py: 2,
+                    bg: "white",
+                    color: "gray.800",
+                    borderWidth: "1px",
+                    borderColor: "gray.200",
+                    borderRadius: "md",
+                    boxShadow: "lg",
+                    _dark: {
+                      bg: "gray.700",
+                      color: "white",
+                      borderColor: "gray.600",
+                    },
+                  }}
+                >
+                  <Icon as={MdInfoOutline} size="sm" color="fg.muted" cursor="pointer" />
                 </Tooltip>
               )}
             </Flex>
