@@ -1,11 +1,6 @@
-name: GCP Firestore Infra
+name: GCP Firestore Infra (inactive)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - infra/firestore/**
   workflow_dispatch:
 
 permissions:
