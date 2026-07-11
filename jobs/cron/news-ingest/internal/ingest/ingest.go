@@ -248,7 +248,10 @@ func (s *Service) addArticle(
 
 	atomic.AddInt64(articleCount, 1)
 
-	log.Printf("created article: %s on %s", ticker, marketDate)
+	log.Printf(
+		"created article: id=%d headline=%q image_found=%t ticker=%s market_date=%s",
+		article.ID, article.Headline, imageURL != "", ticker, marketDate,
+	)
 	return nil
 }
 
@@ -265,5 +268,6 @@ func (s *Service) resolveImage(ctx context.Context, article finnhub.Article) str
 		return article.Image
 	}
 
+	log.Printf("resolved og:image for article %d: %s", article.ID, image)
 	return image
 }

@@ -42,9 +42,6 @@ export async function GET(request: Request) {
       ? query.where("sentiment", "in", sentimentMembers)
       : query.where("sentiment", "==", sentiment);
   }
-  if (source) {
-    query = query.where("source", "==", source);
-  }
   if (publicationDate) {
     query = query
       .where("publicationDatetime", ">=", `${publicationDate} 00:00:00`)
@@ -100,6 +97,10 @@ export async function GET(request: Request) {
           sentimentMembers.includes(article.sentiment as never),
         )
       : articles.filter((article) => article.sentiment === sentiment);
+  }
+
+  if (source) {
+    articles = articles.filter((article) => article.source === source);
   }
 
   if (searchQuery) {
