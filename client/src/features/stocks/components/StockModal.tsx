@@ -10,6 +10,7 @@ import LineChart from "@/src/features/stocks/components/LineChart";
 import DataTable from "@/src/features/stocks/components/DataTable";
 import EpsSurprisesChart from "@/src/features/stocks/components/EpsSurprisesChart";
 import EpsSurprisesTable from "@/src/features/stocks/components/EpsSurprisesTable";
+import StockNewsList from "@/src/features/stocks/components/StockNewsList";
 import InsiderTransactionsTable from "@/src/features/insider/components/InsiderTransactionsTable";
 
 import {
@@ -17,6 +18,7 @@ import {
   fetchCompanyProfile,
   fetchBasicFinancials,
   fetchEpsSurprises,
+  fetchFinnhubNews,
 } from "@/src/features/stocks/api";
 import { fetchInsiderTransactions } from "@/src/features/insider/api";
 import { InsiderTransaction } from "@/src/features/insider/types";
@@ -26,6 +28,7 @@ import {
   BasicFinancials,
   EpsSurprise,
   CompanyProfile,
+  FinnhubNewsItem,
 } from "@/src/features/stocks/types";
 import { formatNumber } from "@/src/utils/numberUtils";
 import { getPriceDiffStr, getPercentChangeStr, isPricePositive } from "@/src/utils/priceUtils";
@@ -40,6 +43,7 @@ const RANGES = ["1W", "1M", "3M", "6M", "YTD", "1Y", "2Y", "5Y"];
 
 const TAB_OPTIONS = [
   { value: "profile", label: "Profile" },
+  { value: "news", label: "News" },
   { value: "eps", label: "EPS" },
   { value: "insider", label: "Insider" },
 ];
@@ -74,6 +78,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
   const [companyProfile, setCompanyProfile] = useState<CompanyProfile | null>(null);
   const [basicFinancials, setBasicFinancials] = useState<BasicFinancials | null>(null);
   const [epsSurprises, setEpsSurprises] = useState<EpsSurprise[]>([]);
+  const [finnhubNews, setFinnhubNews] = useState<FinnhubNewsItem[]>([]);
   const [insiderTransactions, setInsiderTransactions] = useState<InsiderTransaction[]>([]);
 
   const getCurrTickerData = () => stockDataMap.get(ticker) || [];
@@ -145,6 +150,14 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
     fetchEpsSurprises(ticker)
       .then(setEpsSurprises)
       .catch(() => setEpsSurprises([]));
+  }, [ticker]);
+
+  useEffect(() => {
+    if (!ticker) return;
+
+    fetchFinnhubNews(ticker)
+      .then(setFinnhubNews)
+      .catch(() => setFinnhubNews([]));
   }, [ticker]);
 
   useEffect(() => {
@@ -282,6 +295,9 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
           </Tabs.List>
           <Tabs.Content value="profile">
             <DataTable currPriceData={currPriceData} basicFinancials={basicFinancials} />
+          </Tabs.Content>
+          <Tabs.Content value="news">
+            <StockNewsList news={finnhubNews} />
           </Tabs.Content>
           <Tabs.Content value="eps">
             <EpsSurprisesChart epsSurprises={epsSurprises} />

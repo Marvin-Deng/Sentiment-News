@@ -65,6 +65,15 @@ export type EpsSurprise = {
   year: number;
 };
 
+export type FinnhubNewsItem = {
+  headline: string;
+  url: string;
+  image: string;
+  summary: string;
+  source: string;
+  datetime: number;
+};
+
 export type QuoteInfo = {
   ticker: string;
   current: number;

@@ -1,4 +1,4 @@
-import { BasicFinancials, CompanyProfile, EpsSurprise, PriceData, QuoteInfo } from "@/src/features/stocks/types";
+import { BasicFinancials, CompanyProfile, EpsSurprise, FinnhubNewsItem, PriceData, QuoteInfo } from "@/src/features/stocks/types";
 import { toMarketDateISO } from "@/src/utils/dateUtils";
 import { fetchJson } from "@/src/utils/fetchJson";
 import { getCached, setCached } from "@/src/utils/sessionCache";
@@ -49,6 +49,15 @@ export const fetchEpsSurprises = async (ticker: string): Promise<EpsSurprise[]> 
   );
   setCached(cacheKey, eps_surprises, EPS_SURPRISES_TTL_SECONDS);
   return eps_surprises;
+};
+
+export const fetchFinnhubNews = async (ticker: string): Promise<FinnhubNewsItem[]> => {
+  const { news } = await fetchJson<{ news: FinnhubNewsItem[] }>(
+    `/api/stock/finnhub_news?ticker=${ticker}`,
+    undefined,
+    "fetchFinnhubNews",
+  );
+  return news;
 };
 
 const filterFromDate = (eodData: PriceData[], rangeStart: string): PriceData[] =>
