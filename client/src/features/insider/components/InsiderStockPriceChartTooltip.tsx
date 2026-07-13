@@ -41,7 +41,7 @@ const InsiderStockPriceChartTooltip = ({
       <Box textStyle="tooltipLabel" mb={2}>
         {parseMarketDate(data.tradeInfo?.transactionDate ?? label ?? data.date).format("MMM D, YYYY")}
       </Box>
-      <Box mb={2}>{formatCurrency(data.close)}</Box>
+      <Box mb={2}>{formatCurrency(data.adjClose)}</Box>
       {data.tradeInfo && data.tradeInfo.trades.length > 0 && (
         <>
           {aggregateTradesByPersonAndDirection(data.tradeInfo.trades).map((trade, idx) => (

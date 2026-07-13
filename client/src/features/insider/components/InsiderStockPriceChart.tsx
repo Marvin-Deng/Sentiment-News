@@ -45,7 +45,7 @@ const getMonthStartTicks = (data: PriceData[] | ChartPoint[]): string[] => {
 const getPriceTicks = (data: PriceData[] | ChartPoint[], count: number) => {
   if (data.length === 0) return { ticks: [], domainMin: 0, domainMax: 1 };
 
-  const closes = data.map((p) => p.close);
+  const closes = data.map((p) => p.adjClose).filter((c): c is number => c != null);
   const dataMin = Math.min(...closes);
   const dataMax = Math.max(...closes);
   const range = dataMax - dataMin || 1;
@@ -222,7 +222,7 @@ const InsiderStockPriceChart = ({
             <Tooltip content={<InsiderStockPriceChartTooltip />} />
             <Area
               type="linear"
-              dataKey="close"
+              dataKey="adjClose"
               stroke="#9ca3af"
               fill="url(#stockPriceFill)"
               strokeWidth={2}

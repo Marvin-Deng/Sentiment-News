@@ -119,7 +119,7 @@ const getAxisConfig = (priceData: PriceData[], range: string) => {
 const getPriceTicks = (priceData: PriceData[], count: number) => {
   if (priceData.length === 0) return { ticks: [], domainMin: 0, domainMax: 1 };
 
-  const closes = priceData.map((p) => p.close);
+  const closes = priceData.map((p) => p.adjClose);
   const dataMin = Math.min(...closes);
   const dataMax = Math.max(...closes);
   const range = dataMax - dataMin || 1;
@@ -153,10 +153,10 @@ const ChartTooltip = ({
       <Box textStyle="tooltipLabel" mb={1}>
         {formatTooltipDateLabel(label ?? data.date)}
       </Box>
-      <Box>Open: {data.open != null ? formatNumber(data.open) : "N/A"}</Box>
-      <Box>Close: {data.close != null ? formatNumber(data.close) : "N/A"}</Box>
-      <Box>Low: {data.low != null ? formatNumber(data.low) : "N/A"}</Box>
-      <Box>High: {data.high != null ? formatNumber(data.high) : "N/A"}</Box>
+      <Box>Open: {data.adjOpen != null ? formatNumber(data.adjOpen) : "N/A"}</Box>
+      <Box>Close: {data.adjClose != null ? formatNumber(data.adjClose) : "N/A"}</Box>
+      <Box>Low: {data.adjLow != null ? formatNumber(data.adjLow) : "N/A"}</Box>
+      <Box>High: {data.adjHigh != null ? formatNumber(data.adjHigh) : "N/A"}</Box>
       <Box>Volume: {data.volume != null ? formatNumber(data.volume) : "N/A"}</Box>
     </Box>
   );
@@ -216,7 +216,7 @@ const LineChart: React.FC<LineChartProps> = ({ ticker, priceData, range, isPosit
           <Tooltip content={<ChartTooltip />} />
           <Area
             type="linear"
-            dataKey="close"
+            dataKey="adjClose"
             stroke={priceLineColor}
             fill={`url(#priceFill-${ticker})`}
             strokeWidth={2}

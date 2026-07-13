@@ -172,8 +172,8 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
 
   if (!ticker) return null;
 
-  const rangeStartPrice = rangeData.length > 0 ? rangeData[0].close : currPriceData.open;
-  const rangeEndPrice = currPriceData.close;
+  const rangeStartPrice = rangeData.length > 0 ? rangeData[0].adjClose : currPriceData.adjOpen;
+  const rangeEndPrice = currPriceData.adjClose;
   const priceColor = isPricePositive(rangeStartPrice, rangeEndPrice) ? "positive" : "negative";
   const companyName = companyProfile?.name || ticker;
   const companyWebUrl = companyProfile?.weburl;
@@ -266,7 +266,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
         <Box w="full" maxW="4xl" mx="auto" px={4} py={2}>
           <Flex align="baseline" gap={3}>
             <Text fontSize="xl" fontWeight="semibold">
-              {formatNumber(currPriceData.close)}
+              {formatNumber(currPriceData.adjClose)}
             </Text>
             <Text fontSize="lg" fontWeight="semibold" color={priceColor}>
               {getPriceDiffStr(rangeStartPrice, rangeEndPrice)} (

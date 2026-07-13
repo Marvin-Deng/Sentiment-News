@@ -34,10 +34,10 @@ const DataTable = ({ currPriceData, basicFinancials }: DataTableProps) => {
   const eodSection: TableSection = {
     title: "End of Day Data",
     rows: [
-      { label: "Open", value: currPriceData.open },
-      { label: "High", value: currPriceData.high },
-      { label: "Low", value: currPriceData.low },
-      { label: "Close", value: currPriceData.close },
+      { label: "Open", value: currPriceData.adjOpen },
+      { label: "High", value: currPriceData.adjHigh },
+      { label: "Low", value: currPriceData.adjLow },
+      { label: "Close", value: currPriceData.adjClose },
       { label: "Volume", value: currPriceData.volume },
     ],
   };
