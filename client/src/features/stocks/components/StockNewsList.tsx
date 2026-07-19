@@ -27,7 +27,13 @@ const StockNewsList = ({ news }: StockNewsListProps) => {
           {item.image && (
             <Image src={item.image} alt={item.headline} w="full" h="56" objectFit="cover" mb={3} borderRadius="lg" />
           )}
-          <Link href={item.url} target="_blank" rel="noopener noreferrer" _hover={{ textDecoration: "underline" }}>
+          <Link
+            href={item.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(event) => event.stopPropagation()}
+            _hover={{ textDecoration: "underline" }}
+          >
             <Text fontSize="lg" fontWeight="semibold" mb={2}>
               {item.headline}
             </Text>

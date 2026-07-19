@@ -44,6 +44,9 @@ const NewsCard = ({
         </Text>
         <Link
           href={article_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(event) => event.stopPropagation()}
           _hover={{ textDecoration: "underline" }}
         >
           <Text fontSize="lg" fontWeight="semibold" mb={2}>

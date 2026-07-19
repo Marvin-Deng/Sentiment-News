@@ -15,7 +15,13 @@ const PublicationDateFilter = ({ selectedDate, onDateChange }: PublicationDateFi
   const maxDate = useMemo(() => today(getLocalTimeZone()), []);
 
   return (
-    <Box position="relative" w={{ base: "full", md: "auto" }} flex={{ md: "1" }} minW={{ md: 0 }}>
+    <Box
+      position="relative"
+      w={{ base: "full", md: "auto" }}
+      flex={{ md: "1" }}
+      minW={{ md: 0 }}
+      maxW={{ md: "calc(25% - 0.5625rem)" }}
+    >
       <DatePicker.Root
         w="full"
         max={maxDate}

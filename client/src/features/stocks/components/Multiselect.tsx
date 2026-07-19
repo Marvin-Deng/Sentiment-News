@@ -51,7 +51,14 @@ const MultiSelectDropdown = ({
   }, [open]);
 
   return (
-    <Box position="relative" w={{ base: "full", md: "auto" }} flex={{ md: "1" }} minW={{ md: 0 }} ref={containerRef}>
+    <Box
+      position="relative"
+      w={{ base: "full", md: "auto" }}
+      flex={{ md: "1" }}
+      minW={{ md: 0 }}
+      maxW={{ md: "calc(25% - 0.5625rem)" }}
+      ref={containerRef}
+    >
       <FilterControlButton
         onClick={() => setOpen((prev) => !prev)}
         w="full"

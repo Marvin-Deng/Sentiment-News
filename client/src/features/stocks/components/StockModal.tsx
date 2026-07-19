@@ -219,6 +219,7 @@ const StockModal = ({ ticker: tickerProp, onClose }: StockModalProps) => {
                   href={companyWebUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={(event) => event.stopPropagation()}
                   _hover={{ textDecoration: "underline" }}
                 >
                   {companyName} ({ticker})
