@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Box, Center } from "@chakra-ui/react";
 
 import TickerCard from "@/src/features/stocks/components/TickerCard";
-import SingleSelectDropdown from "@/src/features/stocks/components/Singleselect";
 import Loader from "@/src/components/ui/Loader";
 import LoadMoreButton from "@/src/components/ui/LoadMoreButton";
 import PageLayout from "@/src/components/layout/PageLayout";
@@ -13,7 +12,6 @@ import StockSearchBar from "@/src/components/navbar/StockSearchBar";
 import { StockInfo } from "@/src/features/stocks/types";
 import { sortStocksBySearch } from "@/src/features/stocks/stockSearchRank";
 import { useSearch } from "@/src/providers/SearchProvider";
-import { compareExchangeMics, formatExchangeLabel } from "@/src/constants/exchanges";
 
 const PAGE_SIZE = 10;
 
@@ -25,7 +23,6 @@ const StocksPage = ({ defaultTickers }: StocksPageProps) => {
   const router = useRouter();
   const [stockInfo, setStockInfo] = useState<StockInfo[] | null>(null);
   const [page, setPage] = useState(1);
-  const [selectedExchange, setSelectedExchange] = useState<number | null>(null);
 
   const { searchQuery, updateSearchQuery } = useSearch();
 
@@ -42,39 +39,18 @@ const StocksPage = ({ defaultTickers }: StocksPageProps) => {
     fetchStocks();
   }, []);
 
-  const exchangeMics = useMemo(() => {
-    if (!stockInfo) return [];
-    return Array.from(new Set(stockInfo.map((stock) => stock.mic))).sort(compareExchangeMics);
-  }, [stockInfo]);
-
-  const exchangeOptions = useMemo(
-    () => new Map(exchangeMics.map((mic, index) => [index, formatExchangeLabel(mic)])),
-    [exchangeMics],
-  );
-
   const filteredStockInfo = useMemo(() => {
     if (!stockInfo) return null;
 
-    const selectedMic = selectedExchange != null ? exchangeMics[selectedExchange] : null;
-
-    if (!searchQuery.trim() && selectedExchange == null) {
+    if (!searchQuery.trim()) {
       const defaultStocks = defaultTickers.map((ticker) =>
         stockInfo.find((stock) => stock.symbol === ticker),
       ).filter((stock): stock is StockInfo => stock != null);
       return defaultStocks;
     }
 
-    let results = stockInfo.filter((stock) => {
-      const matchesExchange = !selectedMic || stock.mic === selectedMic;
-      return matchesExchange;
-    });
-
-    if (searchQuery.trim()) {
-      results = sortStocksBySearch(results, searchQuery);
-    }
-
-    return results;
-  }, [stockInfo, searchQuery, selectedExchange, exchangeMics, defaultTickers]);
+    return sortStocksBySearch(stockInfo, searchQuery);
+  }, [stockInfo, searchQuery, defaultTickers]);
 
   const loadNextPageStocks = () => {
     setPage((prev) => prev + 1);
@@ -83,15 +59,6 @@ const StocksPage = ({ defaultTickers }: StocksPageProps) => {
   const handleOpenModal = (ticker: string) => {
     router.push(`/stocks/${ticker}`);
   };
-
-  const filters = (
-    <SingleSelectDropdown
-      placeholder="Exchange"
-      originalOptions={exchangeOptions}
-      selectedOption={selectedExchange}
-      setSelectedOption={setSelectedExchange}
-    />
-  );
 
   return (
     <PageLayout
@@ -108,7 +75,6 @@ const StocksPage = ({ defaultTickers }: StocksPageProps) => {
           onSymbolSelect={handleOpenModal}
         />
       }
-      filters={filters}
     >
       {filteredStockInfo && (
         <Box mt={8}>
